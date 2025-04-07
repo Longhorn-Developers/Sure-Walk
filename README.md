@@ -2,6 +2,9 @@
 
 ### Build Badges
 
+* ![Expo](https://img.shields.io/badge/expo-1C1E24?style=for-the-badge&logo=expo&logoColor=#D04A37)
+* ![React Native](https://img.shields.io/badge/react_native-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+* ![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white)
 * [![Next.js][Next.js]][Next-url]
 * [![TypeScript][TypeScript]][TypeScript-url]
 * [![Tailwind CSS][Tailwind]][Tailwind-url]
@@ -128,25 +131,41 @@ Where:
 We welcome all to contribute! Please carefully read our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before getting started. All contributors must adhere to our Code of Conduct
 
 ## Available Scripts
--  ``pnpm dev``         # Start dev server
-- ``pnpm build ``      # Build project for production
-- ``pnpm preview ``    # Preview production build locally
+-  ``pnpm expo start`` # Start expo app, needs ios simulator or android simulator unless using web version
 - ``pnpm lint ``       # Lint codebase
 - ``pnpm format ``     # Format code using Prettier
+- ``pnpm expo start -c`` # Starts expo app, clearing cache, run if loading slowly
 
 ### Development commands
-- TBD
+- ``pnpm expo start -c`` # Starts expo app, clearing cache, run if loading slowly
+- ``pnpm expo start`` # Start expo app, needs ios simulator or android simulator unless using web version
 ### Building commands
 - TBD
 ### Testing commands
 - TBD
 ### Linting & formatting commands
-- TBD
+- ``pnpm lint ``       # Lint codebase
+- ``pnpm format ``     # Format code using Prettier
 
 ## Project Structure
-- TBD
-### Directory organization
+
+```text
+/
+├── SureWalkApp/
+│   └── app/
+│   └── assets/
+│       └── fonts/
+│       └── images/
+│   └── tailwind.config.js
+│   └── package.json
+└── package.json
+```
+
 ### Key files and their purposes
+- SureWalkApp, contains the mobile application and its dependencies
+- "SureWalkApp/app/", contains the main pages for the mobile application
+- "SureWalkApp/tailwind.config.js", contains the custom styles and tailwind configuration
+- "SureWalkApp/assets/", contains fonts and images files that can be referenced in the mobile app
 
 ## Deployment
 ### Environment information
