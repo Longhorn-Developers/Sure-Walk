@@ -20,18 +20,17 @@
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation Steps](#installation-steps)
-  - [Configuration Requirements](#configuration-requirements)
-- [Architecture](#architecture)
+- [Architecture](#high-level-architecture-overview)
   - [High-Level Architecture Overview](#high-level-architecture-overview)
   - [Key Components](#key-components)
   - [Design Principles](#design-principles)
 - [Development Workflow](#development-workflow)
   - [Branch Naming Conventions](#branch-naming-conventions)
-  - [Conventional Commits](#conventional-commits)
+  - [Conventional Commits](#commit-message)
   - [Pull Request Process](#pr-process)
   - [Testing Expectations](#testing-expectations)
-  - [Contribution Guidelines](#contribution-guidelines)
-  - [Code of Conduct](#code-of-conduct)
+  - [Contribution Guidelines](#contribution-guidelines--code-of-conduct-reference)
+  - [Code of Conduct](#contribution-guidelines--code-of-conduct-reference)
 - [Available Scripts](#available-scripts)
 - [Project Structure](#project-structure)
 - [Deployment](#deployment)
@@ -72,13 +71,12 @@ Sure Walk aims to improve the processes of booking a Sure Walk through easier ma
 
 ### Installation steps
 ```
-
+pnpm install (in root directory)
+pnpm install (in SureWalkApp/)
+pnpm expo start (in terminal)
 ```
 
-### Configuration requirements
-- TBD
-
-## Architecture & High-level architecture overview
+## High-level architecture overview
 - Expo
 - React Native for front-end
 - TypeScript
@@ -86,9 +84,42 @@ Sure Walk aims to improve the processes of booking a Sure Walk through easier ma
 - Tailwind CSS for styling
 - Vercel for deployment and hosting
 ### Key components
-- TBD
+- User App (React Native with Expo)
+  - Provides UT students a mobile interface to request safe walks, track their walk in real-time, and communicate with their assigned Sure Walk driver.
+
+- Driver App / Mode
+  - Allows Sure Walk drivers to receive auto-assigned walk requests, navigate to pickup/drop-off locations, and chat with students.
+
+- Dispatcher Dashboard (Web)
+  - Enables coordinators to oversee all walk requests, manually assign drivers if needed, and monitor real-time walk progress.
+
+- Authentication System
+  - Integrates with UT EID + Duo for secure user verification and driver permissions.
+
+- Real-Time Backend
+  - Handles user-driver-dispatcher communication and updates for active walk sessions.
+
+- GPS and Location Services
+  - Tracks user and driver locations for real-time updates and routing.
+
+- Database
+  - Stores user profiles, walk history, driver logs, and route data.
+
 ### Design principles
-- TBD
+- Safety-first UX
+  - Prioritize clear visuals, status updates, and easy communication to reassure users throughout their walk.
+
+- Minimal friction
+  - Fast and simple request flow with default pickup locations, auto-driver assignment, and persistent session state.
+
+- Privacy and data security
+  - No unnecessary location tracking or data retention. Authentication is scoped and session-based.
+
+- Real-time communication
+  - Users, drivers, and dispatchers receive updates and can communicate instantly through in-app chat.
+
+- Reliability and resilience
+  - App maintains state across reloads and can recover gracefully from connection drops.
 
 ## Development Workflow
 ### Branch naming conventions + Conventional Commits
@@ -139,10 +170,7 @@ We welcome all to contribute! Please carefully read our [Contributing Guide](CON
 ### Development commands
 - ``pnpm expo start -c`` # Starts expo app, clearing cache, run if loading slowly
 - ``pnpm expo start`` # Start expo app, needs ios simulator or android simulator unless using web version
-### Building commands
-- TBD
-### Testing commands
-- TBD
+
 ### Linting & formatting commands
 - ``pnpm lint ``       # Lint codebase
 - ``pnpm format ``     # Format code using Prettier
@@ -180,7 +208,7 @@ We welcome all to contribute! Please carefully read our [Contributing Guide](CON
 ## Open Source License
 ### Usually MIT but choose as needed as some dependencies may require a different license
 
-links:
+## Links:
 
 [Next.js]: https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Next-url]: https://nextjs.org/
