@@ -203,7 +203,6 @@ We welcome all to contribute! Please carefully read our [Contributing Guide](CON
 - Vercel builds automatically from ``main`` branch
 - Preview Deployments available on every PR
 ### Configuration details
-- More details on [Astro Docs](https://docs.astro.build/en/guides/deploy/vercel/)
 
 ## Open Source License
 ### Usually MIT but choose as needed as some dependencies may require a different license
