@@ -67,7 +67,10 @@ Sure Walk aims to improve the processes of booking a Sure Walk through easier ma
 ### Prerequisites
 1. Installations:
 - [pnpm](https://pnpm.io)
-- Git 
+- Git
+2. Testing Prerequisites
+- [XCode](https://docs.expo.dev/workflow/ios-simulator/)
+- [Android Simulator](https://docs.expo.dev/workflow/android-studio-emulator/)
 
 ### Installation steps
 ```
