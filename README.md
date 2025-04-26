@@ -20,6 +20,7 @@
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation Steps](#installation-steps)
+  - [Running the apps](#running-the-apps)
 - [Architecture](#high-level-architecture-overview)
   - [High-Level Architecture Overview](#high-level-architecture-overview)
   - [Key Components](#key-components)
@@ -74,9 +75,18 @@ Sure Walk aims to improve the processes of booking a Sure Walk through easier ma
 
 ### Installation steps
 ```
-pnpm install (in root directory)
-pnpm install (in SureWalkApp/)
-pnpm expo start (in terminal)
+git clone git@github.com:Longhorn-Developers/Sure-Walk.git
+cd Sure-Walk
+pnpm install
+```
+
+### Running the apps
+```
+# Mobile (Expo)
+pnpm dev:mobile
+
+# Web admin dashboard (Next.js)
+pnpm dev:web
 ```
 
 ## High-level architecture overview
@@ -86,6 +96,7 @@ pnpm expo start (in terminal)
 - Next.js
 - Tailwind CSS for styling
 - Vercel for deployment and hosting
+
 ### Key components
 - User App (React Native with Expo)
   - Provides UT students a mobile interface to request safe walks, track their walk in real-time, and communicate with their assigned Sure Walk driver.
@@ -125,6 +136,7 @@ pnpm expo start (in terminal)
   - App maintains state across reloads and can recover gracefully from connection drops.
 
 ## Development Workflow
+
 ### Branch naming conventions + Conventional Commits
 We follow the Conventional Commits specification for commit messages. This ensures a consistent commit history and enables automated versioning and changelog generation.
 
@@ -136,13 +148,15 @@ Examples:
 - feature/{feature-name}
 - fix/{bug-description}
 - docs/{documentation-change}
+
 ### Commit Message
 Follow this structure for commit messages
 ```
 <type>(<scope>): <subject>
 ```
 Where:
-```type``` has one of the following:
+
+#### ```type``` has one of the following:
 - feat: New features
 - fix: Bug fixes
 - docs: Documentation changes
@@ -150,6 +164,11 @@ Where:
 - refactor: Code changes without behavior change
 - test: Adding or updating tests
 - chore: Build process or tooling updates
+
+#### ```scope``` should specify which app or module the commit targets, for example:
+- web: changes in the web (Next.js) app
+- mobile: changes in the mobile (Expo) app
+- shared: changes to the common ui module
 
 ### PR process
 - Fork or branch from main
@@ -165,49 +184,55 @@ Where:
 We welcome all to contribute! Please carefully read our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before getting started. All contributors must adhere to our Code of Conduct
 
 ## Available Scripts
--  ``pnpm expo start`` # Start expo app, needs ios simulator or android simulator unless using web version
-- ``pnpm lint ``       # Lint codebase
-- ``pnpm format ``     # Format code using Prettier
-- ``pnpm expo start -c`` # Starts expo app, clearing cache, run if loading slowly
 
-### Development commands
+### Mobile (Expo) App
+- ``pnpm expo start``    # Start expo app, needs ios simulator or android simulator unless using web version
 - ``pnpm expo start -c`` # Starts expo app, clearing cache, run if loading slowly
-- ``pnpm expo start`` # Start expo app, needs ios simulator or android simulator unless using web version
-
-### Linting & formatting commands
-- ``pnpm lint ``       # Lint codebase
-- ``pnpm format ``     # Format code using Prettier
+- ``pnpm lint``         # Lint codebase
+- ``pnpm format``       # Format code using Prettier
 
 ## Project Structure
 
 ```text
 /
-├── SureWalkApp/
-│   └── app/
-│   └── assets/
-│       └── fonts/
-│       └── images/
-│   └── tailwind.config.js
-│   └── package.json
-└── package.json
+├── package.json
+├── pnpm-workspace.yaml
+├── apps/
+│   ├── mobile/   # Expo React Native app
+│   └── web/      # Next.js web dashboard
+├── packages/
+│   ├── ui/       # Shared UI components
+│   └── api/      # API client code
+├── libs/
+│   ├── utils/    # Common utilities
+│   └── types/    # Shared TS types
+└── .gitignore
 ```
 
 ### Key files and their purposes
-- SureWalkApp, contains the mobile application and its dependencies
-- "SureWalkApp/app/", contains the main pages for the mobile application
-- "SureWalkApp/tailwind.config.js", contains the custom styles and tailwind configuration
-- "SureWalkApp/assets/", contains fonts and images files that can be referenced in the mobile app
+
+- **pnpm-workspace.yaml** - Defines the workspace structure
+- **apps/mobile/** - Contains the Expo-based React Native application for users and drivers
+- **apps/web/** - Contains the Next.js admin dashboard for Sure Walk staff
+- **packages/ui/** - Shared UI components that can be used in both mobile and web apps
+- **packages/api/** - API client utilities for interacting with backend services
+- **libs/utils/** - Common utility functions shared across the applications
+- **libs/types/** - TypeScript types and interfaces used throughout the project
 
 ## Deployment
+
 ### Environment information
 - Hosted on [Vercel](https://vercel.com/)
+
 ### Deployment process
 - Push changes to GitHub
 - Vercel builds automatically from ``main`` branch
 - Preview Deployments available on every PR
+
 ### Configuration details
 
 ## Open Source License
+
 ### Usually MIT but choose as needed as some dependencies may require a different license
 
 ## Links:

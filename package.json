@@ -1,11 +1,23 @@
 {
+  "name": "Sure-Walk",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "commitlint": "commitlint --edit",
+    "dev:mobile": "pnpm --filter surewalk-mobile-app start",
+    "dev:web": "pnpm --filter surewalk-web-app dev",
+    "build:mobile": "pnpm --filter surewalk-mobile-app build",
+    "build:web": "pnpm --filter surewalk-web-app build"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "libs/*"
+  ],
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
     "husky": "^9.1.7"
-  },
-  "scripts": {
-    "prepare": "husky",
-    "commitlint": "commitlint --edit"
   }
 }
