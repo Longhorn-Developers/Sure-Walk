@@ -1,4 +1,3 @@
-import { Link } from "expo-router";
 import { Text, SafeAreaView } from "react-native";
 
 const Home = () => {
