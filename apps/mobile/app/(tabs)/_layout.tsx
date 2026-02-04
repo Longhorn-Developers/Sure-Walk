@@ -1,23 +1,46 @@
-import { Text } from "react-native";
 import { Tabs } from "expo-router";
+import Feather from "@expo/vector-icons/Feather";
 
 const _layout = () => {
   return (
-    <Tabs>
+    <Tabs
+      screenOptions={{
+        tabBarStyle: {
+          paddingTop: 8,
+          height: 64,
+          boxShadow: "none",
+          borderTopColor: "#E2E8F0",
+          borderTopWidth: 1,
+        },
+        tabBarLabelStyle: {
+          fontFamily: "Geist", // TODO: actually use the font
+          fontSize: 12,
+          paddingTop: 2,
+          color: "#0F172A",
+        },
+        tabBarIconStyle: {
+          color: "#0F172A",
+        }
+      }}
+    >
       <Tabs.Screen
         name="home"
         options={{
           headerShown: false,
           tabBarLabel: "Home",
-          tabBarIcon: ({ color }) => <Text style={{ color }}>🏠</Text>,
+          tabBarIcon: () => (
+            <Feather name="home" size={28} /> // TODO: get clarification on icon libraries
+          ),
         }}
       />
       <Tabs.Screen
-        name="order"
+        name="guidelines"
         options={{
           headerShown: false,
-          tabBarLabel: "Order",
-          tabBarIcon: ({ color }) => <Text style={{ color }}>📦</Text>,
+          tabBarLabel: "Guidelines",
+          tabBarIcon: () => (
+            <Feather name="clipboard" size={28} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -25,15 +48,9 @@ const _layout = () => {
         options={{
           headerShown: false,
           tabBarLabel: "Profile",
-          tabBarIcon: ({ color }) => <Text style={{ color }}>👤</Text>,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          headerShown: false,
-          tabBarLabel: "Settings",
-          tabBarIcon: ({ color }) => <Text style={{ color }}>⚙️</Text>,
+          tabBarIcon: () => (
+            <Feather name="user" size={28} />
+          ),
         }}
       />
     </Tabs>
