@@ -1,10 +1,10 @@
 import { Stack } from "expo-router";
 import "../app/globals.css";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View } from "react-native";
 
 export default function RootLayout() {
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white pt-safe">
       <Stack>
         <Stack.Screen
           name="(tabs)"
@@ -13,6 +13,6 @@ export default function RootLayout() {
           }}
         />
       </Stack>
-    </SafeAreaView>
+    </View>
   );
 }

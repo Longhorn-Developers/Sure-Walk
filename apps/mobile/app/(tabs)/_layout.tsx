@@ -1,5 +1,6 @@
 import { Tabs } from "expo-router";
 import Feather from "@expo/vector-icons/Feather";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const _layout = () => {
   return (
@@ -7,7 +8,7 @@ const _layout = () => {
       screenOptions={{
         tabBarStyle: {
           paddingTop: 8,
-          height: 64,
+          paddingBottom: useSafeAreaInsets().bottom,
           boxShadow: "none",
           borderTopColor: "#E2E8F0",
           borderTopWidth: 1,
@@ -20,7 +21,7 @@ const _layout = () => {
         },
         tabBarIconStyle: {
           color: "#0F172A",
-        }
+        },
       }}
     >
       <Tabs.Screen
@@ -38,9 +39,7 @@ const _layout = () => {
         options={{
           headerShown: false,
           tabBarLabel: "Guidelines",
-          tabBarIcon: () => (
-            <Feather name="clipboard" size={28} />
-          ),
+          tabBarIcon: () => <Feather name="clipboard" size={28} />,
         }}
       />
       <Tabs.Screen
@@ -48,9 +47,7 @@ const _layout = () => {
         options={{
           headerShown: false,
           tabBarLabel: "Profile",
-          tabBarIcon: () => (
-            <Feather name="user" size={28} />
-          ),
+          tabBarIcon: () => <Feather name="user" size={28} />,
         }}
       />
     </Tabs>
