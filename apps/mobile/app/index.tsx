@@ -1,4 +1,4 @@
-import * as NavigationBar from 'expo-navigation-bar';
+import * as NavigationBar from "expo-navigation-bar";
 import { Link } from "expo-router";
 import { useEffect } from "react";
 import { Platform, Text, View } from "react-native";
@@ -10,7 +10,7 @@ export default function Index() {
       await NavigationBar.setBackgroundColorAsync("#FFFFFF00");
       await NavigationBar.setButtonStyleAsync("dark");
     }
-  }
+  };
 
   useEffect(() => {
     configureNavbarAndroid();

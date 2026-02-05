@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import Feather from "@expo/vector-icons/Feather";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Platform } from "react-native";
 
 const _layout = () => {
   return (
@@ -8,6 +9,8 @@ const _layout = () => {
       screenOptions={{
         tabBarStyle: {
           paddingTop: 8,
+          minHeight:
+            Platform.OS !== "ios" ? 64 + useSafeAreaInsets().bottom : undefined,
           paddingBottom: useSafeAreaInsets().bottom,
           boxShadow: "none",
           borderTopColor: "#E2E8F0",
