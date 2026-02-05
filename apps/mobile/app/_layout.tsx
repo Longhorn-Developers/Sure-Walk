@@ -5,7 +5,7 @@ import { View } from "react-native";
 export default function RootLayout() {
   return (
     <View className="flex-1 bg-white pt-safe">
-      <Stack>
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen
           name="(tabs)"
           options={{
