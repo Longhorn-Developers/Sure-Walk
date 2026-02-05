@@ -13,11 +13,16 @@
       "bundleIdentifier": "com.anonymous.SureWalkApp"
     },
     "android": {
+      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.SureWalkApp"
+      "package": "com.anonymous.SureWalkApp",
+      "statusBar": {
+        "backgroundColor": "#FFFFFF00",
+        "translucent": true
+      }
     },
     "web": {
       "bundler": "metro",
@@ -30,7 +35,7 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-logo.png",
-          "imageWidth": 264,
+          "imageWidth": 300,
           "resizeMode": "contain",
           "backgroundColor": "#BF5700"
         }

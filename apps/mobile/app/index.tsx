@@ -1,15 +1,19 @@
 import * as NavigationBar from "expo-navigation-bar";
+import * as SplashScreen from "expo-splash-screen";
 import { Link } from "expo-router";
 import { useEffect } from "react";
 import { Platform, Text, View } from "react-native";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function Index() {
   const configureNavbarAndroid = async () => {
     if (Platform.OS === "android") {
       await NavigationBar.setPositionAsync("absolute");
-      await NavigationBar.setBackgroundColorAsync("#FFFFFF00");
+      await NavigationBar.setBackgroundColorAsync("#ffffff00");
       await NavigationBar.setButtonStyleAsync("dark");
     }
+    await SplashScreen.hideAsync();
   };
 
   useEffect(() => {
