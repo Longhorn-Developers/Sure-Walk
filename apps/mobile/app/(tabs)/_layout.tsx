@@ -4,14 +4,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Platform } from "react-native";
 
 const _layout = () => {
+  let paddingBottom: number = useSafeAreaInsets().bottom;
+
   return (
     <Tabs
       screenOptions={{
         tabBarStyle: {
           paddingTop: 8,
-          minHeight:
-            Platform.OS !== "ios" ? 64 + useSafeAreaInsets().bottom : undefined,
-          paddingBottom: useSafeAreaInsets().bottom,
+          minHeight: Platform.OS !== "ios" ? 64 + paddingBottom : undefined,
+          paddingBottom: paddingBottom,
           boxShadow: "none",
           borderTopColor: "#E2E8F0",
           borderTopWidth: 1,
