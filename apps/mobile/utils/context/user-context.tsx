@@ -1,11 +1,12 @@
 import User from "@sure-walk/utils/types/user";
 import { PropsWithChildren, useContext, useEffect, useState } from "react";
 import { createContext } from "react";
+import * as SecureStore from "expo-secure-store";
 import loadingState from "../types/loading-state";
 
 interface UserContextType {
   user: User | null;
-  setUser: (user: User | null) => void;
+  setUser: (user: User) => void;
   logOut: () => void;
   loadingState: loadingState;
 }
@@ -25,14 +26,22 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
   const [userInfo, setUserInfo] = useState<User | null>(null);
 
   const fetchUserInfo = async () => {
-    setUserInfo({
-      id: "123",
-      firstName: "John",
-      lastName: "Doe",
-      phoneNumber: "123-456-7890",
-      requiresAssistance: true,
-      eid: "jd4321",
-    });
+    const userData = await SecureStore.getItemAsync("userData");
+    if (!userData) {
+      setLoadingState("done");
+      return;
+    }
+
+    try {
+      const parsedUserData: User = JSON.parse(userData);
+      setUserInfo(parsedUserData);
+    } catch (error) {
+      // delete corrupted data, assume user is logged out
+      console.error("Error parsing user data, logging out:", error);
+      await SecureStore.deleteItemAsync("userData");
+      setLoadingState("done");
+      return;
+    }
 
     setLoadingState("done");
   };
@@ -45,10 +54,14 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     <UserContext.Provider
       value={{
         user: userInfo,
-        setUser: (user: User | null) => {
+        setUser: (user: User) => {
           setUserInfo(user);
+          SecureStore.setItemAsync("userData", JSON.stringify(user));
         },
-        logOut: () => setUserInfo(null),
+        logOut: () => {
+          setUserInfo(null);
+          SecureStore.deleteItemAsync("userData");
+        },
         loadingState: loadingState,
       }}
     >

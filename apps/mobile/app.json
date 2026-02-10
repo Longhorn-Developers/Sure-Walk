@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.SureWalkApp"
+      "bundleIdentifier": "com.anonymous.SureWalkApp",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "edgeToEdgeEnabled": true,
@@ -38,6 +41,12 @@
           "imageWidth": 300,
           "resizeMode": "cover",
           "backgroundColor": "#BF5700"
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
         }
       ]
     ],
