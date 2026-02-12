@@ -2,6 +2,11 @@ import { Tabs } from "expo-router";
 import Feather from "@expo/vector-icons/Feather";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Platform } from "react-native";
+import {
+  ClipboardTextIcon,
+  UserCircleIcon,
+  HouseIcon,
+} from "phosphor-react-native";
 
 const _layout = () => {
   return (
@@ -32,8 +37,8 @@ const _layout = () => {
         options={{
           headerShown: false,
           tabBarLabel: "Home",
-          tabBarIcon: () => (
-            <Feather name="home" size={28} /> // TODO: get clarification on icon libraries
+          tabBarIcon: ({ focused }) => (
+            <HouseIcon size={32} weight={focused ? "fill" : "regular"} />
           ),
         }}
       />
@@ -42,7 +47,12 @@ const _layout = () => {
         options={{
           headerShown: false,
           tabBarLabel: "Guidelines",
-          tabBarIcon: () => <Feather name="clipboard" size={28} />,
+          tabBarIcon: ({ focused }) => (
+            <ClipboardTextIcon
+              size={32}
+              weight={focused ? "fill" : "regular"}
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -50,7 +60,9 @@ const _layout = () => {
         options={{
           headerShown: false,
           tabBarLabel: "Profile",
-          tabBarIcon: () => <Feather name="user" size={28} />,
+          tabBarIcon: ({ focused }) => (
+            <UserCircleIcon size={32} weight={focused ? "fill" : "regular"} />
+          ),
         }}
       />
     </Tabs>
