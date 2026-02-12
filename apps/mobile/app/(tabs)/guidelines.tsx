@@ -1,5 +1,15 @@
 import Feather from "@expo/vector-icons/Feather";
 import { ScrollView, Text, View } from "react-native";
+import {
+  TimerIcon,
+  ClockIcon,
+  UsersIcon,
+  MapPinIcon,
+  WarningIcon,
+  MoonIcon,
+  HamburgerIcon,
+  XCircleIcon,
+} from "phosphor-react-native";
 
 const guidelines = () => {
   return (
@@ -11,7 +21,8 @@ const guidelines = () => {
         <View className="flex-1 gap-3.5 justify-start">
           <View className="gap-2">
             <View className="flex-row gap-2 items-center">
-              <Feather name="clock" size={20} color="#BF5700" />
+              <ClockIcon size={28} weight="bold" color="#BF5700" />
+              {/* <Feather name="clock" size={20} color="#BF5700" /> */}
               {
                 // TODO: use variable for icon color
               }
@@ -28,7 +39,8 @@ const guidelines = () => {
           </View>
           <View className="gap-2">
             <View className="flex-row gap-2 items-center">
-              <Feather name="users" size={20} color="#BF5700" />
+              <UsersIcon size={28} weight="bold" color="#BF5700" />
+              {/* <Feather name="users" size={20} color="#BF5700" /> */}
               <Text className="text-gray-900 text-xl font-semibold leading-[26px]">
                 Rideshare Service
               </Text>
@@ -42,7 +54,8 @@ const guidelines = () => {
           </View>
           <View className="gap-2">
             <View className="flex-row gap-2 items-center">
-              <Feather name="map-pin" size={20} color="#BF5700" />
+              <MapPinIcon size={28} weight="bold" color="#BF5700" />
+              {/* <Feather name="map-pin" size={20} color="#BF5700" /> */}
               <Text className="text-gray-900 text-xl font-semibold leading-[26px]">
                 Pick Up/Drop Off Boundaries
               </Text>
@@ -58,7 +71,8 @@ const guidelines = () => {
           </View>
           <View className="gap-2">
             <View className="flex-row gap-2 items-center">
-              <Feather name="alert-triangle" size={20} color="#BF5700" />
+              <WarningIcon size={28} weight="bold" color="#BF5700" />
+              {/* <Feather name="alert-triangle" size={20} color="#BF5700" /> */}
               <Text className="text-gray-900 text-xl font-semibold leading-[26px]">
                 No Booking in Advance
               </Text>
@@ -72,7 +86,8 @@ const guidelines = () => {
           </View>
           <View className="gap-2">
             <View className="flex-row gap-2 items-center">
-              <Feather name="clock" size={20} color="#BF5700" />
+              <TimerIcon size={28} weight="bold" color="#BF5700" />
+              {/* <Feather name="clock" size={20} color="#BF5700" /> */}
               <Text className="text-gray-900 text-xl font-semibold leading-[26px]">
                 2-Minute Wait Period
               </Text>
@@ -86,7 +101,8 @@ const guidelines = () => {
           </View>
           <View className="gap-2">
             <View className="flex-row gap-2 items-center">
-              <Feather name="moon" size={20} color="#BF5700" />
+              <MoonIcon size={28} weight="bold" color="#BF5700" />
+              {/* <Feather name="moon" size={20} color="#BF5700" /> */}
               <Text className="text-gray-900 text-xl font-semibold leading-[26px]">
                 Disable "Do Not Disturb"
               </Text>
@@ -100,7 +116,8 @@ const guidelines = () => {
           </View>
           <View className="gap-2">
             <View className="flex-row gap-2 items-center">
-              <Feather name="alert-octagon" size={20} color="#BF5700" />
+              <HamburgerIcon size={28} weight="bold" color="#BF5700" />
+              {/* <Feather name="alert-octagon" size={20} color="#BF5700" /> */}
               <Text className="text-gray-900 text-xl font-semibold leading-[26px]">
                 No Food or Drink in the Vehicles
               </Text>
@@ -114,7 +131,8 @@ const guidelines = () => {
           </View>
           <View className="gap-2">
             <View className="flex-row gap-2 items-center">
-              <Feather name="x-circle" size={20} color="#BF5700" />
+              <XCircleIcon size={28} weight="bold" color="#BF5700" />
+              {/* <Feather name="x-circle" size={20} color="#BF5700" /> */}
               <Text className="text-gray-900 text-xl font-semibold leading-[26px]">
                 Cancellations
               </Text>
