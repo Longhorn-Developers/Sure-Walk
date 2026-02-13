@@ -1,5 +1,5 @@
 {
-  "name": "Sure-Walk",
+  "name": "sure-walk",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -8,7 +8,8 @@
     "dev:mobile": "pnpm --filter surewalk-mobile-app start",
     "dev:web": "pnpm --filter surewalk-web-app dev",
     "build:mobile": "pnpm --filter surewalk-mobile-app build",
-    "build:web": "pnpm --filter surewalk-web-app build"
+    "build:web": "pnpm --filter surewalk-web-app build",
+    "lint": "pnpm --filter surewalk-mobile-app lint && pnpm --filter surewalk-web-app lint"
   },
   "workspaces": [
     "apps/*",
