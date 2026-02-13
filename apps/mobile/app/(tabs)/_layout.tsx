@@ -1,5 +1,4 @@
 import { Tabs } from "expo-router";
-import Feather from "@expo/vector-icons/Feather";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Platform } from "react-native";
 import {
