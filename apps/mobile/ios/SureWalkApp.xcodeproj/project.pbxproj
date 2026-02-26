@@ -16,6 +16,7 @@
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		E0FB80C299ACA44A4F9A8707 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9EEA7A54B377D9665922F7CE /* PrivacyInfo.xcprivacy */; };
+		EC6A1F44EF5B4CD4AB5ACA35 /* Geist_900Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 20245B0CC74742908B930EDB /* Geist_900Black.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,7 @@
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-SureWalkApp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		20245B0CC74742908B930EDB /* Geist_900Black.ttf */ = {isa = PBXFileReference; name = "Geist_900Black.ttf"; path = "../node_modules/@expo-google-fonts/geist/900Black/Geist_900Black.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +93,7 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				D65327D7A22EEC0BE12398D9 /* Pods */,
 				D7E4C46ADA2E9064B798F356 /* ExpoModulesProviders */,
+				FF890D24C8A840159E3829E3 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -138,6 +141,15 @@
 			);
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
+		};
+		FF890D24C8A840159E3829E3 /* Resources */ = {
+			isa = "PBXGroup";
+			children = (
+				20245B0CC74742908B930EDB /* Geist_900Black.ttf */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+			path = "";
 		};
 /* End PBXGroup section */
 
@@ -204,6 +216,7 @@
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				E0FB80C299ACA44A4F9A8707 /* PrivacyInfo.xcprivacy in Resources */,
+				EC6A1F44EF5B4CD4AB5ACA35 /* Geist_900Black.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -365,7 +378,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.SureWalkApp;
-				PRODUCT_NAME = SureWalkApp;
+				PRODUCT_NAME = "SureWalkApp";
 				SWIFT_OBJC_BRIDGING_HEADER = "SureWalkApp/SureWalkApp-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -393,7 +406,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.SureWalkApp;
-				PRODUCT_NAME = SureWalkApp;
+				PRODUCT_NAME = "SureWalkApp";
 				SWIFT_OBJC_BRIDGING_HEADER = "SureWalkApp/SureWalkApp-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

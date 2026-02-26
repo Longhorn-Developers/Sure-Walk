@@ -5,10 +5,17 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
-      colors: { // NOTE: Add your custom Tailwind colors here
-        'ut-burntorange': "##BF5700",
+      colors: {
+        "ut-burntorange": "##BF5700",
       },
-    }
+      fontFamily: {
+        light: ["Geist_300Light"],
+        regular: ["Geist_400Regular"],
+        medium: ["Geist_500Medium"],
+        semibold: ["Geist_600SemiBold"],
+        black: ["Geist_900Black"],
+      },
+    },
   },
   plugins: [],
-}
+};

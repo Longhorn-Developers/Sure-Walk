@@ -6,9 +6,14 @@ import {
   UserCircleIcon,
   HouseIcon,
 } from "phosphor-react-native";
+import { Geist_400Regular, useFonts } from "@expo-google-fonts/geist";
 
 const _layout = () => {
   let paddingBottom: number = useSafeAreaInsets().bottom;
+
+  const [loaded, error] = useFonts({
+    Geist_400Regular,
+  });
 
   return (
     <Tabs
@@ -22,7 +27,7 @@ const _layout = () => {
           borderTopWidth: 1,
         },
         tabBarLabelStyle: {
-          fontFamily: "Geist", // TODO: actually use the font
+          fontFamily: "Geist_400Regular",
           fontSize: 12,
           paddingTop: 2,
           color: "#0F172A",
