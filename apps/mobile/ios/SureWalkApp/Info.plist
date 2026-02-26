@@ -61,6 +61,14 @@
     </array>
     <key>UIAppFonts</key>
     <array>
+      <string>Geist_100Thin.ttf</string>
+      <string>Geist_200ExtraLight.ttf</string>
+      <string>Geist_300Light.ttf</string>
+      <string>Geist_400Regular.ttf</string>
+      <string>Geist_500Medium.ttf</string>
+      <string>Geist_600SemiBold.ttf</string>
+      <string>Geist_700Bold.ttf</string>
+      <string>Geist_800ExtraBold.ttf</string>
       <string>Geist_900Black.ttf</string>
     </array>
     <key>UILaunchStoryboardName</key>

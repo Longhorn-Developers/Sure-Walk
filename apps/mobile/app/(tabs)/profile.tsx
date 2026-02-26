@@ -1,4 +1,5 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import FontText from "@/components/FontText";
 import { useSession } from "@/utils/context/user-context";
 import { Link } from "expo-router";
 
@@ -7,14 +8,14 @@ const Profile = () => {
 
   return (
     <View className="bg-white flex-1">
-      <Text>Profile</Text>
-      {loadingState === "loading" && <Text>Loading...</Text>}
-      {loadingState === "error" && <Text>Error loading user info</Text>}
+      <FontText>Profile</FontText>
+      {loadingState === "loading" && <FontText>Loading...</FontText>}
+      {loadingState === "error" && <FontText>Error loading user info</FontText>}
       {loadingState === "done" && (
         <View className="mt-4">
-          <Text>
+          <FontText>
             Name: {user?.firstName} {user?.lastName}
-          </Text>
+          </FontText>
           <Link replace href="/" onPress={logOut}>
             Log out
           </Link>
