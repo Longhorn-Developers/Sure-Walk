@@ -45,11 +45,25 @@ const Guidelines = () => {
       <View className="relative flex-1 p-0">
         <LinearGradient
           colors={["#ffffffff", "#ffffff00"]}
-          className="absolute top-0 left-0 right-0 h-4 z-10"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 16,
+            zIndex: 10,
+          }}
         />
         <LinearGradient
           colors={["#ffffff00", "#ffffffff"]}
-          className="absolute bottom-0 left-0 right-0 h-8 z-10"
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 32,
+            zIndex: 10,
+          }}
         />
         <ScrollView className="flex-col">
           <GuidelinesList includeBottomBorder />
