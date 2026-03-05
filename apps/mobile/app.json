@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "SureWalkApp",
+    "name": "Sure Walk",
     "slug": "SureWalkApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/ios-light.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,34 +13,48 @@
       "bundleIdentifier": "com.anonymous.SureWalkApp",
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "icon": {
+        "dark": "./assets/images/ios-dark.png",
+        "light": "./assets/images/ios-light.png",
+        "tinted": "./assets/images/ios-tinted.png"
       }
     },
     "android": {
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
+        "monochromeImage": "./assets/images/adaptive-icon-monochrome.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.SureWalkApp",
       "statusBar": {
-        "backgroundColor": "#FFFFFF00",
+        "backgroundColor": "#FFFFFF",
         "translucent": true
       }
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/adaptive-icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-logo.png",
-          "imageWidth": 300,
-          "resizeMode": "cover",
-          "backgroundColor": "#BF5700"
+          "ios": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 300,
+            "resizeMode": "cover",
+            "backgroundColor": "#BF5700"
+          },
+          "android": {
+            "image": "./assets/images/splash-icon-android.png",
+            "imageWidth": 300,
+            "resizeMode": "cover",
+            "backgroundColor": "#BF5700"
+          }
         }
       ],
       [
