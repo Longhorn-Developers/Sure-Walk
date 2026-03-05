@@ -96,8 +96,8 @@ jobs:
           cd apps/mobile/ios && pod install --repo-update
       - name: Build iOS app (debug)
         run: |
-          cd apps/mobile/ios && xcodebuild build -workspace SureWalkApp.xcworkspace \
-            -scheme SureWalkApp \
+          cd apps/mobile/ios && xcodebuild build -workspace SureWalk.xcworkspace \
+            -scheme SureWalk \
             -configuration Debug \
             -destination "generic/platform=iOS Simulator" \
             CODE_SIGN_STYLE="Automatic"
