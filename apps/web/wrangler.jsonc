@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "main": ".open-next/worker.js",
-  "name": "surewalk-web-app",
+  "name": "lifts-web",
   // Set this to today's date
   "compatibility_date": "2026-02-28",
   "compatibility_flags": ["nodejs_compat"],
