@@ -5,6 +5,9 @@ import { SessionProvider } from "@/src/utils/context/user-context";
 import { useEffect } from "react";
 import * as NavigationBar from "expo-navigation-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { configureReanimatedLogger } from "react-native-reanimated";
+
+configureReanimatedLogger({ strict: false });
 
 SplashScreen.preventAutoHideAsync();
 

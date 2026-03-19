@@ -3,7 +3,7 @@ import TextInputField from "@/src/components/text-input-field";
 import { useLoginSession } from "@/src/utils/context/login-context";
 import { router } from "expo-router";
 import { useState } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import FontText from "@/src/components/font-text";
 
 const Phone = () => {
@@ -20,7 +20,7 @@ const Phone = () => {
   };
 
   return (
-    <View className="flex-1 bg-white px-5">
+    <View className="flex-1 bg-white px-5 pt-8">
       <FontText className="text-2xl font-medium mb-2">
         Enter your phone number
       </FontText>
@@ -36,6 +36,7 @@ const Phone = () => {
           autoComplete="tel"
           maxLength={14}
           placeholder="(123) 456-7890"
+          returnKeyType={Platform.OS === "ios" ? "done" : undefined}
         />
       </View>
       <LargeButton

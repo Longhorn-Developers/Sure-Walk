@@ -3,17 +3,23 @@ import { useLoginSession } from "@/src/utils/context/login-context";
 import { router } from "expo-router";
 import { CircleIcon } from "phosphor-react-native";
 import { useRef, useState } from "react";
-import { View, TextInput, TouchableWithoutFeedback } from "react-native";
+import {
+  View,
+  TextInput,
+  TouchableWithoutFeedback,
+  Platform,
+} from "react-native";
 import FontText from "@/src/components/font-text";
 import { gray500 } from "@/src/utils/colors";
 
 const Confirm = () => {
   const { phoneNumber } = useLoginSession();
   const [code, setCode] = useState("");
+  const [focused, setFocus] = useState<boolean>(false);
   const textInputRef = useRef<TextInput | null>(null);
 
   return (
-    <View className="flex-1 bg-white px-5">
+    <View className="flex-1 bg-white px-5 pt-8">
       <FontText className="text-2xl font-medium mb-2">
         Verify your phone number
       </FontText>
@@ -25,14 +31,17 @@ const Confirm = () => {
           Code
         </FontText>
         <TouchableWithoutFeedback
-          onPress={() => textInputRef.current?.focus()}
+          onPress={() => {
+            textInputRef.current?.focus();
+            setFocus(true);
+          }}
           className="w-full"
         >
           <View className="flex-row w-full justify-between h-[64px]">
             {[...Array(6).keys()].map((_, index) => (
               <View
                 key={index}
-                className={`py-4 px-3 border ${textInputRef.current?.isFocused() ? "border-ut-bluebonnet" : "border-gray-200"} rounded-lg bg-gray-50 items-center justify-center`}
+                className={`py-4 px-3 border transition-colors ${focused ? "border-ut-bluebonnet" : "border-gray-200"} rounded-lg bg-gray-50 items-center justify-center`}
               >
                 {code[index] ? (
                   <FontText
@@ -53,9 +62,11 @@ const Confirm = () => {
           ref={textInputRef}
           value={code}
           onChangeText={setCode}
+          onBlur={() => setFocus(false)}
           className="display-none visible-hidden opacity-0"
           keyboardType="numeric"
           maxLength={6}
+          returnKeyType={Platform.OS === "ios" ? "done" : undefined}
         />
       </View>
       <LargeButton
