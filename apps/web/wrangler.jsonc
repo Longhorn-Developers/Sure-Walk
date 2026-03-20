@@ -9,4 +9,12 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS",
   },
+  "d1_databases": [
+    {
+      "binding": "LIFTS_DB",
+      "database_name": "lifts-db",
+      "database_id": "2f70c6df-2f4a-4b8b-880e-cd92245a2b73",
+      "migrations_dir": "./drizzle",
+    },
+  ],
 }

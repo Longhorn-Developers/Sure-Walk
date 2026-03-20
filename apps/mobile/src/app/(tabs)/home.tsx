@@ -42,6 +42,7 @@ import {
 const Home = () => {
   const sheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
+  const startLocationRef = useRef<TextInput>(null);
   const destinationRef = useRef<TextInput>(null);
   const { height } = useWindowDimensions();
   const androidOffset = Platform.OS === "android" ? -16 : 0; // weird offset hack on android
@@ -63,6 +64,7 @@ const Home = () => {
 
   const [, setLocation] = useState<Location.LocationObject | null>(null);
 
+  const [startLocationText, setStartLocationText] = useState<string>("");
   const [destinationText, setDestinationText] = useState<string>("");
 
   let _style: StyleProp<TextStyle> = {};
@@ -344,9 +346,18 @@ const Home = () => {
               >
                 <View className="bg-white flex-row mx-5 mt-4 px-4 py-[26.5px] gap-2 items-center rounded-t-lg border border-slate-200">
                   <CircleIcon color={UTBurntOrange} weight="fill" size="24" />
-                  <FontText className="font-medium text-base">
-                    Perry-Castañeda Library
-                  </FontText>
+                  <TextInput
+                    ref={startLocationRef}
+                    onFocus={() =>
+                      snapIndex !== 2 && sheetRef.current?.expand()
+                    }
+                    className="font-medium text-base flex-1"
+                    placeholder="Where from?"
+                    placeholderTextColor={gray500}
+                    onChangeText={(text) => setStartLocationText(text)}
+                    value={startLocationText}
+                    style={_style}
+                  />
                 </View>
                 <View className="bg-white flex-row mx-5 px-4 py-[26.5px] gap-2 items-center rounded-b-lg border border-slate-200 mt-[-1px] mb-6">
                   <MapPinIcon color={slate900} size="24" weight="fill" />
