@@ -16,7 +16,7 @@ const CheckButton = ({
 }) => {
   return (
     <TouchableOpacity onPress={onPress}>
-      <View className="flex-row items-center justify-start gap-2.5 t-colors">
+      <View className="flex-row items-center justify-start gap-2.5 transition-colors">
         {isChecked ? (
           <CheckSquareIcon size={20} color={color} weight="fill" />
         ) : (

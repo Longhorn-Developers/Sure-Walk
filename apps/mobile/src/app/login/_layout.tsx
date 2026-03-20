@@ -17,24 +17,24 @@ const _layout = () => {
             </TouchableOpacity>
           )}
         </View>
-        <View className="h-1 flex-row gap-2 mb-10 px-5">
+        <View className="h-1 flex-row gap-2 mb-2 px-5">
           <View
-            className={`flex-1 h-1 rounded-full t-colors ${pathname === "/login" ? "bg-ut-burntorange" : "bg-gray-200"}`}
+            className={`flex-1 h-1 rounded-full transition-colors ${pathname === "/login" ? "bg-ut-burntorange" : "bg-gray-200"}`}
           />
           <View
-            className={`flex-1 h-1 rounded-full t-colors ${pathname === "/login/name" ? "bg-ut-burntorange" : "bg-gray-200"}`}
+            className={`flex-1 h-1 rounded-full transition-colors ${pathname === "/login/name" ? "bg-ut-burntorange" : "bg-gray-200"}`}
           />
           <View
-            className={`flex-1 h-1 rounded-full t-colors ${pathname === "/login/phone" ? "bg-ut-burntorange" : "bg-gray-200"}`}
+            className={`flex-1 h-1 rounded-full transition-colors ${pathname === "/login/phone" ? "bg-ut-burntorange" : "bg-gray-200"}`}
           />
           <View
-            className={`flex-1 h-1 rounded-full t-colors ${pathname === "/login/confirm" ? "bg-ut-burntorange" : "bg-gray-200"}`}
+            className={`flex-1 h-1 rounded-full transition-colors ${pathname === "/login/confirm" ? "bg-ut-burntorange" : "bg-gray-200"}`}
           />
           <View
-            className={`flex-1 h-1 rounded-full t-colors ${pathname === "/login/assistance" ? "bg-ut-burntorange" : "bg-gray-200"}`}
+            className={`flex-1 h-1 rounded-full transition-colors ${pathname === "/login/assistance" ? "bg-ut-burntorange" : "bg-gray-200"}`}
           />
           <View
-            className={`flex-1 h-1 rounded-full t-colors ${pathname === "/login/guidelines" ? "bg-ut-burntorange" : "bg-gray-200"}`}
+            className={`flex-1 h-1 rounded-full transition-colors ${pathname === "/login/guidelines" ? "bg-ut-burntorange" : "bg-gray-200"}`}
           />
         </View>
         <LoginSessionProvider>

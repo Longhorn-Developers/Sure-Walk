@@ -3,16 +3,25 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "dev:cloudflare": "opennextjs-cloudflare build && wrangler dev",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview --remote",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply lifts-db --local",
+    "db:migrate:prod": "wrangler d1 migrations apply lifts-db --remote",
+    "db:studio:local": "LOCAL_DB_PATH=$(find .wrangler/state/v3/d1/miniflare-D1DatabaseObject -type f -name '*.sqlite' -print -quit) drizzle-kit studio",
+    "db:studio:prod": "dotenv -e .env.drizzle.local -- drizzle-kit studio"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.17.1",
+    "better-sqlite3": "^12.8.0",
+    "dotenv": "^17.3.1",
+    "drizzle-orm": "^0.45.1",
     "next": "16.1.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -22,6 +31,8 @@
     "@types/node": "^20",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "dotenv-cli": "^11.0.0",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9.25.1",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",

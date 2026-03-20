@@ -42,6 +42,7 @@ import {
 const Home = () => {
   const sheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
+  const startLocationRef = useRef<TextInput>(null);
   const destinationRef = useRef<TextInput>(null);
   const { height } = useWindowDimensions();
   const androidOffset = Platform.OS === "android" ? -16 : 0; // weird offset hack on android
@@ -63,6 +64,7 @@ const Home = () => {
 
   const [, setLocation] = useState<Location.LocationObject | null>(null);
 
+  const [startLocationText, setStartLocationText] = useState<string>("");
   const [destinationText, setDestinationText] = useState<string>("");
 
   let _style: StyleProp<TextStyle> = {};
@@ -160,7 +162,6 @@ const Home = () => {
             ref={mapRef}
             style={{ width: "100%", flex: 1, zIndex: 0 }}
             showsUserLocation
-            followsUserLocation
             initialRegion={{
               latitude: 30.282962,
               longitude: -97.737224,
@@ -305,7 +306,7 @@ const Home = () => {
             <View className="rounded-t-[28px] flex-col items-center py-4">
               <View className="bg-slate-300 rounded w-8 h-1" />
             </View>
-            <View className="flex-col gap-5 px-5 pb-5">
+            <View className="flex-col gap-5 px-5 pb-1">
               <View className="flex-row w-full justify-between items-center">
                 <FontText className="text-2xl font-medium">
                   Book a ride
@@ -330,14 +331,35 @@ const Home = () => {
         >
           <View className="flex-col mb-[-24px]">
             <View className="flex-col bg-white">
-              <View className="flex-col">
-                <View className="bg-white shadow-sm flex-row mx-5 px-4 py-[26.5px] gap-2 items-center rounded-t-lg border border-slate-200">
+              <View
+                className="flex-col rounded-lg"
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: {
+                    width: 0,
+                    height: 1,
+                  },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4.41,
+                  elevation: 1,
+                }}
+              >
+                <View className="bg-white flex-row mx-5 mt-4 px-4 py-[26.5px] gap-2 items-center rounded-t-lg border border-slate-200">
                   <CircleIcon color={UTBurntOrange} weight="fill" size="24" />
-                  <FontText className="font-medium text-base">
-                    Perry-Castañeda Library
-                  </FontText>
+                  <TextInput
+                    ref={startLocationRef}
+                    onFocus={() =>
+                      snapIndex !== 2 && sheetRef.current?.expand()
+                    }
+                    className="font-medium text-base flex-1"
+                    placeholder="Where from?"
+                    placeholderTextColor={gray500}
+                    onChangeText={(text) => setStartLocationText(text)}
+                    value={startLocationText}
+                    style={_style}
+                  />
                 </View>
-                <View className="bg-white shadow-sm flex-row mx-5 px-4 py-[26.5px] gap-2 items-center rounded-b-lg border border-slate-200 mt-[-1px] mb-6">
+                <View className="bg-white flex-row mx-5 px-4 py-[26.5px] gap-2 items-center rounded-b-lg border border-slate-200 mt-[-1px] mb-6">
                   <MapPinIcon color={slate900} size="24" weight="fill" />
                   <TextInput
                     ref={destinationRef}

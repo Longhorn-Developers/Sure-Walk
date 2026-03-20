@@ -9,7 +9,7 @@ const Assistance = () => {
   const { requiresAssistance, setRequiresAssistance } = useLoginSession();
 
   return (
-    <View className="flex-1 bg-white px-5">
+    <View className="flex-1 bg-white px-5 pt-8">
       <FontText className="text-2xl font-medium mb-2">
         Do you need ADA assistance?
       </FontText>
@@ -33,7 +33,7 @@ const Assistance = () => {
         onPress={() => {
           router.navigate("/login/guidelines");
         }}
-        disabled={requiresAssistance === null}
+        disabled={requiresAssistance === undefined}
       ></LargeButton>
     </View>
   );

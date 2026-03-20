@@ -16,7 +16,7 @@ const Name = () => {
   }, [firstName, lastName]);
 
   return (
-    <View className="flex-1 bg-white px-5">
+    <View className="flex-1 bg-white px-5 pt-8">
       <FontText className="text-2xl font-medium mb-2">
         What’s your name?
       </FontText>

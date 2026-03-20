@@ -17,7 +17,7 @@ const TextInputField = ({
         {fieldName}
       </FontText>
       <TextInput
-        className="bg-gray-50 border border-gray-200 text-gray-900 text-lg font-regular rounded-lg t-colors focus:ring-ut-bluebonnet focus:border-ut-bluebonnet block w-full p-4"
+        className="bg-gray-50 border border-gray-200 text-gray-900 text-lg font-regular rounded-lg transition-colors focus:ring-ut-bluebonnet focus:border-ut-bluebonnet block w-full p-4"
         {...props}
         placeholderTextColor={gray500}
         style={_style}

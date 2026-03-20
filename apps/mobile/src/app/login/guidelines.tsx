@@ -33,7 +33,7 @@ const Guidelines = () => {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white pt-8">
       <View className="bg-white">
         <FontText className="text-2xl font-medium mb-2 px-5 z-10">
           Information and Guidelines

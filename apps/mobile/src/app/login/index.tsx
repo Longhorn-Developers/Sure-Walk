@@ -23,7 +23,7 @@ const Index = () => {
   };
 
   return (
-    <View className="flex-1 bg-white px-5">
+    <View className="flex-1 bg-white px-5 pt-8">
       <FontText className="text-2xl font-medium mb-2">Who are you?</FontText>
       <Link
         className="text-lg mb-12"
