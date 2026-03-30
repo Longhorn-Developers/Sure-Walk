@@ -4,6 +4,7 @@ import { Account, accounts } from "./db/schema/accounts";
 import { getDB } from "./db";
 import { refreshTokens } from "./db/schema/refresh-tokens";
 import { eq } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
 
 export const ACCESS_TOKEN_TTL = "15m";
 export const REFRESH_TOKEN_TTL = "30d";
@@ -90,4 +91,40 @@ export const verifyRefreshToken = async (token: string) => {
   } catch {
     return null;
   }
+};
+
+export interface AuthenticationResult {
+  success: boolean;
+  failResponse?: NextResponse;
+  accountID?: string;
+}
+
+export const ensureAuthenticated = (
+  request: NextRequest,
+): AuthenticationResult => {
+  const authenticationHeader = request.headers.get("authorization") || "";
+  const [scheme, token] = authenticationHeader.split(" ");
+
+  if (scheme !== "Bearer" || !token) {
+    return {
+      success: false,
+      failResponse: NextResponse.json(
+        { message: "Unauthorized." },
+        { status: 401 },
+      ),
+    };
+  }
+
+  const { valid, expired, accountID } = verifyAccessToken(token);
+  if (!valid) {
+    return {
+      success: false,
+      failResponse: NextResponse.json(
+        { message: expired ? "Token expired." : "Invalid token." },
+        { status: 401 },
+      ),
+    };
+  }
+
+  return { success: true, accountID };
 };
