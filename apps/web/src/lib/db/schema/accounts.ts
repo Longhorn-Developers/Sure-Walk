@@ -13,3 +13,5 @@ export const accounts = sqliteTable("accounts", {
     enum: ["google", "ut", "generic"],
   }).notNull(),
 });
+
+export type Account = typeof accounts.$inferSelect;

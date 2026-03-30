@@ -27,7 +27,7 @@ SplashScreen.preventAutoHideAsync();
 const _layout = () => {
   let paddingBottom: number = useSafeAreaInsets().bottom;
 
-  const { loadingState, user } = useSession();
+  const { loadingState, user, guidelinesAccepted } = useSession();
 
   const [loaded, error] = useFonts({
     Geist_100Thin,
@@ -57,6 +57,10 @@ const _layout = () => {
 
   if (user === null) {
     return <Redirect href="/login" />;
+  }
+
+  if (!guidelinesAccepted) {
+    return <Redirect href="/login/guidelines" />;
   }
 
   return (

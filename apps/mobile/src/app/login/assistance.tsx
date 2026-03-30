@@ -31,7 +31,7 @@ const Assistance = () => {
       <LargeButton
         title="Continue"
         onPress={() => {
-          router.navigate("/login/guidelines");
+          router.navigate("/login/phone");
         }}
         disabled={requiresAssistance === undefined}
       ></LargeButton>

@@ -16,6 +16,8 @@ const partialUser = z.object({
     .min(1, "Last name must be at least 1 character.")
     .max(30, "Last name must be at most 30 characters."),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits."),
+  requiresAssistance: z.boolean(),
+  userType: z.enum(["ut-affiliated", "guest"]),
 });
 
 export async function POST(request: NextRequest) {
@@ -32,7 +34,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { firstName, lastName, phoneNumber } = validationResult.data;
+  const { firstName, lastName, phoneNumber, requiresAssistance, userType } =
+    validationResult.data;
 
   const [existingUser] = await getDB()
     .select()
@@ -54,6 +57,8 @@ export async function POST(request: NextRequest) {
         identifier: phoneNumber,
         newFirstName: firstName, // update first and last name only if the phone number is verified
         newLastName: lastName, // avoids updating an already existing user's name with the specific number
+        newRequiresAssistance: requiresAssistance,
+        newUserType: userType,
       })
       .returning({ code: codes.code });
   }
@@ -64,7 +69,8 @@ export async function POST(request: NextRequest) {
       .values({
         firstName,
         lastName,
-        userType: "guest",
+        requiresAssistance,
+        userType,
       })
       .returning({ insertedID: users.id });
     const [{ accountID }] = await getDB()
@@ -80,5 +86,5 @@ export async function POST(request: NextRequest) {
   // TODO: send email / text message with the code
   console.log(code);
 
-  // TODO: create jwt with limited permissions
+  return NextResponse.json({ message: "Verification code sent." });
 }

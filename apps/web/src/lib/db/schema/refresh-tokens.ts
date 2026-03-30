@@ -12,6 +12,6 @@ export const refreshTokens = sqliteTable("refresh_tokens", {
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
   expiresAt: text("expires_at")
-    .default(sql`(DATETIME('now', '+1 month'))`)
+    .default(sql`(DATETIME('now', '+30 days'))`)
     .notNull(),
 });
