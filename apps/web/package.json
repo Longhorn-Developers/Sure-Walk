@@ -22,12 +22,15 @@
     "better-sqlite3": "^12.8.0",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
+    "jsonwebtoken": "^9.0.3",
     "next": "16.1.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",

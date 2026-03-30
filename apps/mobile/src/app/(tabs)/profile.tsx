@@ -16,7 +16,13 @@ const Profile = () => {
           <FontText>
             Name: {user?.firstName} {user?.lastName}
           </FontText>
-          <Link replace href="/" onPress={logOut}>
+          <Link
+            replace
+            href="/login"
+            onPress={() => {
+              logOut();
+            }}
+          >
             Log out
           </Link>
         </View>

@@ -1,34 +1,19 @@
 import CheckButton from "@/src/components/check-button";
 import GuidelinesList from "@/src/components/guidelines-list";
 import LargeButton from "@/src/components/large-button";
-import { useLoginSession } from "@/src/utils/context/login-context";
-import { useSession } from "@/src/utils/context/user-context";
 import { router } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import FontText from "@/src/components/font-text";
+import { useSession } from "@/src/utils/context/user-context";
 
 const Guidelines = () => {
-  const { firstName, lastName, phoneNumber, requiresAssistance, userType } =
-    useLoginSession();
-  const { setUser } = useSession();
+  const { acceptGuidelines } = useSession();
   const [checked, setChecked] = useState(false);
 
-  const updateUserAndContinue = () => {
-    let eid = undefined;
-    if (userType === "ut-affiliated") {
-      eid = "asdf1234"; // TODO: Get real EID
-    }
-    setUser({
-      id: "123",
-      firstName,
-      lastName,
-      phoneNumber,
-      requiresAssistance: requiresAssistance!,
-      eid,
-      userType: userType!,
-    });
+  const updateUserAndContinue = async () => {
+    await acceptGuidelines();
     router.replace("/home");
   };
 

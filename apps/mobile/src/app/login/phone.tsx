@@ -5,18 +5,44 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Platform, View } from "react-native";
 import FontText from "@/src/components/font-text";
+import { registerGeneric } from "@/src/client/auth";
 
 const Phone = () => {
   const checkValidity = (value: string) => {
     return value.replace(/\D/g, "").length >= 10;
   };
 
-  const { phoneNumber, setPhoneNumber } = useLoginSession();
+  const {
+    firstName,
+    lastName,
+    userType,
+    requiresAssistance,
+    phoneNumber,
+    setPhoneNumber,
+  } = useLoginSession();
   const [isValid, setIsValid] = useState(checkValidity(phoneNumber));
 
   const handlePhoneNumberChange = (value: string) => {
     setPhoneNumber(value);
     setIsValid(checkValidity(value));
+  };
+
+  const registerAccount = async () => {
+    const response = await registerGeneric({
+      firstName,
+      lastName,
+      phoneNumber,
+      requiresAssistance: requiresAssistance!,
+      userType: userType!,
+    });
+
+    if (!response.ok) {
+      // TODO: handle error
+      console.error("Failed to register account");
+      return;
+    }
+
+    router.navigate("/login/confirm");
   };
 
   return (
@@ -43,7 +69,7 @@ const Phone = () => {
         title="Continue"
         disabled={!isValid}
         onPress={() => {
-          router.navigate("/login/confirm");
+          registerAccount();
         }}
       />
     </View>

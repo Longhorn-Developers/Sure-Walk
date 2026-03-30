@@ -10,6 +10,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Platform,
+  Pressable,
   StyleProp,
   TextInput,
   TextStyle,
@@ -31,9 +32,10 @@ import {
   pickupBoundaryPolygons,
 } from "@/src/utils/boundary-info";
 import {
-  gray500,
+  gray900,
   slate700,
   slate900,
+  UTBluebonnet,
   UTBurntOrange,
   UTTangerine,
   UTTurquoise,
@@ -52,7 +54,7 @@ const Home = () => {
   const snapPoints = useMemo(
     () => [
       `${((110 + androidOffset) / height) * 100}%`,
-      `${((328 + androidOffset * 1.5) / height) * 100}%`,
+      `${((320 + androidOffset * 1.5) / height) * 100}%`,
       "87.5%",
     ],
     [height, androidOffset],
@@ -66,6 +68,10 @@ const Home = () => {
 
   const [startLocationText, setStartLocationText] = useState<string>("");
   const [destinationText, setDestinationText] = useState<string>("");
+  const [startLocationAddress] = useState<string>(
+    "Select your pickup location",
+  );
+  const [destinationAddress] = useState<string>("Select your destination");
 
   let _style: StyleProp<TextStyle> = {};
   if (Platform.OS === "ios") {
@@ -312,7 +318,7 @@ const Home = () => {
                   Book a ride
                 </FontText>
                 <TO>
-                  <View className="flex-row gap-1 p-3 items-center bg-slate-100 rounded-[32px]">
+                  <View className="flex-row gap-1 p-3 items-center bg-slate-50 rounded-[32px] border border-slate-200">
                     <UserCirclePlusIcon color={slate700} size="24" />
                     <FontText className="font-medium">Add Riders</FontText>
                   </View>
@@ -331,49 +337,57 @@ const Home = () => {
         >
           <View className="flex-col mb-[-24px]">
             <View className="flex-col bg-white">
-              <View
-                className="flex-col rounded-lg"
-                style={{
-                  shadowColor: "#000",
-                  shadowOffset: {
-                    width: 0,
-                    height: 1,
-                  },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 4.41,
-                  elevation: 1,
-                }}
-              >
-                <View className="bg-white flex-row mx-5 mt-4 px-4 py-[26.5px] gap-2 items-center rounded-t-lg border border-slate-200">
-                  <CircleIcon color={UTBurntOrange} weight="fill" size="24" />
-                  <TextInput
-                    ref={startLocationRef}
-                    onFocus={() =>
-                      snapIndex !== 2 && sheetRef.current?.expand()
-                    }
-                    className="font-medium text-base flex-1"
-                    placeholder="Where from?"
-                    placeholderTextColor={gray500}
-                    onChangeText={(text) => setStartLocationText(text)}
-                    value={startLocationText}
-                    style={_style}
-                  />
-                </View>
-                <View className="bg-white flex-row mx-5 px-4 py-[26.5px] gap-2 items-center rounded-b-lg border border-slate-200 mt-[-1px] mb-6">
-                  <MapPinIcon color={slate900} size="24" weight="fill" />
-                  <TextInput
-                    ref={destinationRef}
-                    onFocus={() =>
-                      snapIndex !== 2 && sheetRef.current?.expand()
-                    }
-                    className="font-medium text-base flex-1"
-                    placeholder="Where to?"
-                    placeholderTextColor={gray500}
-                    onChangeText={(text) => setDestinationText(text)}
-                    value={destinationText}
-                    style={_style}
-                  />
-                </View>
+              <View className="flex-col rounded-lg">
+                <Pressable
+                  className="bg-slate-50 flex-row mx-5 mt-4 p-4 gap-4 items-center rounded-t-2xl border border-slate-200"
+                  onPress={() => startLocationRef.current?.focus()}
+                >
+                  <View className="bg-[#BF570033] rounded-full items-center justify-center w-[32px] h-[32px]">
+                    <CircleIcon color={UTBurntOrange} weight="fill" size="20" />
+                  </View>
+                  <View className="flex-col gap-1">
+                    <TextInput
+                      ref={startLocationRef}
+                      onFocus={() =>
+                        snapIndex !== 2 && sheetRef.current?.expand()
+                      }
+                      className="font-medium text-lg flex-1"
+                      placeholder="Where from?"
+                      placeholderTextColor={gray900}
+                      onChangeText={(text) => setStartLocationText(text)}
+                      value={startLocationText}
+                      style={_style}
+                    />
+                    <FontText className="text-lg color-[#333F48]">
+                      {startLocationAddress}
+                    </FontText>
+                  </View>
+                </Pressable>
+                <Pressable
+                  className="bg-slate-50 flex-row mx-5 p-4 gap-4 items-center rounded-b-2xl border border-slate-200 mt-[-1px] mb-6"
+                  onPress={() => destinationRef.current?.focus()}
+                >
+                  <View className="bg-[#005F8633] rounded-full items-center justify-center w-[32px] h-[32px]">
+                    <MapPinIcon color={UTBluebonnet} size="20" weight="fill" />
+                  </View>
+                  <View className="flex-col gap-1">
+                    <TextInput
+                      ref={destinationRef}
+                      onFocus={() =>
+                        snapIndex !== 2 && sheetRef.current?.expand()
+                      }
+                      className="font-medium text-lg flex-1"
+                      placeholder="Where to?"
+                      placeholderTextColor={gray900}
+                      onChangeText={(text) => setDestinationText(text)}
+                      value={destinationText}
+                      style={_style}
+                    />
+                    <FontText className="text-lg color-[#333F48]">
+                      {destinationAddress}
+                    </FontText>
+                  </View>
+                </Pressable>
               </View>
             </View>
             <LinearGradient
@@ -386,18 +400,18 @@ const Home = () => {
             />
           </View>
           <View className="relative px-5 pt-4 flex-col gap-4 justify-start">
-            {[...Array(10)].map((_, index) => (
+            {[...Array(10)].map((_, index, array) => (
               <View
                 key={index}
-                className="flex-col border-b border-gray-200 pb-4"
+                className={`flex-col ${index === array.length - 1 ? "" : "border-b"} border-gray-200 pb-4`}
               >
                 <View className="flex-row gap-2 items-center">
                   <MapPinIcon color={slate900} size="24" />
-                  <View className="flex-1 flex-col gap-2 justify-between">
-                    <FontText className="font-medium text-base">
+                  <View className="flex-1 flex-col gap-2 justify-around">
+                    <FontText className="font-medium text-lg/1">
                       Texan Pearl
                     </FontText>
-                    <FontText className="font-regular text-[14px] text-gray-500">
+                    <FontText className="font-regular text-[14px]/1 text-gray-500">
                       2515 Pearl St
                     </FontText>
                   </View>

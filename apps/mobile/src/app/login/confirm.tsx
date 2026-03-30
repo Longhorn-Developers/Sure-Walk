@@ -11,12 +11,30 @@ import {
 } from "react-native";
 import FontText from "@/src/components/font-text";
 import { gray500 } from "@/src/utils/colors";
+import { confirmGeneric } from "@/src/client/auth";
+import { useSession } from "@/src/utils/context/user-context";
 
 const Confirm = () => {
   const { phoneNumber } = useLoginSession();
+  const { setUser } = useSession();
   const [code, setCode] = useState("");
   const [focused, setFocus] = useState<boolean>(false);
   const textInputRef = useRef<TextInput | null>(null);
+
+  const confirmCode = async () => {
+    const response = await confirmGeneric(code);
+
+    if (!response.ok) {
+      // TODO: handle error
+      console.error("Failed to confirm code");
+      return;
+    }
+
+    const { accessToken, refreshToken, user } = await response.json();
+    setUser(user, { accessToken, refreshToken });
+    router.dismissAll();
+    router.replace("/login/guidelines");
+  };
 
   return (
     <View className="flex-1 bg-white px-5 pt-8">
@@ -72,7 +90,7 @@ const Confirm = () => {
       <LargeButton
         title="Continue"
         onPress={() => {
-          router.navigate("/login/assistance");
+          confirmCode();
         }}
         disabled={code.length !== 6}
       />

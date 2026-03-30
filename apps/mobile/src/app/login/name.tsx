@@ -46,7 +46,7 @@ const Name = () => {
       <LargeButton
         title="Continue"
         onPress={() => {
-          router.navigate("/login/phone");
+          router.navigate("/login/assistance");
         }}
         disabled={!isValid}
       ></LargeButton>
