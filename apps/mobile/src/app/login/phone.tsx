@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Platform, View } from "react-native";
 import FontText from "@/src/components/font-text";
 import { registerGeneric } from "@/src/client/auth";
+import { getErrorMessage } from "@/src/client";
 
 const Phone = () => {
   const checkValidity = (value: string) => {
@@ -37,8 +38,9 @@ const Phone = () => {
     });
 
     if (!response.ok) {
-      // TODO: handle error
-      console.error("Failed to register account");
+      console.error(
+        await getErrorMessage(response, "Failed to register account"),
+      );
       return;
     }
 

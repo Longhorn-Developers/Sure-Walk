@@ -13,6 +13,7 @@ import FontText from "@/src/components/font-text";
 import { gray500 } from "@/src/utils/colors";
 import { confirmGeneric } from "@/src/client/auth";
 import { useSession } from "@/src/utils/context/user-context";
+import { getErrorMessage } from "@/src/client";
 
 const Confirm = () => {
   const { phoneNumber } = useLoginSession();
@@ -25,8 +26,7 @@ const Confirm = () => {
     const response = await confirmGeneric(code);
 
     if (!response.ok) {
-      // TODO: handle error
-      console.error("Failed to confirm code");
+      console.error(await getErrorMessage(response, "Failed to confirm code."));
       return;
     }
 
