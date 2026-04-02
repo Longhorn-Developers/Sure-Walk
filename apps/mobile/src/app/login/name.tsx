@@ -7,7 +7,8 @@ import { View } from "react-native";
 import FontText from "@/src/components/font-text";
 
 const Name = () => {
-  const { firstName, lastName, setFirstName, setLastName } = useLoginSession();
+  const { firstName, lastName, setFirstName, setLastName, userType } =
+    useLoginSession();
   const [isValid, setIsValid] = useState(false);
 
   useEffect(() => {
@@ -46,7 +47,8 @@ const Name = () => {
       <LargeButton
         title="Continue"
         onPress={() => {
-          router.navigate("/login/assistance");
+          userType === "ut-affiliated" && router.navigate("/login/eid");
+          userType === "guest" && router.navigate("/login/assistance");
         }}
         disabled={!isValid}
       ></LargeButton>

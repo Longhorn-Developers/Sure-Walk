@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
       .set({
         firstName: result.codes.newFirstName,
         lastName: result.codes.newLastName!,
+        eid: result.codes.newEid,
         requiresAssistance: result.codes.newRequiresAssistance!,
         userType: result.codes.newUserType!,
       })

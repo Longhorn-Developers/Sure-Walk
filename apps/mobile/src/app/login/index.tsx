@@ -6,7 +6,7 @@ import { View } from "react-native";
 import FontText from "@/src/components/font-text";
 
 const Index = () => {
-  const { userType, setUserType } = useLoginSession();
+  const { userType, setUserType, setEid } = useLoginSession();
 
   return (
     <View className="flex-1 bg-white px-5 pt-8">
@@ -29,6 +29,9 @@ const Index = () => {
       <LargeButton
         title="Continue"
         onPress={() => {
+          if (userType === "guest") {
+            setEid(undefined);
+          }
           router.navigate("/login/name");
         }}
         disabled={userType === null}

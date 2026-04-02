@@ -8,6 +8,8 @@ interface LoginContextType {
   setFirstName: (firstName: string) => void;
   lastName: string;
   setLastName: (lastName: string) => void;
+  eid: string | undefined;
+  setEid: (eid: string | undefined) => void;
   phoneNumber: string;
   setPhoneNumber: (phoneNumber: string) => void;
   verified: boolean;
@@ -34,6 +36,7 @@ export const LoginSessionProvider = ({
   const [userType, setUserType] = useState<UserType | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [eid, setEid] = useState<string | undefined>(undefined);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verified, setVerified] = useState(false);
   const [requiresAssistance, setRequiresAssistance] = useState<
@@ -49,6 +52,8 @@ export const LoginSessionProvider = ({
         setFirstName,
         lastName,
         setLastName,
+        eid,
+        setEid,
         phoneNumber,
         setPhoneNumber,
         verified,

@@ -54,7 +54,13 @@ export async function PATCH(request: NextRequest) {
 
   const [updatedUser] = await getDB()
     .update(users)
-    .set({ firstName, lastName, phoneNumber, requiresAssistance, eid })
+    .set({
+      firstName,
+      lastName,
+      phoneNumber,
+      requiresAssistance,
+      eid: eid ?? null,
+    })
     .where(
       eq(
         users.id,

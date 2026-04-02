@@ -12,12 +12,14 @@ if (__DEV__ && !useProdAPI) {
 export const registerGeneric = async ({
   firstName,
   lastName,
+  eid = undefined,
   phoneNumber,
   requiresAssistance,
   userType,
 }: {
   firstName: string;
   lastName: string;
+  eid?: string;
   phoneNumber: string;
   requiresAssistance: boolean;
   userType: UserType;
@@ -30,6 +32,7 @@ export const registerGeneric = async ({
     body: JSON.stringify({
       firstName,
       lastName,
+      eid,
       phoneNumber,
       requiresAssistance,
       userType,

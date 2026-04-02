@@ -266,7 +266,7 @@ const Home = () => {
               exiting={FadeOutUp.duration(150).easing(Easing.in(Easing.cubic))}
             >
               <CheckButton
-                label="Pickup Boundary"
+                label="Pickup & Drop-Off Boundary"
                 onPress={() => setPickupBoundary(!showPickupBoundary)}
                 isChecked={showPickupBoundary}
                 color={UTTangerine}
