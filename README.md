@@ -1,15 +1,16 @@
-# Sure-Walk
+# Longhorn Lifts (Sure Walk)
 
 ### Build Badges
 
-- ![Expo](https://img.shields.io/badge/expo-1C1E24?style=for-the-badge&logo=expo&logoColor=#D04A37)
-- ![React Native](https://img.shields.io/badge/react_native-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
-- ![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white)
-- [![Next.js][Next.js]][Next-url]
-- [![TypeScript][TypeScript]][TypeScript-url]
-- [![Tailwind CSS][Tailwind]][Tailwind-url]
-- [![pnpm][pnpm]][pnpm-url]
-
+![Expo](https://img.shields.io/badge/expo-1C1E24?style=for-the-badge&logo=expo&logoColor=#D04A37)
+![React Native](https://img.shields.io/badge/react_native-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=Cloudflare&logoColor=white)
+![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![Drizzle](https://img.shields.io/badge/Drizzle-%23000000?style=for-the-badge&logo=drizzle&logoColor=C5F74F)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![PNPM](https://img.shields.io/badge/pnpm-%234a4a4a.svg?style=for-the-badge&logo=pnpm&logoColor=f69220)
+  
 ## Table of Contents
 
 - [Concise Description](#concise-description)
@@ -30,18 +31,16 @@
   - [Branch Naming Conventions](#branch-naming-conventions)
   - [Conventional Commits](#commit-message)
   - [Pull Request Process](#pr-process)
-  - [Testing Expectations](#testing-expectations)
   - [Contribution Guidelines](#contribution-guidelines--code-of-conduct-reference)
   - [Code of Conduct](#contribution-guidelines--code-of-conduct-reference)
 - [Available Scripts](#available-scripts)
 - [Project Structure](#project-structure)
 - [Deployment](#deployment)
 - [Open Source License](#open-source-license)
-- [Links](#links)
 
 ### Concise Description
 
-Sure Walk is a mobile app and web project meant to allow for a seamless process of booking a Sure Walk to travel on-campus to off-campus. The app provides a user-friendly experience with additional relevant information about Sure Walks. The website provides an interface for UT Sure Walk Staff to effectively manage Sure Walk bookings and driver assignments.
+Sure Walk is a mobile app and web project meant to allow for a seamless process of booking a Sure Walk to travel on-campus to off-campus. The app provides a user-friendly experience with additional relevant information about Sure Walks. The website provides an interface for UT Sure Walk Staff to query information in the database.
 
 ## Overview
 
@@ -51,13 +50,11 @@ Sure Walk's current process of receiving requests and assigning drivers to stude
 
 ### Solution:
 
-Sure Walk aims to improve the processes of booking a Sure Walk through easier management of Sure Walk Driver assignments and more elaborate and relevant information. Through an improved software system, students will be able to have more information about the rides they book and Sure Walk managers will be able to effectively manage all bookings and drivers.
+Sure Walk aims to improve the processes of booking a Sure Walk through easier management of Sure Walk driver assignments and more elaborate and relevant information. Through an improved software system, students will be able to have more information about the rides they book and Sure Walk managers will be able to effectively manage all bookings and drivers.
 
 ### Key Features and Benefits
 
-- Stories and media on Longhorn traditions, events, and history
-- Information on academic resources, student orgs, and support services
-- Guided onboarding paths for first-year and transfer students
+- Guided onboarding paths for UT affiliated persons (students, staff) and guests
 - Built with accessibility, responsiveness, and scalability in mind
 
 ### Target Audience
@@ -91,10 +88,12 @@ pnpm install
 
 ```
 # Mobile (Expo)
-pnpm dev:mobile
+cd apps/mobile
+pnpm ios|android
 
 # Web admin dashboard (Next.js)
-pnpm dev:web
+cd apps/web
+pnpm dev
 ```
 
 ## High-level architecture overview
@@ -104,24 +103,22 @@ pnpm dev:web
 - TypeScript
 - Next.js
 - Tailwind CSS for styling
-- Vercel for deployment and hosting
+- Drizzle as the ORM
+- Cloudflare for deployment and hosting
 
 ### Key components
 
 - User App (React Native with Expo)
-  - Provides UT students a mobile interface to request safe walks, track their walk in real-time, and communicate with their assigned Sure Walk driver.
-
-- Driver App / Mode
-  - Allows Sure Walk drivers to receive auto-assigned walk requests, navigate to pickup/drop-off locations, and chat with students.
+  - Provides UT students a mobile interface to request a Sure Walk, track their walk in real-time, and communicate with their assigned Sure Walk driver.
 
 - Dispatcher Dashboard (Web)
   - Enables coordinators to oversee all walk requests, manually assign drivers if needed, and monitor real-time walk progress.
 
 - Authentication System
-  - Integrates with UT EID + Duo for secure user verification and driver permissions.
+  - (planned) Integrates with UT EID + Duo for secure user verification and driver permissions.
 
 - Real-Time Backend
-  - Handles user-driver-dispatcher communication and updates for active walk sessions.
+  - Handles Sure Walk requests and communicates with the Samsara API.
 
 - GPS and Location Services
   - Tracks user and driver locations for real-time updates and routing.
@@ -135,13 +132,13 @@ pnpm dev:web
   - Prioritize clear visuals, status updates, and easy communication to reassure users throughout their walk.
 
 - Minimal friction
-  - Fast and simple request flow with default pickup locations, auto-driver assignment, and persistent session state.
+  - Fast and simple request flow with default pickup locations, and persistent session state.
 
 - Privacy and data security
   - No unnecessary location tracking or data retention. Authentication is scoped and session-based.
 
 - Real-time communication
-  - Users, drivers, and dispatchers receive updates and can communicate instantly through in-app chat.
+  - Users, and dispatchers receive updates in real-time.
 
 - Reliability and resilience
   - App maintains state across reloads and can recover gracefully from connection drops.
@@ -194,12 +191,12 @@ Where:
 
 - Fork or branch from main
 - Create a PR with a clear description
-- Ensure checks pass (build, lint, test)
+- Ensure checks pass (build, lint)
 - Request review before merging
 
-### Testing expectations
+### Testing expectations (planned)
 
-- Unit tests for UI components
+- Unit tests for UI components 
 - Integration tests for feature flows
 
 ### Contribution guidelines & Code of conduct reference
@@ -222,14 +219,12 @@ We welcome all to contribute! Please carefully read our [Contributing Guide](CON
 ├── package.json
 ├── pnpm-workspace.yaml
 ├── apps/
-│   ├── mobile/   # Expo React Native app
-│   └── web/      # Next.js web dashboard
+│   ├── mobile/      # Expo React Native app
+│   └── web/         # Next.js web dashboard
 ├── packages/
-│   ├── ui/       # Shared UI components
-│   └── api/      # API client code
-├── libs/
-│   ├── utils/    # Common utilities
-│   └── types/    # Shared TS types
+│   ├── ui/          # Shared UI components
+│   └── utils/       # Common utils
+        └── types/   # Shared types
 └── .gitignore
 ```
 
@@ -239,35 +234,20 @@ We welcome all to contribute! Please carefully read our [Contributing Guide](CON
 - **apps/mobile/** - Contains the Expo-based React Native application for users and drivers
 - **apps/web/** - Contains the Next.js admin dashboard for Sure Walk staff
 - **packages/ui/** - Shared UI components that can be used in both mobile and web apps
-- **packages/api/** - API client utilities for interacting with backend services
-- **libs/utils/** - Common utility functions shared across the applications
-- **libs/types/** - TypeScript types and interfaces used throughout the project
+- **packages/utils/** - Common utility functions shared across the applications
+- **packages/utils/types/** - TypeScript types and interfaces used throughout the project
 
 ## Deployment
 
 ### Environment information
 
-- Hosted on [Vercel](https://vercel.com/)
+- Hosted on [Cloudflare](https://cloudflare.com/)
 
 ### Deployment process
 
 - Push changes to GitHub
-- Vercel builds automatically from `main` branch
-- Preview Deployments available on every PR
-
-### Configuration details
+- CD workflow builds automatically from `main` branch and deploys to Cloudflare
 
 ## Open Source License
 
-### Usually MIT but choose as needed as some dependencies may require a different license
-
-## Links:
-
-[Next.js]: https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
-[Next-url]: https://nextjs.org/
-[TypeScript]: https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white
-[TypeScript-url]: https://www.typescriptlang.org/
-[Tailwind]: https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white
-[Tailwind-url]: https://tailwindcss.com/
-[pnpm]: https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white
-[pnpm-url]: https://pnpm.io/
+Usually MIT but choose as needed as some dependencies may require a different license
