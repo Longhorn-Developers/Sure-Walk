@@ -335,7 +335,7 @@ const Home = () => {
             Platform.OS === "android" ? snapIndex === 2 : undefined
           }
         >
-          <View className="flex-col mb-[-24px]">
+          <View className="flex-col mb-[-30px]">
             <View className="flex-col bg-white">
               <View className="flex-col rounded-lg">
                 <Pressable
@@ -394,24 +394,24 @@ const Home = () => {
               colors={["#ffffffff", "#ffffff00"]}
               style={{
                 marginTop: -1,
-                height: 24,
+                height: 20,
                 zIndex: 50,
               }}
             />
           </View>
-          <View className="relative px-5 pt-4 flex-col gap-4 justify-start">
+          <View className="relative px-5 pt-7 flex-col">
             {[...Array(10)].map((_, index, array) => (
               <View
                 key={index}
-                className={`flex-col ${index === array.length - 1 ? "" : "border-b"} border-gray-200 pb-4`}
+                className={`flex-col ${index === array.length - 1 ? "" : "border-b"} border-gray-200 pt-4 pb-3.5`}
               >
                 <View className="flex-row gap-2 items-center">
                   <MapPinIcon color={slate900} size="24" />
-                  <View className="flex-1 flex-col gap-2 justify-around">
-                    <FontText className="font-medium text-lg/1">
+                  <View className="flex-1 flex-col gap-2 justify-center">
+                    <FontText className="font-medium text-lg leading-none">
                       Texan Pearl
                     </FontText>
-                    <FontText className="font-regular text-[14px]/1 text-gray-500">
+                    <FontText className="font-regular text-[14px] leading-none text-gray-500">
                       2515 Pearl St
                     </FontText>
                   </View>
