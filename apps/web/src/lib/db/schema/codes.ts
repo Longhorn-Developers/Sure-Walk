@@ -13,6 +13,7 @@ export const codes = sqliteTable("codes", {
   identifier: text("identifier").notNull(),
   newFirstName: text("first_name"),
   newLastName: text("last_name"),
+  newEid: text("eid"),
   newRequiresAssistance: int("new_requires_assistance", { mode: "boolean" }),
   newUserType: text("new_user_type", { enum: ["ut-affiliated", "guest"] }),
   code: text("code", { length: 6 })

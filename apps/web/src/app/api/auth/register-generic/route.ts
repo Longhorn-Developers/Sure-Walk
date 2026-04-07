@@ -15,6 +15,7 @@ const partialUser = z.object({
     .string()
     .min(1, "Last name must be at least 1 character.")
     .max(30, "Last name must be at most 30 characters."),
+  eid: z.string().min(4, "EID must be at least 4 characters.").optional(),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits."),
   requiresAssistance: z.boolean(),
   userType: z.enum(["ut-affiliated", "guest"]),
@@ -34,8 +35,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { firstName, lastName, phoneNumber, requiresAssistance, userType } =
-    validationResult.data;
+  const {
+    firstName,
+    lastName,
+    eid,
+    phoneNumber,
+    requiresAssistance,
+    userType,
+  } = validationResult.data;
 
   const [existingUser] = await getDB()
     .select()
@@ -57,6 +64,7 @@ export async function POST(request: NextRequest) {
         identifier: phoneNumber,
         newFirstName: firstName, // update first and last name only if the phone number is verified
         newLastName: lastName, // avoids updating an already existing user's name with the specific number
+        newEid: eid ?? null,
         newRequiresAssistance: requiresAssistance,
         newUserType: userType,
       })
@@ -69,6 +77,7 @@ export async function POST(request: NextRequest) {
       .values({
         firstName,
         lastName,
+        eid,
         requiresAssistance,
         userType,
       })

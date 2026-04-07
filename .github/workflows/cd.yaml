@@ -4,6 +4,7 @@ on:
     branches: [main]
 jobs:
   deploy-web:
+    if: github.repository_owner == 'Longhorn-Developers'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

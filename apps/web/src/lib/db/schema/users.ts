@@ -12,7 +12,7 @@ export const users = sqliteTable("users", {
   requiresAssistance: integer("requires_assistance", {
     mode: "boolean",
   }).notNull(),
-  eid: text("eid").unique(),
+  eid: text("eid"),
   userType: text("user_type", { enum: ["ut-affiliated", "guest"] }).notNull(),
   creationTime: text("creation_time")
     .default(sql`(CURRENT_TIMESTAMP)`)

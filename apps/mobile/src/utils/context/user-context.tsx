@@ -135,6 +135,11 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
       } catch (error) {
         // assume user is logged out
         console.error("Error parsing user data, logging out:", error);
+        setAccessToken(null);
+        setRefreshToken(null);
+        await SecureStore.deleteItemAsync("accessToken");
+        await SecureStore.deleteItemAsync("refreshToken");
+        await SecureStore.deleteItemAsync("guidelinesAccepted");
         setLoadingState("done");
         return;
       } finally {

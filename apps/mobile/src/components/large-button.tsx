@@ -8,14 +8,14 @@ const LargeButton = ({
   title,
   onPress,
   disabled = false,
-  orange = false,
+  blue = false,
 }: {
   title: string;
   onPress: () => void;
   disabled?: boolean;
-  orange?: boolean;
+  blue?: boolean;
 }) => {
-  let color = orange ? "bg-ut-burntorange" : "bg-ut-bluebonnet";
+  let color = blue ? "bg-ut-bluebonnet" : "bg-ut-burntorange";
 
   return (
     <AnimatedTouchable

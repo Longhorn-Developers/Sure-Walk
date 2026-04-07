@@ -25,7 +25,7 @@ const _layout = () => {
             className={`flex-1 h-1 rounded-full transition-colors ${pathname === "/login" ? "bg-ut-burntorange" : "bg-gray-200"}`}
           />
           <View
-            className={`flex-1 h-1 rounded-full transition-colors ${pathname === "/login/name" ? "bg-ut-burntorange" : "bg-gray-200"}`}
+            className={`flex-1 h-1 rounded-full transition-colors ${pathname === "/login/name" || pathname === "/login/eid" ? "bg-ut-burntorange" : "bg-gray-200"}`}
           />
           <View
             className={`flex-1 h-1 rounded-full transition-colors ${pathname === "/login/assistance" ? "bg-ut-burntorange" : "bg-gray-200"}`}

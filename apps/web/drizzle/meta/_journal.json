@@ -15,6 +15,13 @@
       "when": 1774746898515,
       "tag": "0001_add-generic-auth",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1775170419828,
+      "tag": "0002_ask-eid-in-onboarding",
+      "breakpoints": true
     }
   ]
 }

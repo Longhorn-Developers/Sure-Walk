@@ -16,6 +16,7 @@ const Phone = () => {
   const {
     firstName,
     lastName,
+    eid,
     userType,
     requiresAssistance,
     phoneNumber,
@@ -32,6 +33,7 @@ const Phone = () => {
     const response = await registerGeneric({
       firstName,
       lastName,
+      eid,
       phoneNumber,
       requiresAssistance: requiresAssistance!,
       userType: userType!,
