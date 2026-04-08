@@ -10,6 +10,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Platform,
+  Pressable,
   StyleProp,
   TextInput,
   TextStyle,
@@ -39,6 +40,10 @@ import {
   UTTurquoise,
 } from "@/src/utils/colors";
 
+import { Location as LocationType } from "@/src/utils/types/location";
+import { getMatchingPickupLocations } from "@/src/utils/locations/pickup-locations";
+import { getMatchingDropoffLocations } from "@/src/utils/locations/dropoff-locations";
+
 const Home = () => {
   const sheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
@@ -66,6 +71,28 @@ const Home = () => {
 
   const [startLocationText, setStartLocationText] = useState<string>("");
   const [destinationText, setDestinationText] = useState<string>("");
+  const [focusedInput, setFocusedInput] = useState<"pickup" | "dropoff" | null>(
+    null,
+  );
+
+  const [pickupList, setPickupList] = useState<LocationType[]>([]);
+  const [dropoffList, setDropoffList] = useState<LocationType[]>([]);
+
+  useEffect(() => {
+    if (startLocationText.length > 0) {
+      setPickupList(getMatchingPickupLocations(startLocationText));
+    } else {
+      setPickupList([]);
+    }
+  }, [startLocationText]);
+
+  useEffect(() => {
+    if (destinationText.length > 0) {
+      setDropoffList(getMatchingDropoffLocations(destinationText));
+    } else {
+      setDropoffList([]);
+    }
+  }, [destinationText]);
 
   let _style: StyleProp<TextStyle> = {};
   if (Platform.OS === "ios") {
@@ -81,6 +108,30 @@ const Home = () => {
         longitudeDelta: 0.02,
       });
     }, 1000);
+  };
+
+  const resetMapView = (location: LocationType) => {
+    setPickupList([]);
+    setDropoffList([]);
+    mapRef.current?.animateToRegion(
+      {
+        latitude: location.lat,
+        longitude: location.lon,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
+      },
+      500,
+    );
+  };
+
+  const clickedPickupLocation = (location: LocationType) => () => {
+    setStartLocationText(location.name);
+    resetMapView(location);
+  };
+
+  const clickedDropoffLocation = (location: LocationType) => () => {
+    setDestinationText(location.name);
+    resetMapView(location);
   };
 
   useEffect(() => {
@@ -348,9 +399,11 @@ const Home = () => {
                   <CircleIcon color={UTBurntOrange} weight="fill" size="24" />
                   <TextInput
                     ref={startLocationRef}
-                    onFocus={() =>
-                      snapIndex !== 2 && sheetRef.current?.expand()
-                    }
+                    onFocus={() => {
+                      setFocusedInput("pickup");
+                      snapIndex !== 2 && sheetRef.current?.expand();
+                    }}
+                    onBlur={() => setFocusedInput(null)}
                     className="font-medium text-base flex-1"
                     placeholder="Where from?"
                     placeholderTextColor={gray500}
@@ -363,9 +416,11 @@ const Home = () => {
                   <MapPinIcon color={slate900} size="24" weight="fill" />
                   <TextInput
                     ref={destinationRef}
-                    onFocus={() =>
-                      snapIndex !== 2 && sheetRef.current?.expand()
-                    }
+                    onFocus={() => {
+                      setFocusedInput("dropoff");
+                      snapIndex !== 2 && sheetRef.current?.expand();
+                    }}
+                    onBlur={() => setFocusedInput(null)}
                     className="font-medium text-base flex-1"
                     placeholder="Where to?"
                     placeholderTextColor={gray500}
@@ -386,24 +441,38 @@ const Home = () => {
             />
           </View>
           <View className="relative px-5 pt-4 flex-col gap-4 justify-start">
-            {[...Array(10)].map((_, index) => (
-              <View
+            {(focusedInput === "pickup"
+              ? pickupList
+              : focusedInput === "dropoff"
+                ? dropoffList
+                : []
+            ).map((location, index) => (
+              <Pressable
                 key={index}
-                className="flex-col border-b border-gray-200 pb-4"
+                onPress={
+                  focusedInput === "pickup"
+                    ? clickedPickupLocation(location)
+                    : clickedDropoffLocation(location)
+                }
               >
-                <View className="flex-row gap-2 items-center">
-                  <MapPinIcon color={slate900} size="24" />
-                  <View className="flex-1 flex-col gap-2 justify-between">
-                    <FontText className="font-medium text-base">
-                      Texan Pearl
-                    </FontText>
-                    <FontText className="font-regular text-[14px] text-gray-500">
-                      2515 Pearl St
-                    </FontText>
+                <View
+                  key={index}
+                  className="flex-col border-b border-gray-200 pb-4"
+                >
+                  <View className="flex-row gap-2 items-center">
+                    <MapPinIcon color={slate900} size="24" />
+                    <View className="flex-1 flex-col gap-2 justify-between">
+                      <FontText className="font-medium text-base">
+                        {location.name}
+                      </FontText>
+                      <FontText className="font-regular text-[14px] text-gray-500">
+                        {location.address}
+                      </FontText>
+                    </View>
+                    <StarIcon color={slate900} size="24" />
                   </View>
-                  <StarIcon color={slate900} size="24" />
                 </View>
-              </View>
+              </Pressable>
             ))}
           </View>
         </BottomSheetScrollView>
