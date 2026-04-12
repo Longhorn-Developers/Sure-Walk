@@ -29,7 +29,6 @@ const EID = () => {
           fieldName="UT EID"
           value={eid}
           onChangeText={setEid}
-          autoCapitalize="words"
           maxLength={10}
           placeholder="UT EID"
         />

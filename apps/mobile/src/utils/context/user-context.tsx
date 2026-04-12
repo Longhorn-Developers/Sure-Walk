@@ -2,7 +2,7 @@ import User from "@sure-walk/utils/types/user";
 import { PropsWithChildren, useContext, useEffect, useState } from "react";
 import { createContext } from "react";
 import * as SecureStore from "expo-secure-store";
-import loadingState from "../types/loading-state";
+import LoadingState from "../types/loading-state";
 import { API_URL, logout } from "../../client/auth";
 import { router } from "expo-router";
 
@@ -16,7 +16,7 @@ interface UserContextType {
     }: { accessToken: string; refreshToken: string },
   ) => void;
   logOut: () => void;
-  loadingState: loadingState;
+  loadingState: LoadingState;
   guidelinesAccepted: boolean;
   acceptGuidelines: () => Promise<void>;
 }
@@ -32,7 +32,7 @@ export const useSession = () => {
 };
 
 export const SessionProvider = ({ children }: PropsWithChildren) => {
-  const [loadingState, setLoadingState] = useState<loadingState>("loading");
+  const [loadingState, setLoadingState] = useState<LoadingState>("loading");
   const [userInfo, setUserInfo] = useState<User | null>(null);
   const [, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
