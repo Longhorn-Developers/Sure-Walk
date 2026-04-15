@@ -26,7 +26,7 @@ export default function RootLayout() {
 
   return (
     <View className="bg-white h-full w-full">
-      <View className="flex-1 bg-white pt-safe">
+      <View className="flex-1 bg-white">
         <GestureHandlerRootView>
           <SessionProvider>
             <Stack screenOptions={{ headerShown: false }}>

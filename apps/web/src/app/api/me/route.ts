@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
 const updateMeFormat = z.object({
   firstName: z.string().min(1).max(30),
   lastName: z.string().min(1).max(30),
-  phoneNumber: z.string().min(10),
   requiresAssistance: z.boolean(),
   eid: z.string().min(4).optional(),
 });
@@ -49,7 +48,7 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
-  const { firstName, lastName, phoneNumber, requiresAssistance, eid } =
+  const { firstName, lastName, requiresAssistance, eid } =
     validationResult.data;
 
   const [updatedUser] = await getDB()
@@ -57,7 +56,6 @@ export async function PATCH(request: NextRequest) {
     .set({
       firstName,
       lastName,
-      phoneNumber,
       requiresAssistance,
       eid: eid ?? null,
     })

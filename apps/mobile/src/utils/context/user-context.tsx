@@ -15,6 +15,14 @@ interface UserContextType {
       refreshToken,
     }: { accessToken: string; refreshToken: string },
   ) => void;
+  updateUser: (user: User) => void;
+  fetchProtected: (
+    endpoint: string,
+    method: string,
+    body?: any,
+    accessToken?: string,
+    refreshToken?: string,
+  ) => Promise<Response>;
   logOut: () => void;
   loadingState: loadingState;
   guidelinesAccepted: boolean;
@@ -34,7 +42,7 @@ export const useSession = () => {
 export const SessionProvider = ({ children }: PropsWithChildren) => {
   const [loadingState, setLoadingState] = useState<loadingState>("loading");
   const [userInfo, setUserInfo] = useState<User | null>(null);
-  const [, setAccessToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [guidelinesAccepted, setGuidelinesAccepted] = useState<boolean>(false);
 
@@ -42,18 +50,20 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     endpoint: string,
     method: string,
     body?: any,
-    accessToken?: string,
-    refreshToken?: string,
+    accessTokenFallback?: string,
+    refreshTokenFallback?: string,
   ) => {
-    if (!accessToken || !refreshToken) {
-      throw new Error("No access or refresh token available");
+    if (!accessTokenFallback || !refreshTokenFallback) {
+      if (!accessToken || !refreshToken) {
+        throw new Error("No access or refresh token available");
+      }
     }
 
     let response = await fetch(`${API_URL}${endpoint}`, {
       method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessTokenFallback ?? accessToken}`,
       },
       body: body ? JSON.stringify(body) : undefined,
     });
@@ -149,7 +159,7 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     };
 
     fetchUserInfo();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <UserContext.Provider
@@ -168,6 +178,10 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
           await SecureStore.setItemAsync("accessToken", accessToken);
           await SecureStore.setItemAsync("refreshToken", refreshToken);
         },
+        updateUser: async (user: User) => {
+          setUserInfo(user);
+        },
+        fetchProtected,
         logOut: async () => {
           try {
             await logout(refreshToken!);

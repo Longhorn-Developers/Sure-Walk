@@ -9,7 +9,7 @@ const _layout = () => {
   const pathname = usePathname();
 
   return (
-    <View className="h-full w-full bg-white pb-safe">
+    <View className="h-full w-full bg-white pb-safe  pt-safe">
       <View className="flex-1 bg-white pb-6 pt-[34px]">
         <View className="h-6 w-6 mb-4 ml-5">
           {pathname !== "/login" && pathname !== "/login/guidelines" && (

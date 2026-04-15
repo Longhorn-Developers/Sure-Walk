@@ -6,6 +6,7 @@ export const UTBluebonnet = "#005F86";
 export const UTTurquoise = "#00A9B7";
 export const UTTangerine = "#F8971F";
 
+export const gray200 = "#E5E7EB";
 export const gray500 = "#6B7280";
 export const gray900 = "#111827";
 
