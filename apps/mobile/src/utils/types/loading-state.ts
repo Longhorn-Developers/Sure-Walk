@@ -1,3 +1,3 @@
-type loadingState = "loading" | "done" | "error";
+type LoadingState = "loading" | "done" | "error";
 
-export default loadingState;
+export default LoadingState;

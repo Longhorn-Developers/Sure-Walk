@@ -19,13 +19,17 @@ const LargeButton = ({
 
   return (
     <AnimatedTouchable
-      className={`px-4 py-3.5 rounded-full flex-col transition-colors ${color} disabled:bg-gray-300`}
+      className={`h-[56px] px-4 rounded-full flex-col transition-colors ${color} disabled:bg-slate-200 justify-center`}
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
     >
-      <FontText className="text-white text-center text-xl">{title}</FontText>
+      <FontText
+        className={`${disabled ? "text-slate-500" : "text-white"} text-center text-xl font-medium`}
+      >
+        {title}
+      </FontText>
     </AnimatedTouchable>
   );
 };

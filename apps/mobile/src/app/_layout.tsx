@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import * as NavigationBar from "expo-navigation-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { configureReanimatedLogger } from "react-native-reanimated";
+import { GroupRideProvider } from "../utils/context/group-ride-context";
 
 configureReanimatedLogger({ strict: false });
 
@@ -29,14 +30,16 @@ export default function RootLayout() {
       <View className="flex-1 bg-white">
         <GestureHandlerRootView>
           <SessionProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen
-                name="(tabs)"
-                options={{
-                  headerShown: false,
-                }}
-              />
-            </Stack>
+            <GroupRideProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+              </Stack>
+            </GroupRideProvider>
           </SessionProvider>
         </GestureHandlerRootView>
       </View>

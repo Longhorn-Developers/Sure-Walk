@@ -40,6 +40,8 @@ import {
   UTTangerine,
   UTTurquoise,
 } from "@/src/utils/colors";
+import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
+import { router } from "expo-router";
 import { Location as LocationType } from "@/src/utils/types/location";
 import { getMatchingPickupLocations } from "@/src/utils/locations/pickup-locations";
 import { getMatchingDropoffLocations } from "@/src/utils/locations/dropoff-locations";
@@ -50,6 +52,8 @@ const Home = () => {
     _style.lineHeight = 0;
   }
 
+  const { members } = useGroupRideSession();
+
   const sheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
   const startLocationRef = useRef<TextInput>(null);
@@ -57,7 +61,6 @@ const Home = () => {
   const { height } = useWindowDimensions();
   const androidOffset = Platform.OS === "android" ? -16 : 0; // weird offset hack on android
   // maybe due to bottom bar safe area inset?
-
   // snap bar at roughly 11%, 40%, and 90%
   const snapPoints = useMemo(
     () => [
@@ -363,10 +366,10 @@ const Home = () => {
                 <FontText className="text-2xl font-medium">
                   Book a ride
                 </FontText>
-                <TO>
+                <TO onPress={() => router.navigate("/home/group-ride")}>
                   <View className="flex-row gap-1 p-3 items-center bg-slate-50 rounded-[32px] border border-slate-200">
                     <UserCirclePlusIcon color={slate700} size="24" />
-                    <FontText className="font-medium">Add Riders</FontText>
+                    <FontText className="font-medium">{`${members.length === 0 ? "Add" : members.length + 1} Riders`}</FontText>
                   </View>
                 </TO>
               </View>

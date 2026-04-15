@@ -12,15 +12,23 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 10
-      - name: Use Node.js 20
+      - name: Use Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: "pnpm"
       - name: Install dependencies
         run: pnpm install
       - name: Build web app
         run: cd apps/web && pnpm opennextjs-cloudflare build
+      - name: Run migrations
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          packageManager: pnpm
+          command: d1 migrations apply lifts-db --remote
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:

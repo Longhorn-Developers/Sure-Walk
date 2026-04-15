@@ -3,9 +3,11 @@ import LargeButton from "@/src/components/large-button";
 import { useSession } from "@/src/utils/context/user-context";
 import { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
-import SignOutButton from "@/src/components/sign-out-button";
+import OutlineButton from "@/src/components/outline-button";
 import EditProfileTextInput from "@/src/components/edit-profile-text-input";
 import DropdownSelect from "@/src/components/dropdown-select";
+import { SignOutIcon } from "phosphor-react-native";
+import { UTBluebonnet } from "@/src/utils/colors";
 
 const Profile = () => {
   const { user, loadingState, logOut, fetchProtected, updateUser } =
@@ -104,7 +106,7 @@ const Profile = () => {
       )}
       {loadingState === "done" && user && (
         <View className="flex-1">
-          <View className="w-full h-[139px] bg-[#EFF6FF]" />
+          <View className="w-full bg-[#EFF6FF] pt-safe-offset-[54px]" />
           <View className="text-center w-20 h-20 rounded-full bg-ut-burntorange items-center justify-center self-center -mt-10">
             <FontText className="text-center text-white text-[24px] font-medium">
               {user.firstName[0]}
@@ -230,7 +232,11 @@ const Profile = () => {
               )}
             </View>
             <View className="pb-2">
-              <SignOutButton title="Log Out" onPress={logOut} blue={true} />
+              <OutlineButton
+                title="Log Out"
+                onPress={logOut}
+                icon={<SignOutIcon color={UTBluebonnet} size={32} />}
+              />
             </View>
 
             {isEditing && (
