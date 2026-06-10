@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
     .leftJoin(accounts, eq(codes.accountID, accounts.id))
     .leftJoin(users, eq(accounts.userID, users.id));
 
-  if (!result || new Date(result.codes!.expiresAt) < new Date()) {
+  if (!result || new Date(result.codes!.expiresAt + "Z") < new Date()) {
+    // make timestamp UTC aware
     if (result) {
       await getDB().delete(codes).where(eq(codes.id, result.codes!.id));
     }
