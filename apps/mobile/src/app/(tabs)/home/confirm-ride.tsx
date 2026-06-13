@@ -18,7 +18,13 @@ import {
   PhoneCallIcon,
   TimerIcon,
 } from "phosphor-react-native";
-import { TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 
 const ConfirmRide = () => {
@@ -26,6 +32,7 @@ const ConfirmRide = () => {
   const { members } = useGroupRideSession();
   const { user } = useSession();
   const { firstName, lastName, userType, eid } = user!;
+  const [confirmEnabled, setConfirmEnabled] = useState<boolean>(false);
 
   const guidelines = [
     {
@@ -41,6 +48,16 @@ const ConfirmRide = () => {
       text: "No food or drinks in the vehicle",
     },
   ];
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const isCloseToBottom =
+      layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+
+    if (isCloseToBottom) {
+      setConfirmEnabled(true);
+    }
+  };
 
   return (
     <View className="bg-white flex-1 p-5 flex-col gap-10">
@@ -83,6 +100,7 @@ const ConfirmRide = () => {
         <ScrollView
           className="flex-col py-4 pt-[-16px]"
           showsVerticalScrollIndicator={false}
+          onMomentumScrollEnd={handleScroll}
         >
           <View className="flex-col gap-6 flex-1 mt-4">
             <View className="flex-col gap-4">
@@ -171,7 +189,11 @@ const ConfirmRide = () => {
           </View>
         </ScrollView>
       </View>
-      <LargeButton title="Confirm" onPress={() => null} />
+      <LargeButton
+        title={confirmEnabled ? "Confirm" : "Scroll down to confirm"}
+        onPress={() => null}
+        disabled={!confirmEnabled}
+      />
     </View>
   );
 };
