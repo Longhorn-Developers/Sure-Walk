@@ -174,7 +174,7 @@ const ConfirmRide = () => {
                   small
                 />
               </View>
-              <View className="flex-col gap-4 pt-3 pb-4">
+              <View className="flex-col gap-4 pb-4">
                 <RiderCard
                   member={{ firstName, lastName, userType, eid }}
                   actionComponent={

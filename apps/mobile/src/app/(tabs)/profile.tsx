@@ -2,11 +2,11 @@ import FontText from "@/src/components/font-text";
 import LargeButton from "@/src/components/large-button";
 import { useSession } from "@/src/utils/context/user-context";
 import { useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import OutlineButton from "@/src/components/outline-button";
 import EditProfileTextInput from "@/src/components/edit-profile-text-input";
 import DropdownSelect from "@/src/components/dropdown-select";
-import { SignOutIcon } from "phosphor-react-native";
+import { ArrowUUpLeftIcon, SignOutIcon } from "phosphor-react-native";
 import { UTBluebonnet } from "@/src/utils/colors";
 
 const Profile = () => {
@@ -97,7 +97,7 @@ const Profile = () => {
   };
 
   return (
-    <ScrollView className="bg-white" contentContainerStyle={{ flexGrow: 1 }}>
+    <View className="bg-white flex-1">
       {loadingState === "loading" && (
         <FontText className="mt-4">Loading...</FontText>
       )}
@@ -134,42 +134,48 @@ const Profile = () => {
                     </TouchableOpacity>
                   </View>
 
-                  <View className="flex flex-col items-start gap-10 self-stretch pb-4">
-                    <View className="flex flex-col items-start self-stretch">
-                      <FontText className="font-medium tracking-[0.48px]">
+                  <View className="flex-1 flex-col items-start gap-10">
+                    <View className="flex flex-col items-start self-stretch h-[55px]">
+                      <FontText className="font-medium text-md">
                         First Name
                       </FontText>
-                      <FontText className="mt-4 mb-1">
+                      <FontText className="mt-4 mb-1 text-md">
                         {user.firstName}
                       </FontText>
                       <View className="border-b border-b-[#e5e7eb] w-full" />
                     </View>
-                    <View className="flex flex-col items-start self-stretch">
-                      <FontText className="font-medium tracking-[0.48px]">
+                    <View className="flex flex-col items-start self-stretch h-[55px]">
+                      <FontText className="font-medium text-md">
                         Last Name
                       </FontText>
-                      <FontText className="mt-4 mb-1">{user.lastName}</FontText>
+                      <FontText className="mt-4 mb-1 text-md">
+                        {user.lastName}
+                      </FontText>
                       <View className="border-b border-b-[#e5e7eb] w-full" />
                     </View>
-                    <View className="flex flex-col items-start self-stretch">
-                      <FontText className="font-medium">UT EID</FontText>
-                      <FontText className="mt-4 mb-1">
+                    <View className="flex flex-col items-start self-stretch h-[55px]">
+                      <FontText className="font-medium text-md">
+                        UT EID
+                      </FontText>
+                      <FontText className="mt-4 mb-1 text-md">
                         {user.eid || "Not provided"}
                       </FontText>
                       <View className="border-b border-b-[#e5e7eb] w-full" />
                     </View>
-                    <View className="flex flex-col items-start self-stretch">
-                      <FontText className="font-medium">Phone Number</FontText>
-                      <FontText className="mt-4 mb-1">
+                    <View className="flex flex-col items-start self-stretch h-[55px]">
+                      <FontText className="font-medium text-md">
+                        Phone Number
+                      </FontText>
+                      <FontText className="mt-4 mb-1 text-md">
                         {user.phoneNumber}
                       </FontText>
                       <View className="border-b border-b-[#e5e7eb] w-full" />
                     </View>
-                    <View className="flex flex-col items-start self-stretch">
-                      <FontText className="font-medium">
+                    <View className="flex flex-col items-start self-stretch h-[55px]">
+                      <FontText className="font-medium text-md">
                         Americans with Disabilities Act (ADA)
                       </FontText>
-                      <FontText className="mt-4 mb-1">
+                      <FontText className="mt-4 mb-1 text-md">
                         {user.requiresAssistance ? "Yes" : "No"}
                       </FontText>
                       <View className="border-b border-b-[#e5e7eb] w-full" />
@@ -179,8 +185,8 @@ const Profile = () => {
               )}
 
               {isEditing && (
-                <View className="flex-1 flex-col justify-start mt-[34px] pt-4">
-                  <View className="flex flex-col items-start gap-10 self-stretch pb-4">
+                <View className="flex-1 flex-col mt-[36px] pt-4">
+                  <View className="flex flex-col items-start gap-10">
                     <EditProfileTextInput
                       fieldName="First Name"
                       value={firstName}
@@ -215,7 +221,7 @@ const Profile = () => {
                       maxLength={20}
                       placeholder="1234567890"
                       editable={false}
-                      className="color-slate-500"
+                      className="color-slate-500 text-md mb-1 mt-4"
                     />
                     <DropdownSelect
                       label="Americans with Disabilities Act (ADA)"
@@ -231,27 +237,40 @@ const Profile = () => {
                 </View>
               )}
             </View>
-            <View className="pb-2">
-              <OutlineButton
-                title="Log Out"
-                onPress={logOut}
-                icon={<SignOutIcon color={UTBluebonnet} size={32} />}
-              />
-            </View>
-
-            {isEditing && (
+            {!isEditing && (
               <View className="pb-2">
-                <LargeButton
-                  title={isSaving ? "Saving..." : "Save"}
-                  onPress={saveProfile}
-                  disabled={isSaving || requiresAssistance === null}
+                <OutlineButton
+                  title="Log Out"
+                  onPress={logOut}
+                  icon={<SignOutIcon color={UTBluebonnet} size={32} />}
                 />
+              </View>
+            )}
+            {isEditing && (
+              <View className="flex-row gap-2">
+                <View className="pb-2 flex-1">
+                  <OutlineButton
+                    title="Cancel"
+                    onPress={() => {
+                      resetForm();
+                      setIsEditing(false);
+                    }}
+                    icon={<ArrowUUpLeftIcon color={UTBluebonnet} size={24} />}
+                  />
+                </View>
+                <View className="pb-2 flex-1">
+                  <LargeButton
+                    title={isSaving ? "Saving..." : "Save"}
+                    onPress={saveProfile}
+                    disabled={isSaving || requiresAssistance === null}
+                  />
+                </View>
               </View>
             )}
           </View>
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 };
 

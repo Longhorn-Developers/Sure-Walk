@@ -22,18 +22,16 @@ const EditProfileTextInput = ({
 
   return (
     <Pressable
-      className="flex flex-col items-start w-full gap-2"
+      className="flex flex-col items-start w-full h-[55px]"
       onPress={() => inputRef.current?.focus()}
     >
-      <FontText className="font-medium text-4 tracking-[0.48px]">
-        {fieldName}
-      </FontText>
+      <FontText className="font-medium text-md">{fieldName}</FontText>
       <TextInput
-        className="mt-1 mb-1 w-full"
-        {...props}
+        className="w-full text-md mt-4 mb-1"
         placeholderTextColor={gray500}
         style={_style}
         ref={inputRef}
+        {...props}
       />
       <View className="border-b border-b-[#e5e7eb] w-full" />
     </Pressable>
