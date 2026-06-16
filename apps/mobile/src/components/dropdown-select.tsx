@@ -32,7 +32,7 @@ const DropdownSelect = ({
       </TouchableOpacity>
 
       {open && (
-        <View className="border border-[#e5e7eb]">
+        <View className="border border-[#e5e7eb] mt-[-4px]">
           {options.map((option, index) => (
             <TouchableOpacity
               key={index}
@@ -55,7 +55,9 @@ const DropdownSelect = ({
           ))}
         </View>
       )}
-      {!open && <View className="border-b border-b-[#e5e7eb] w-full" />}
+      {!open && (
+        <View className="border-b border-b-[#e5e7eb] w-full mt-[-4px]" />
+      )}
     </View>
   );
 };

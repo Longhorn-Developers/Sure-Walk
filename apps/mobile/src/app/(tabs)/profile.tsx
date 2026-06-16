@@ -185,7 +185,7 @@ const Profile = () => {
               )}
 
               {isEditing && (
-                <View className="flex-1 flex-col mt-[36px] pt-4">
+                <View className="flex-1 flex-col mt-[35px] pt-4">
                   <View className="flex flex-col items-start gap-10">
                     <EditProfileTextInput
                       fieldName="First Name"
@@ -221,7 +221,7 @@ const Profile = () => {
                       maxLength={20}
                       placeholder="1234567890"
                       editable={false}
-                      className="color-slate-500 text-md mb-1 mt-4"
+                      className="color-slate-500 text-md mb-1 mt-4 font-regular"
                     />
                     <DropdownSelect
                       label="Americans with Disabilities Act (ADA)"

@@ -27,7 +27,7 @@ const EditProfileTextInput = ({
     >
       <FontText className="font-medium text-md">{fieldName}</FontText>
       <TextInput
-        className="w-full text-md mt-4 mb-1"
+        className="w-full text-md mt-4 mb-1 font-regular"
         placeholderTextColor={gray500}
         style={_style}
         ref={inputRef}
