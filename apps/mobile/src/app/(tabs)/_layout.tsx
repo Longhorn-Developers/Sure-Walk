@@ -1,11 +1,7 @@
 import { Redirect, SplashScreen, Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Platform, View, ActivityIndicator } from "react-native";
-import {
-  ClipboardTextIcon,
-  UserCircleIcon,
-  HouseIcon,
-} from "phosphor-react-native";
+import { UserCircleIcon, HouseIcon, CarIcon } from "phosphor-react-native";
 import { useSession } from "@/src/utils/context/user-context";
 import { useEffect } from "react";
 import {
@@ -96,15 +92,12 @@ const _layout = () => {
         }}
       />
       <Tabs.Screen
-        name="guidelines"
+        name="my-ride"
         options={{
           headerShown: false,
-          tabBarLabel: "Guidelines",
+          tabBarLabel: "My Ride",
           tabBarIcon: ({ focused }) => (
-            <ClipboardTextIcon
-              size={32}
-              weight={focused ? "fill" : "regular"}
-            />
+            <CarIcon size={32} weight={focused ? "fill" : "regular"} />
           ),
         }}
       />

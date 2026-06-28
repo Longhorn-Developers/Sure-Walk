@@ -74,7 +74,7 @@ const ConfirmRide = () => {
           Confirm your booking
         </FontText>
       </View>
-      <View className="relative mt-[-16px] z-5 flex-1">
+      <View className="relative mt-[-16px] z-5 flex-1 mx-[-20px]">
         <LinearGradient
           colors={["#ffffffff", "#ffffff00"]}
           style={{
@@ -98,8 +98,7 @@ const ConfirmRide = () => {
           }}
         />
         <ScrollView
-          className="flex-col py-4 pt-[-16px]"
-          showsVerticalScrollIndicator={false}
+          className="flex-col py-4 pt-[-16px] px-5"
           onMomentumScrollEnd={handleScroll}
         >
           <View className="flex-col gap-6 flex-1 mt-4">

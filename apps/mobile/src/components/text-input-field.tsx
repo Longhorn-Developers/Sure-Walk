@@ -15,7 +15,7 @@ const TextInputField = ({
   styleProps,
   ...props
 }: {
-  fieldName: string;
+  fieldName?: string;
   optionalPressableText?: string;
   optionalPressableCallback?: () => void;
   styleProps?: TextStyle;
@@ -27,18 +27,20 @@ const TextInputField = ({
 
   return (
     <View className="flex-col gap-2">
-      <View className="flex-row justify-between">
-        <FontText className="text-lg font-semibold text-gray-900">
-          {fieldName}
-        </FontText>
-        {optionalPressableCallback && (
-          <TouchableOpacity onPress={() => optionalPressableCallback()}>
-            <FontText className="text-lg font-semibold text-ut-bluebonnet">
-              {optionalPressableText}
-            </FontText>
-          </TouchableOpacity>
-        )}
-      </View>
+      {fieldName && (
+        <View className="flex-row justify-between">
+          <FontText className="text-lg font-semibold text-gray-900">
+            {fieldName}
+          </FontText>
+          {optionalPressableCallback && (
+            <TouchableOpacity onPress={() => optionalPressableCallback()}>
+              <FontText className="text-lg font-semibold text-ut-bluebonnet">
+                {optionalPressableText}
+              </FontText>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
       <TextInput
         className="bg-gray-50 border border-gray-200 text-gray-900 text-lg font-regular rounded-lg transition-colors focus:ring-ut-bluebonnet focus:border-ut-bluebonnet block w-full p-4"
         {...props}

@@ -6,7 +6,7 @@ import TextInputField from "@/src/components/text-input-field";
 import { red500, slate500, slate700, UTBluebonnet } from "@/src/utils/colors";
 import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
 import { useSession } from "@/src/utils/context/user-context";
-import GroupRideMember from "@/src/utils/types/group-ride-member";
+import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
 import UserType from "@sure-walk/utils/types/user-type";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -122,7 +122,7 @@ const GroupRide = () => {
         </TouchableOpacity>
         <FontText className="font-medium text-2xl">Your group ride</FontText>
       </View>
-      <View className="relative flex-1">
+      <View className="relative flex-1 mx-[-20px]">
         <LinearGradient
           colors={["#ffffffff", "#ffffff00"]}
           style={{
@@ -146,8 +146,7 @@ const GroupRide = () => {
           }}
         />
         <ScrollView
-          className="flex-col"
-          showsVerticalScrollIndicator={false}
+          className="flex-col px-5"
           ref={scrollViewRef}
           keyboardShouldPersistTaps="handled"
         >

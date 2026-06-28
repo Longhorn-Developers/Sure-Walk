@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import GroupRideMember from "../utils/types/group-ride-member";
+import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
 import FontText from "./font-text";
 import { UserIcon } from "phosphor-react-native";
 
