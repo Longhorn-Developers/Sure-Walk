@@ -53,6 +53,8 @@ import { getMatchingPickupLocations } from "@/src/utils/locations/pickup-locatio
 import { getMatchingDropoffLocations } from "@/src/utils/locations/dropoff-locations";
 import { useRideSession } from "@/src/utils/context/ride-context";
 import LargeButton from "@/src/components/large-button";
+import { useTabContext } from "@/src/utils/context/tab-context";
+import MyRide from "../(my-ride)";
 
 const Home = () => {
   let _style: StyleProp<TextStyle> = {};
@@ -67,6 +69,7 @@ const Home = () => {
     dropoffLocation,
     setDropoffLocation,
   } = useRideSession();
+  const { setHomeSheetRef } = useTabContext();
 
   const sheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
@@ -158,6 +161,10 @@ const Home = () => {
   useEffect(() => {
     setDropoffList(getMatchingDropoffLocations(destinationText));
   }, [destinationText]);
+
+  useEffect(() => {
+    setHomeSheetRef(sheetRef);
+  }, [setHomeSheetRef]);
 
   // const resetMapView = (location: LocationType) => {
   //   setPickupList([]);
@@ -566,6 +573,7 @@ const Home = () => {
           }}
         />
       </BottomSheet>
+      <MyRide />
     </View>
   );
 };

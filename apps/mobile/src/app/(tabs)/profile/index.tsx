@@ -2,11 +2,12 @@ import FontText from "@/src/components/font-text";
 import LargeButton from "@/src/components/large-button";
 import { useSession } from "@/src/utils/context/user-context";
 import { useEffect, useState } from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
+import { Linking, ScrollView, TouchableOpacity, View } from "react-native";
 import OutlineButton from "@/src/components/outline-button";
 import EditProfileTextInput from "@/src/components/edit-profile-text-input";
 import DropdownSelect from "@/src/components/dropdown-select";
 import {
+  ArrowUpRightIcon,
   ArrowUUpLeftIcon,
   CaretRightIcon,
   SignOutIcon,
@@ -243,10 +244,14 @@ const Profile = () => {
                       </FontText>
                       <TouchableOpacity
                         className="flex-row mt-4 mb-1 items-center justify-between w-full"
-                        onPress={() => router.push("/profile/guidelines")}
+                        onPress={() =>
+                          Linking.openURL(
+                            "https://parking.utexas.edu/transportation/ut-night-rides",
+                          )
+                        }
                       >
                         <FontText className="text-md">Redeem credit</FontText>
-                        <CaretRightIcon size={24} />
+                        <ArrowUpRightIcon size={24} />
                       </TouchableOpacity>
                       <View className="border-b border-b-[#e5e7eb] w-full" />
                     </View>
