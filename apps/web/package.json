@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.17.1",
+    "@sure-walk/utils": "workspace:*",
     "better-sqlite3": "^12.8.0",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",

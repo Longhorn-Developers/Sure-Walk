@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { configureReanimatedLogger } from "react-native-reanimated";
 import { GroupRideProvider } from "../utils/context/group-ride-context";
 import { RideProvider } from "../utils/context/ride-context";
+import { TabProvider } from "../utils/context/tab-context";
 
 configureReanimatedLogger({ strict: false });
 
@@ -30,20 +31,22 @@ export default function RootLayout() {
     <View className="bg-white h-full w-full">
       <View className="flex-1 bg-white">
         <GestureHandlerRootView>
-          <SessionProvider>
-            <RideProvider>
-              <GroupRideProvider>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen
-                    name="(tabs)"
-                    options={{
-                      headerShown: false,
-                    }}
-                  />
-                </Stack>
-              </GroupRideProvider>
-            </RideProvider>
-          </SessionProvider>
+          <TabProvider>
+            <SessionProvider>
+              <RideProvider>
+                <GroupRideProvider>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen
+                      name="(tabs)"
+                      options={{
+                        headerShown: false,
+                      }}
+                    />
+                  </Stack>
+                </GroupRideProvider>
+              </RideProvider>
+            </SessionProvider>
+          </TabProvider>
         </GestureHandlerRootView>
       </View>
     </View>

@@ -1,4 +1,4 @@
-import UserType from "@sure-walk/utils/types/user-type";
+import UserType from "./user-type";
 
 type GroupRideMember = {
   firstName: string;

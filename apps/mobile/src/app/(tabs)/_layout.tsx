@@ -1,11 +1,7 @@
-import { Redirect, SplashScreen, Tabs } from "expo-router";
+import { Redirect, SplashScreen, Tabs, useSegments } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Platform, View, ActivityIndicator } from "react-native";
-import {
-  ClipboardTextIcon,
-  UserCircleIcon,
-  HouseIcon,
-} from "phosphor-react-native";
+import { UserCircleIcon, HouseIcon, CarIcon } from "phosphor-react-native";
 import { useSession } from "@/src/utils/context/user-context";
 import { useEffect } from "react";
 import {
@@ -21,6 +17,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/geist";
 import { slate200, slate900, UTBurntOrange } from "@/src/utils/colors";
+import { useTabContext } from "@/src/utils/context/tab-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,6 +25,8 @@ const _layout = () => {
   let paddingBottom: number = useSafeAreaInsets().bottom;
 
   const { loadingState, user, guidelinesAccepted } = useSession();
+  const { goHome, goMyRide, activeTab } = useTabContext();
+  const segments = useSegments();
 
   const [loaded, error] = useFonts({
     Geist_100Thin,
@@ -84,26 +83,58 @@ const _layout = () => {
           color: slate900,
         },
       }}
+      screenListeners={{
+        tabPress: (e) => {
+          // don't show animation when currently on profile tab
+          let instant = false;
+          // @ts-ignore
+          if (segments.includes("profile")) {
+            instant = true;
+          }
+
+          if (e.target?.startsWith("home-")) {
+            goHome(instant);
+          }
+
+          if (e.target?.includes("my-ride")) {
+            e.preventDefault();
+            goMyRide(instant);
+          }
+        },
+      }}
     >
       <Tabs.Screen
         name="home"
         options={{
           headerShown: false,
           tabBarLabel: "Home",
-          tabBarIcon: ({ focused }) => (
-            <HouseIcon size={32} weight={focused ? "fill" : "regular"} />
+          tabBarIcon: () => (
+            <HouseIcon
+              size={32}
+              weight={
+                // @ts-ignore
+                segments.includes("home") && activeTab === "home"
+                  ? "fill"
+                  : "regular"
+              }
+            />
           ),
         }}
       />
       <Tabs.Screen
-        name="guidelines"
+        name="(my-ride)/index"
         options={{
           headerShown: false,
-          tabBarLabel: "Guidelines",
-          tabBarIcon: ({ focused }) => (
-            <ClipboardTextIcon
+          tabBarLabel: "My Ride",
+          tabBarIcon: () => (
+            <CarIcon
               size={32}
-              weight={focused ? "fill" : "regular"}
+              weight={
+                // @ts-ignore
+                segments.includes("home") && activeTab === "my-ride"
+                  ? "fill"
+                  : "regular"
+              }
             />
           ),
         }}

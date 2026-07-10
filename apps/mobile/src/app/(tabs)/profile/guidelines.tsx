@@ -1,13 +1,24 @@
-import { ScrollView, View } from "react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 import GuidelinesList from "@/src/components/guidelines-list";
 import FontText from "@/src/components/font-text";
 import { LinearGradient } from "expo-linear-gradient";
+import { slate700 } from "@/src/utils/colors";
+import { router } from "expo-router";
+import { CaretLeftIcon } from "phosphor-react-native";
 
 const guidelines = () => {
   return (
     <View className="flex-1 flex-col bg-white">
       <View className="flex-col bg-white flex-1 pt-[34px] mt-safe">
-        <View className="pb-2">
+        <TouchableOpacity
+          className="w-12 h-12 rounded-2xl bg-slate-100 items-center justify-center ms-5"
+          onPress={() => {
+            router.back();
+          }}
+        >
+          <CaretLeftIcon size={24} color={slate700} />
+        </TouchableOpacity>
+        <View className="pb-2 pt-8">
           <FontText className="text-2xl font-medium px-5 z-100">
             Information and Guidelines
           </FontText>
@@ -18,6 +29,17 @@ const guidelines = () => {
             style={{
               position: "absolute",
               top: 0,
+              left: 0,
+              right: 0,
+              height: 20,
+              zIndex: 10,
+            }}
+          />
+          <LinearGradient
+            colors={["#ffffff00", "#ffffffff"]}
+            style={{
+              position: "absolute",
+              bottom: 0,
               left: 0,
               right: 0,
               height: 20,
