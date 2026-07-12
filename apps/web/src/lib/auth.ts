@@ -4,7 +4,7 @@ import { Account, accounts } from "./db/schema/accounts";
 import { getDB } from "./db";
 import { refreshTokens } from "./db/schema/refresh-tokens";
 import { eq } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export const ACCESS_TOKEN_TTL = "15m";
 export const REFRESH_TOKEN_TTL = "30d";
@@ -99,9 +99,7 @@ export interface AuthenticationResult {
   accountID?: string;
 }
 
-export const ensureAuthenticated = (
-  request: NextRequest,
-): AuthenticationResult => {
+export const ensureAuthenticated = (request: Request): AuthenticationResult => {
   const authenticationHeader = request.headers.get("authorization") || "";
   const [scheme, token] = authenticationHeader.split(" ");
 

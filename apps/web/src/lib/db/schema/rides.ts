@@ -51,9 +51,11 @@ export const rides = sqliteTable("rides", {
   cancelledTime: text("cancelled_time"),
   cancellationReason: text("cancellation_reason", {
     enum: [
-      "Took too long",
-      "Found an alternate means of transportation",
-      "No longer needed",
+      "My ride never came",
+      "The estimated wait was too long",
+      "Weather improved",
+      "Got a different ride",
+      "I didn't receive a call",
       "Other",
     ],
   }),

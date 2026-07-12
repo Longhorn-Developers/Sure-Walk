@@ -1,4 +1,4 @@
-import { SamsaraClient } from "@samsarahq/samsara";
+import { Samsara, SamsaraClient } from "@samsarahq/samsara";
 import { User } from "../db/schema/users";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
 import { Location } from "../db/schema/locations";
@@ -25,7 +25,7 @@ const createRoute = async ({
   const waitTime = await getCurrentWaitTime();
   const routeName = `${members.length > 0 ? `${members.length + 1}-person ` : ``}${user.requiresAssistance ? "ADA " : ""}Sure Walk for ${user.firstName} ${user.lastName}`;
   const routeNotes = `Picking up ${user.firstName} ${user.lastName} (${user.phoneNumber}) at ${pickupLocation.name} and dropping off at ${dropoffLocation.name}.
-	${members.length > 0 ? `Also picking up ${members.map((m) => `${m.firstName} ${m.lastName}`).join("\n")}\n` : ""}Submitted at ${new Date().toLocaleString}.`;
+	${members.length > 0 ? `Also picking up ${members.map((m) => `${m.firstName} ${m.lastName}`).join("\n")}\n` : ""}Submitted at ${new Date().toLocaleString()}.`;
 
   const res = await samsaraClient.routes.createRoute({
     name: routeName,
@@ -89,4 +89,26 @@ const createRoute = async ({
   return rideRecord;
 };
 
-export { samsaraClient };
+const getVehicleLocations = async (
+  after?: string,
+): Promise<Samsara.VehicleLocationsListResponse> => {
+  const res = await samsaraClient.vehicleLocations.getVehicleLocationsFeed({
+    after,
+  });
+  return res;
+};
+
+const getRouteUpdates = async (
+  after?: string,
+): Promise<Samsara.RoutesGetRoutesFeedResponseBody> => {
+  const res = await samsaraClient.routes.getRoutesFeed({ after });
+  return res;
+};
+
+export {
+  samsaraClient,
+  createRoute,
+  getVehicleLocations,
+  getRouteUpdates,
+  getCurrentWaitTime,
+};

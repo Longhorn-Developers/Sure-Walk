@@ -22,6 +22,13 @@
       "when": 1775170419828,
       "tag": "0002_ask-eid-in-onboarding",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1783893099122,
+      "tag": "0003_rides-base-schema",
+      "breakpoints": true
     }
   ]
 }

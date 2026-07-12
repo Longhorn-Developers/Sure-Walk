@@ -17,4 +17,18 @@
       "migrations_dir": "./drizzle",
     },
   ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RIDE_INFO_STREAM",
+        "class_name": "RideInfoStream",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["RideInfoStream"],
+    },
+  ],
 }
