@@ -28,10 +28,15 @@ import Animated, {
   FadeInUp,
   FadeOutDown,
   FadeOutUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import CheckButton from "@/src/components/check-button";
-import MapView, { Polygon } from "react-native-maps";
+import MapView, { Marker, Polygon } from "react-native-maps";
 import * as Location from "expo-location";
 import {
   dropoffBoundaryPolygons,
@@ -93,6 +98,11 @@ const Home = () => {
   const [showDropoffBoundary, setDropoffBoundary] = useState<boolean>(true);
 
   const [, setLocation] = useState<Location.LocationObject | null>(null);
+  const [markerReady, setMarkerReady] = useState(false);
+
+  useEffect(() => {
+    setMarkerReady(false);
+  }, [pickupLocation]);
 
   const [startLocationText, setStartLocationText] = useState<string>("");
   const [destinationText, setDestinationText] = useState<string>("");
@@ -107,6 +117,21 @@ const Home = () => {
   const [destinationAddress, setDestinationAddress] = useState<string>(
     "Select your destination",
   );
+
+  const pulseScale = useSharedValue(1);
+  useEffect(() => {
+    pulseScale.value = withRepeat(
+      withSequence(
+        withTiming(18 / 16, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    );
+  }, []);
+  const pulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+  }));
 
   const centerMapOnLocation = (location: Location.LocationObject) => {
     setTimeout(() => {
@@ -148,6 +173,42 @@ const Home = () => {
         });
         setLocation(location);
         centerMapOnLocation(location);
+
+        const userLat = location.coords.latitude;
+        const userLon = location.coords.longitude;
+        console.log("[Location] GPS coordinates:", userLat, userLon);
+
+        const haversine = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+          const toRad = (v: number) => (v * Math.PI) / 180;
+          const dLat = toRad(lat2 - lat1);
+          const dLon = toRad(lon2 - lon1);
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+          return Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        };
+
+        const allPickupLocations = getMatchingPickupLocations("");
+        if (allPickupLocations.length > 0) {
+          const nearest = allPickupLocations.reduce((closest, loc) =>
+            haversine(userLat, userLon, loc.lat, loc.lon) <
+            haversine(userLat, userLon, closest.lat, closest.lon)
+              ? loc
+              : closest,
+          );
+          console.log("[Location] Selected nearest:", nearest.name, `(id=${nearest.id})`);
+          setStartLocationText(nearest.name);
+          setStartAddress(nearest.address);
+          setPickupLocation(nearest);
+          setTimeout(() => {
+            mapRef.current?.animateToRegion({
+              latitude: nearest.lat - 0.0038,
+              longitude: nearest.lon,
+              latitudeDelta: 0.02,
+              longitudeDelta: 0.02,
+            }, 1000);
+          }, 1000);
+        }
       }
     }
 
@@ -219,7 +280,7 @@ const Home = () => {
             </FontText>
           </View>
           <FontText className="font-medium text-4 text-center">
-            Perry-Castañeda Library
+            {startLocationText || ""}
           </FontText>
         </View>
         <TouchableOpacity
@@ -246,7 +307,6 @@ const Home = () => {
           <MapView
             ref={mapRef}
             style={{ width: "100%", flex: 1, zIndex: 0 }}
-            showsUserLocation
             initialRegion={{
               latitude: 30.282962,
               longitude: -97.737224,
@@ -335,6 +395,41 @@ const Home = () => {
                 }
               />
             ))}
+            {pickupLocation && (
+              <Marker
+                coordinate={{
+                  latitude: pickupLocation.lat,
+                  longitude: pickupLocation.lon,
+                }}
+                tracksViewChanges={!markerReady}
+              >
+                <View
+                  onLayout={() => setMarkerReady(true)}
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor: "white",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 4,
+                    elevation: 4,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 8,
+                      backgroundColor: UTBurntOrange,
+                    }}
+                  />
+                </View>
+              </Marker>
+            )}
           </MapView>
         </View>
         {legendOpen && (
