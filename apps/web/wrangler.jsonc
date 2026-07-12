@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "main": ".open-next/worker.js",
+  "main": "custom-worker.ts",
   "name": "lifts-web",
   // Set this to today's date
   "compatibility_date": "2026-02-28",

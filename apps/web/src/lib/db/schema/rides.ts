@@ -19,7 +19,7 @@ export const rides = sqliteTable("rides", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => randomUUID()),
-  samsaraID: text("samsara_id").notNull().unique(),
+  samsaraID: text("samsara_id").unique().notNull(),
   userID: text("user_id")
     .references(() => users.id)
     .notNull(),
@@ -59,3 +59,5 @@ export const rides = sqliteTable("rides", {
   }),
   cancellationExtra: text("cancellation_extra"),
 });
+
+export const Ride = rides.$inferSelect;
