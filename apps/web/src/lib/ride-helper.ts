@@ -1,6 +1,7 @@
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, notInArray } from "drizzle-orm";
 import { getDB } from "./db";
 import { rides } from "./db/schema/rides";
+import { Samsara } from "@samsarahq/samsara";
 
 const getActiveRides = async () => {
   const results = await getDB()
@@ -13,8 +14,11 @@ const getActiveRides = async () => {
           "scheduled",
           "en route",
           "arrived",
+          "departed",
         ]),
+        notInArray(rides.dropoffStopState, ["skipped", "departed"]),
         isNull(rides.cancelledTime),
+        eq(rides.missedPickup, false),
       ),
     );
 
@@ -33,13 +37,41 @@ const getActiveRideByUserID = async (userID: string) => {
           "scheduled",
           "en route",
           "arrived",
+          "departed",
         ]),
+        notInArray(rides.dropoffStopState, ["skipped", "departed"]),
         isNull(rides.cancelledTime),
+        eq(rides.missedPickup, false),
       ),
     )
-    .then((res) => res.at(0) ?? null);
+    .then((res) => res.shift());
 
   return ride;
 };
 
-export { getActiveRides, getActiveRideByUserID };
+const setPickupStopState = async (
+  stopID: string,
+  stopState: Samsara.MinimalRouteStopAuditLogsResponseBody.State,
+) => {
+  await getDB()
+    .update(rides)
+    .set({ pickupStopState: stopState })
+    .where(eq(rides.pickupStopID, stopID));
+};
+
+const setDropoffStopState = async (
+  stopID: string,
+  stopState: Samsara.MinimalRouteStopAuditLogsResponseBody.State,
+) => {
+  await getDB()
+    .update(rides)
+    .set({ dropoffStopState: stopState })
+    .where(eq(rides.dropoffStopID, stopID));
+};
+
+export {
+  getActiveRides,
+  getActiveRideByUserID,
+  setPickupStopState,
+  setDropoffStopState,
+};

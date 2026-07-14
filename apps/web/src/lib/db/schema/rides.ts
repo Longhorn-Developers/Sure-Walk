@@ -48,6 +48,9 @@ export const rides = sqliteTable("rides", {
     .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
   vehicleID: text("vehicle_id").references(() => vehicles.samsaraID),
+  missedPickup: int("missed_pickup", { mode: "boolean" })
+    .notNull()
+    .default(false),
   cancelledTime: text("cancelled_time"),
   cancellationReason: text("cancellation_reason", {
     enum: [

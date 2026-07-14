@@ -14,7 +14,6 @@ import {
   CrownSimpleIcon,
   HamburgerIcon,
   MapPinIcon,
-  PencilLineIcon,
   PhoneCallIcon,
   TimerIcon,
 } from "phosphor-react-native";
@@ -109,7 +108,6 @@ const ConfirmRide = () => {
                 </FontText>
                 <OutlineButton
                   title="Edit"
-                  icon={<PencilLineIcon size={24} color={UTBluebonnet} />}
                   onPress={() => router.back()}
                   small
                 />
@@ -168,7 +166,6 @@ const ConfirmRide = () => {
                 </FontText>
                 <OutlineButton
                   title="Edit"
-                  icon={<PencilLineIcon size={24} color={UTBluebonnet} />}
                   onPress={() => router.navigate("/home/group-ride")}
                   small
                 />

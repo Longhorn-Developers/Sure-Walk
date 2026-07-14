@@ -2,8 +2,15 @@ import { DurableObject } from "cloudflare:workers";
 import { NextResponse } from "next/server";
 import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
 import { Samsara } from "@samsarahq/samsara";
-import { getVehicleLocations } from "./samsara-utils";
-import { getActiveRides } from "../ride-helper";
+import { getRouteUpdates, getVehicleLocations } from "./samsara-utils";
+import {
+  getActiveRides,
+  setDropoffStopState,
+  setPickupStopState,
+} from "../ride-helper";
+import { Ride, rides } from "../db/schema/rides";
+import { getDB } from "../db";
+import { eq } from "drizzle-orm";
 
 export class RideInfoStream extends DurableObject<CloudflareEnv> {
   streams: Map<string, WritableStreamDefaultWriter>;
@@ -45,7 +52,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
     await writer.write(
       this.encoder.encode(
-        `retry: 10000\nevent: connected\ndata: {"rideState": "${rideState}"}\n\n`,
+        `retry: 10000\nevent: connected\ndata: ${rideState}\n\n`,
       ),
     );
 
@@ -57,19 +64,41 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
   }
 
   async pollInfo() {
-    const vehicleLocations = await this.pollLocations();
-    const activeRides = await getActiveRides();
+    let routeUpdates = await this.pollRouteUpdates();
+    let activeRides = await getActiveRides();
 
     if (activeRides.length === 0) {
       // durable object will be spun down
       return;
     }
 
+    await this.streamRouteUpdates(activeRides, routeUpdates);
+    let hasNextPage = routeUpdates.pagination.hasNextPage;
+    while (hasNextPage) {
+      await this.streamRouteUpdates(activeRides, routeUpdates);
+      routeUpdates = await this.pollRouteUpdates();
+      activeRides = await getActiveRides();
+      hasNextPage = routeUpdates.pagination.hasNextPage;
+    }
+
+    activeRides = await getActiveRides();
+    const vehicleLocations = await this.pollLocations();
+    await this.streamLocations(activeRides, vehicleLocations);
+
+    const currentAlarm = await this.ctx.storage.getAlarm();
+    if (!currentAlarm) {
+      await this.ctx.storage.setAlarm(Date.now() + 5000);
+    }
+  }
+
+  async streamLocations(
+    activeRides: (typeof Ride)[],
+    vehicleLocations: Samsara.VehicleLocationsListResponse,
+  ) {
     for (const ride of activeRides) {
-      // stream locations
       if (
         ride.vehicleID &&
-        ride.pickupStopState !== "assigned" &&
+        ride.pickupStopState !== "scheduled" &&
         this.streams.has(ride.userID)
       ) {
         const data = vehicleLocations.data.find(
@@ -86,18 +115,101 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
             .catch(() => this.streams.delete(ride.userID));
         }
       }
-
-      // stream ride state (TODO)
     }
+  }
 
-    const currentAlarm = await this.ctx.storage.getAlarm();
-    if (!currentAlarm) {
-      await this.ctx.storage.setAlarm(Date.now() + 5000);
+  async streamRouteUpdates(
+    activeRides: (typeof Ride)[],
+    routeUpdates: Samsara.RoutesGetRoutesFeedResponseBody,
+  ) {
+    for (const ride of routeUpdates.data) {
+      for (const stop of ride.changes.after.stops ?? []) {
+        const stopID = stop.id;
+        const stopState = stop.state!;
+        const stopType =
+          ride.route.stops?.at(0)?.id === stopID ? "pickup" : "dropoff";
+        const userID = activeRides.find(
+          ({ samsaraID }) => samsaraID === ride.route.id,
+        )?.userID;
+        if (stopType === "pickup") {
+          await setPickupStopState(stopID, stopState);
+
+          if (userID) {
+            if (stopState === "scheduled") {
+              await this.sendRouteUpdate(userID, "assigned");
+            }
+            if (stopState === "en route") {
+              await this.sendRouteUpdate(userID, "en route");
+              // get vehicle info
+            }
+            if (stopState === "arrived") {
+              await this.sendRouteUpdate(userID, "arrived");
+              await getDB()
+                .update(rides)
+                .set({ actualPickupTime: stop.actualArrivalTime })
+                .where(eq(rides.pickupStopID, stopID));
+            }
+            if (stopState === "departed") {
+              await this.sendRouteUpdate(userID, "in progress");
+            }
+          }
+        }
+
+        if (stopType === "dropoff") {
+          await setDropoffStopState(stopID, stopState);
+
+          if (userID) {
+            if (stopState === "arrived") {
+              await this.sendRouteUpdate(userID, "dropped off");
+              await getDB()
+                .update(rides)
+                .set({ actualDropoffTime: stop.actualArrivalTime })
+                .where(eq(rides.dropoffStopID, stopID));
+            }
+            if (stopState === "departed") {
+              // send feedback notification?
+              if (this.streams.has(userID)) {
+                const writer = this.streams.get(userID)!;
+                await writer
+                  .write(this.encoder.encode(`event: complete\n\n`))
+                  .catch(() => {});
+                writer.close().catch(() => {});
+                this.streams.delete(userID);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  async sendRouteUpdate(userID: string, rideState: InProgressRideState) {
+    // send push notification (TODO)
+
+    if (this.streams.has(userID)) {
+      const writer = this.streams.get(userID)!;
+      await writer
+        .write(
+          this.encoder.encode(`event: routeUpdate\ndata: ${rideState}\n\n`),
+        )
+        .catch(() => this.streams.delete(userID));
     }
   }
 
   async pollLocations(): Promise<Samsara.VehicleLocationsListResponse> {
     const result = await getVehicleLocations();
+    return result;
+  }
+
+  async pollRouteUpdates(): Promise<Samsara.RoutesGetRoutesFeedResponseBody> {
+    const endCursor = await this.ctx.storage.get<string>(
+      "routeUpdatesEndCursor",
+    );
+    const result = await getRouteUpdates(endCursor);
+    await this.ctx.storage.put(
+      "routeUpdatesEndCursor",
+      result.pagination.endCursor,
+    );
     return result;
   }
 }

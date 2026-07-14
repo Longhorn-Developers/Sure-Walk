@@ -24,10 +24,10 @@ const OutlineButton = ({
       onPress={() => onPress()}
       disabled={disabled}
     >
-      <View className="items-center justify-center">{icon}</View>
-      <View className="items-center justify-center">
+      {icon && <View className="items-center justify-center">{icon}</View>}
+      <View className={`items-center justify-center ${small ? "h-4" : ""}`}>
         <FontText
-          className={`${small ? "text-xl/6" : "text-xl/10"} font-medium ${disabled ? "color-slate-500" : "color-ut-bluebonnet"}`}
+          className={`${small ? "text-lg/[18px]" : "text-xl/10"} font-medium ${disabled ? "color-slate-500" : "color-ut-bluebonnet"}`}
         >
           {title}
         </FontText>

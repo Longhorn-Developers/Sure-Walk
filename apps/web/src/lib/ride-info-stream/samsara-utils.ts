@@ -32,7 +32,7 @@ const createRoute = async ({
     notes: routeNotes,
     recomputeScheduledTimes: true,
     settings: {
-      routeCompletionCondition: "arriveLastStop",
+      routeCompletionCondition: "departLastStop",
       routeStartingCondition: "arriveFirstStop",
       sequencingMethod: "manual",
     },
@@ -58,6 +58,9 @@ const createRoute = async ({
         name: dropoffLocation.name,
         scheduledArrivalTime: new Date(
           Date.now() + (waitTime + 12) * 60 * 1000,
+        ).toISOString(),
+        scheduledDepartureTime: new Date(
+          Date.now() + (waitTime + 14) * 60 * 1000,
         ).toISOString(),
         sequenceNumber: 2,
         singleUseLocation: {
@@ -101,7 +104,10 @@ const getVehicleLocations = async (
 const getRouteUpdates = async (
   after?: string,
 ): Promise<Samsara.RoutesGetRoutesFeedResponseBody> => {
-  const res = await samsaraClient.routes.getRoutesFeed({ after });
+  const res = await samsaraClient.routes.getRoutesFeed({
+    after,
+    expand: "route",
+  });
   return res;
 };
 
