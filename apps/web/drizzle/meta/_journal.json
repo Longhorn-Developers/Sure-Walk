@@ -36,6 +36,13 @@
       "when": 1784006835905,
       "tag": "0004_add-missed-pickup-column",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1784095580951,
+      "tag": "0005_add-extra-vehicle-info",
+      "breakpoints": true
     }
   ]
 }

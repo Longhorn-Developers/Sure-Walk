@@ -2,7 +2,11 @@ import { DurableObject } from "cloudflare:workers";
 import { NextResponse } from "next/server";
 import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
 import { Samsara } from "@samsarahq/samsara";
-import { getRouteUpdates, getVehicleLocations } from "./samsara-utils";
+import {
+  getAsset,
+  getRouteUpdates,
+  getVehicleLocations,
+} from "./samsara-utils";
 import {
   getActiveRides,
   setDropoffStopState,
@@ -11,6 +15,7 @@ import {
 import { Ride, rides } from "../db/schema/rides";
 import { getDB } from "../db";
 import { eq } from "drizzle-orm";
+import { Vehicle, vehicles } from "../db/schema/vehicles";
 
 export class RideInfoStream extends DurableObject<CloudflareEnv> {
   streams: Map<string, WritableStreamDefaultWriter>;
@@ -30,6 +35,9 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     const rideState = request.headers.get(
       "x-ride-state",
     )! as InProgressRideState;
+    const vehicleInfo = JSON.parse(
+      request.headers.get("x-vehicle-info") ?? "null",
+    ) as Vehicle | null;
     if (!userID) {
       // should be unreachable due to worker middleware
       return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
@@ -52,7 +60,8 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
     await writer.write(
       this.encoder.encode(
-        `retry: 10000\nevent: connected\ndata: ${rideState}\n\n`,
+        `retry: 10000\nevent: connected\ndata: ${rideState}\n
+        ${vehicleInfo ? `event: vehicleInfo\ndata: ${this.vehicleInfoShort(vehicleInfo)}\n\n` : ""}`,
       ),
     );
 
@@ -74,6 +83,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
     await this.streamRouteUpdates(activeRides, routeUpdates);
     let hasNextPage = routeUpdates.pagination.hasNextPage;
+    activeRides = await getActiveRides();
     while (hasNextPage) {
       await this.streamRouteUpdates(activeRides, routeUpdates);
       routeUpdates = await this.pollRouteUpdates();
@@ -81,7 +91,6 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
       hasNextPage = routeUpdates.pagination.hasNextPage;
     }
 
-    activeRides = await getActiveRides();
     const vehicleLocations = await this.pollLocations();
     await this.streamLocations(activeRides, vehicleLocations);
 
@@ -141,6 +150,64 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
             if (stopState === "en route") {
               await this.sendRouteUpdate(userID, "en route");
               // get vehicle info
+              const vehicleID = ride.route.vehicle?.id;
+              if (vehicleID) {
+                await getDB()
+                  .update(rides)
+                  .set({ vehicleID })
+                  .where(eq(rides.samsaraID, ride.route.id));
+
+                const asset = await getAsset(vehicleID);
+                const assetInfo = asset.data[0];
+                let vehicle: Vehicle;
+                if (assetInfo.type === "vehicle") {
+                  [vehicle] = await getDB()
+                    .insert(vehicles)
+                    .values({
+                      samsaraID: vehicleID,
+                      name: assetInfo.name ?? "unnamed",
+                      make: assetInfo.make,
+                      model: assetInfo.model,
+                      year: assetInfo.year,
+                      licensePlate: assetInfo.licensePlate,
+                      adaAccessible: assetInfo.name?.includes("ADA") ?? false,
+                      type: "vehicle",
+                    })
+                    .onConflictDoUpdate({
+                      target: vehicles.samsaraID,
+                      set: {
+                        name: assetInfo.name ?? "unnamed",
+                        make: assetInfo.make,
+                        model: assetInfo.model,
+                        year: assetInfo.year,
+                        licensePlate: assetInfo.licensePlate,
+                        adaAccessible: assetInfo.name?.includes("ADA") ?? false,
+                      },
+                    })
+                    .returning();
+                } else {
+                  [vehicle] = await getDB()
+                    .insert(vehicles)
+                    .values({
+                      samsaraID: vehicleID,
+                      name: assetInfo.name ?? "unnamed",
+                      licensePlate: assetInfo.licensePlate,
+                      adaAccessible: assetInfo.name?.includes("ADA") ?? false,
+                      type: "equipment",
+                    })
+                    .onConflictDoUpdate({
+                      target: vehicles.samsaraID,
+                      set: {
+                        name: assetInfo.name ?? "unnamed",
+                        licensePlate: assetInfo.licensePlate,
+                        adaAccessible: assetInfo.name?.includes("ADA") ?? false,
+                      },
+                    })
+                    .returning();
+                }
+
+                await this.sendVehicleInfo(userID, vehicle);
+              }
             }
             if (stopState === "arrived") {
               await this.sendRouteUpdate(userID, "arrived");
@@ -193,6 +260,38 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
           this.encoder.encode(`event: routeUpdate\ndata: ${rideState}\n\n`),
         )
         .catch(() => this.streams.delete(userID));
+    }
+  }
+
+  vehicleInfoShort(vehicle: Vehicle) {
+    let vehicleName: string;
+    if (vehicle.type === "vehicle") {
+      vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+    } else {
+      vehicleName = "Cart";
+    }
+
+    const vehicleInfo = {
+      name: vehicleName,
+      licensePlate: vehicle.licensePlate,
+      adaAccessible: vehicle.adaAccessible,
+    };
+
+    return vehicleInfo;
+  }
+
+  async sendVehicleInfo(userID: string, vehicle: Vehicle) {
+    const vehicleInfo = this.vehicleInfoShort(vehicle);
+
+    // send push notification (TODO)
+
+    if (this.streams.has(userID)) {
+      const writer = this.streams.get(userID)!;
+      await writer.write(
+        this.encoder.encode(
+          `event: vehicleInfo\ndata: ${JSON.stringify(vehicleInfo)}`,
+        ),
+      );
     }
   }
 

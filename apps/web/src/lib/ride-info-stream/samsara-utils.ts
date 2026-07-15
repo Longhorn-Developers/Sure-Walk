@@ -37,6 +37,7 @@ const createRoute = async ({
       sequencingMethod: "manual",
     },
     tagIds: ["6343755"],
+    vehicleId: "281474996183681", // temporary
     stops: [
       {
         name: pickupLocation.name,
@@ -111,10 +112,24 @@ const getRouteUpdates = async (
   return res;
 };
 
+const getRoute = async (
+  routeID: string,
+): Promise<Samsara.RoutesFetchRouteResponseBody> => {
+  const res = await samsaraClient.routes.fetchRoute({ id: routeID });
+  return res;
+};
+
+const getAsset = async (vehicleID: string) => {
+  const res = await samsaraClient.assets.list({ ids: vehicleID });
+  return res;
+};
+
 export {
   samsaraClient,
   createRoute,
   getVehicleLocations,
   getRouteUpdates,
   getCurrentWaitTime,
+  getRoute,
+  getAsset,
 };
