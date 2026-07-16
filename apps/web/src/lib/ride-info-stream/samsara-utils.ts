@@ -24,13 +24,14 @@ const createRoute = async ({
 }) => {
   const waitTime = await getCurrentWaitTime();
   const routeName = `${members.length > 0 ? `${members.length + 1}-person ` : ``}${user.requiresAssistance ? "ADA " : ""}Sure Walk for ${user.firstName} ${user.lastName}`;
-  const routeNotes = `Picking up ${user.firstName} ${user.lastName} (${user.phoneNumber}) at ${pickupLocation.name} and dropping off at ${dropoffLocation.name}.
-	${members.length > 0 ? `Also picking up ${members.map((m) => `${m.firstName} ${m.lastName}`).join("\n")}\n` : ""}Submitted at ${new Date().toLocaleString()}.`;
+  const routeNotes =
+    `Picking up ${user.firstName} ${user.lastName} (${user.phoneNumber}) at ${pickupLocation.name} and dropping off at ${dropoffLocation.name}. ` +
+    `${members.length > 0 ? `Also picking up ${members.map((m) => `${m.firstName} ${m.lastName}${m.userType === "guest" ? " (guest)" : ` (${m.eid})`}`).join(", ")}.\n` : ""}Submitted at ${new Date().toLocaleString()}.`;
 
   const res = await samsaraClient.routes.createRoute({
     name: routeName,
     notes: routeNotes,
-    recomputeScheduledTimes: true,
+    recomputeScheduledTimes: false,
     settings: {
       routeCompletionCondition: "departLastStop",
       routeStartingCondition: "arriveFirstStop",
@@ -61,7 +62,7 @@ const createRoute = async ({
           Date.now() + (waitTime + 12) * 60 * 1000,
         ).toISOString(),
         scheduledDepartureTime: new Date(
-          Date.now() + (waitTime + 14) * 60 * 1000,
+          Date.now() + (waitTime + 13) * 60 * 1000,
         ).toISOString(),
         sequenceNumber: 2,
         singleUseLocation: {

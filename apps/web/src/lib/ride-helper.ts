@@ -1,7 +1,10 @@
 import { and, eq, inArray, isNull, notInArray } from "drizzle-orm";
 import { getDB } from "./db";
-import { rides } from "./db/schema/rides";
+import { rides, Ride } from "./db/schema/rides";
 import { Samsara } from "@samsarahq/samsara";
+import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
+import { vehicles } from "./db/schema/vehicles";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 const getActiveRides = async () => {
   const results = await getDB()
@@ -44,7 +47,8 @@ const getActiveRideByUserID = async (userID: string) => {
         eq(rides.missedPickup, false),
       ),
     )
-    .then((res) => res.shift());
+    .leftJoin(vehicles, eq(rides.vehicleID, vehicles.samsaraID))
+    .then(([res]) => ({ ...res.rides, vehicle: res.vehicles }));
 
   return ride;
 };
@@ -69,9 +73,38 @@ const setDropoffStopState = async (
     .where(eq(rides.dropoffStopID, stopID));
 };
 
+const getInProgressRideStateFromRide = (
+  ride: typeof Ride,
+): InProgressRideState => {
+  if (ride.dropoffStopState === "arrived") {
+    return "dropped off";
+  } else {
+    switch (ride.pickupStopState) {
+      case "departed":
+        return "in progress";
+      case "arrived":
+        return "arrived";
+      case "en route":
+        return "en route";
+      case "scheduled":
+        return "assigned";
+      default:
+        return "received";
+    }
+  }
+};
+
+export const getDOStub = () => {
+  const { env } = getCloudflareContext();
+  const doID = env.RIDE_INFO_STREAM.idFromName("global");
+  const stub = env.RIDE_INFO_STREAM.get(doID);
+  return stub;
+};
+
 export {
   getActiveRides,
   getActiveRideByUserID,
   setPickupStopState,
   setDropoffStopState,
+  getInProgressRideStateFromRide,
 };

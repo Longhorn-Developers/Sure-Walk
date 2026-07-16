@@ -1,3 +1,4 @@
+import { getErrorMessage } from "@/src/client";
 import FontText from "@/src/components/font-text";
 import LargeButton from "@/src/components/large-button";
 import OutlineButton from "@/src/components/outline-button";
@@ -5,6 +6,7 @@ import RiderCard from "@/src/components/rider-card";
 import { slate700, UTBluebonnet, UTBurntOrange } from "@/src/utils/colors";
 import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
 import { useRideSession } from "@/src/utils/context/ride-context";
+import { useTabContext } from "@/src/utils/context/tab-context";
 import { useSession } from "@/src/utils/context/user-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -29,9 +31,11 @@ import { ScrollView } from "react-native-gesture-handler";
 const ConfirmRide = () => {
   const { pickupLocation, dropoffLocation } = useRideSession();
   const { members } = useGroupRideSession();
-  const { user } = useSession();
+  const { user, fetchProtected } = useSession();
   const { firstName, lastName, userType, eid } = user!;
+  const { goMyRide } = useTabContext();
   const [confirmEnabled, setConfirmEnabled] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   const guidelines = [
     {
@@ -55,6 +59,22 @@ const ConfirmRide = () => {
 
     if (isCloseToBottom) {
       setConfirmEnabled(true);
+    }
+  };
+
+  const submitRide = async () => {
+    setSubmitting(true);
+    const response = await fetchProtected("/ride", "POST", {
+      pickupLocation: pickupLocation!.id,
+      dropoffLocation: dropoffLocation!.id,
+      groupRide: members,
+    });
+
+    setSubmitting(false);
+    if (!response.ok) {
+      console.error(await getErrorMessage(response, "Failed to submit ride."));
+    } else {
+      goMyRide();
     }
   };
 
@@ -186,9 +206,15 @@ const ConfirmRide = () => {
         </ScrollView>
       </View>
       <LargeButton
-        title={confirmEnabled ? "Confirm" : "Scroll down to confirm"}
-        onPress={() => null}
-        disabled={!confirmEnabled}
+        title={
+          submitting
+            ? "Submitting..."
+            : confirmEnabled
+              ? "Confirm"
+              : "Scroll down to confirm"
+        }
+        onPress={() => submitRide()}
+        disabled={!confirmEnabled || submitting}
       />
     </View>
   );
