@@ -1,13 +1,12 @@
 import { and, eq, inArray, isNull, notInArray } from "drizzle-orm";
-import { getDB } from "./db";
-import { rides, Ride } from "./db/schema/rides";
+import { getDBInWorker } from "../db";
+import { rides, Ride } from "../db/schema/rides";
 import { Samsara } from "@samsarahq/samsara";
 import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
-import { vehicles } from "./db/schema/vehicles";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { vehicles } from "../db/schema/vehicles";
 
-const getActiveRides = async () => {
-  const results = await getDB()
+const getActiveRides = async (env: CloudflareEnv) => {
+  const results = await getDBInWorker(env)
     .select()
     .from(rides)
     .where(
@@ -28,8 +27,8 @@ const getActiveRides = async () => {
   return results;
 };
 
-const getActiveRideByUserID = async (userID: string) => {
-  const ride = await getDB()
+const getActiveRideByUserID = async (userID: string, env: CloudflareEnv) => {
+  const ride = await getDBInWorker(env)
     .select()
     .from(rides)
     .where(
@@ -48,7 +47,13 @@ const getActiveRideByUserID = async (userID: string) => {
       ),
     )
     .leftJoin(vehicles, eq(rides.vehicleID, vehicles.samsaraID))
-    .then(([res]) => ({ ...res.rides, vehicle: res.vehicles }));
+    .then(([res]) => {
+      if (res) {
+        return { ...res.rides, vehicle: res.vehicles };
+      } else {
+        return undefined;
+      }
+    });
 
   return ride;
 };
@@ -56,8 +61,9 @@ const getActiveRideByUserID = async (userID: string) => {
 const setPickupStopState = async (
   stopID: string,
   stopState: Samsara.MinimalRouteStopAuditLogsResponseBody.State,
+  env: CloudflareEnv,
 ) => {
-  await getDB()
+  await getDBInWorker(env)
     .update(rides)
     .set({ pickupStopState: stopState })
     .where(eq(rides.pickupStopID, stopID));
@@ -66,8 +72,9 @@ const setPickupStopState = async (
 const setDropoffStopState = async (
   stopID: string,
   stopState: Samsara.MinimalRouteStopAuditLogsResponseBody.State,
+  env: CloudflareEnv,
 ) => {
-  await getDB()
+  await getDBInWorker(env)
     .update(rides)
     .set({ dropoffStopState: stopState })
     .where(eq(rides.dropoffStopID, stopID));
@@ -92,13 +99,6 @@ const getInProgressRideStateFromRide = (
         return "received";
     }
   }
-};
-
-export const getDOStub = () => {
-  const { env } = getCloudflareContext();
-  const doID = env.RIDE_INFO_STREAM.idFromName("global");
-  const stub = env.RIDE_INFO_STREAM.get(doID);
-  return stub;
 };
 
 export {

@@ -1,30 +1,29 @@
-import { ensureAuthenticated } from "@/lib/auth";
-import { getDB } from "@/lib/db";
-import { accounts } from "@/lib/db/schema/accounts";
-import { users } from "@/lib/db/schema/users";
+import { eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
+import { ensureAuthenticated } from "../auth";
+import { getDBInWorker } from "../db";
+import { accounts } from "../db/schema/accounts";
+import { users } from "../db/schema/users";
 import {
   getActiveRideByUserID,
-  getDOStub,
   getInProgressRideStateFromRide,
-} from "@/lib/ride-helper";
-import { eq } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
+} from "./ride-helper";
 
-export async function GET(request: NextRequest) {
+export async function apiRideEvents(request: Request, env: CloudflareEnv) {
   const authResponse = ensureAuthenticated(request);
   if (!authResponse.success) {
     return authResponse.failResponse!;
   }
 
   const accountID = authResponse.accountID!;
-  const user = (await getDB()
+  const user = (await getDBInWorker(env)
     .select()
     .from(accounts)
     .where(eq(accounts.id, accountID))
     .leftJoin(users, eq(accounts.userID, users.id))
     .then(([result]) => result.users))!;
 
-  const currentRide = await getActiveRideByUserID(user.id);
+  const currentRide = await getActiveRideByUserID(user.id, env);
 
   if (!currentRide) {
     return NextResponse.json(
@@ -41,7 +40,8 @@ export async function GET(request: NextRequest) {
   forwardedHeaders.append("x-ride-state", rideState);
   forwardedHeaders.append("x-vehicle-info", JSON.stringify(vehicle));
 
-  const stub = getDOStub();
+  const doID = env.RIDE_INFO_STREAM.idFromName("global");
+  const stub = env.RIDE_INFO_STREAM.get(doID);
 
   return await stub.fetch(
     new Request(request.url, {

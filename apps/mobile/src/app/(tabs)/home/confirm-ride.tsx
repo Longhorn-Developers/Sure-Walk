@@ -75,6 +75,7 @@ const ConfirmRide = () => {
       console.error(await getErrorMessage(response, "Failed to submit ride."));
     } else {
       goMyRide();
+      setTimeout(() => router.push("/home/ride-info-wrapper"), 500);
     }
   };
 

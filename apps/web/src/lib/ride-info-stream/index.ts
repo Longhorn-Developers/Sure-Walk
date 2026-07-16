@@ -11,9 +11,9 @@ import {
   getActiveRides,
   setDropoffStopState,
   setPickupStopState,
-} from "../ride-helper";
+} from "./ride-helper";
 import { Ride, rides } from "../db/schema/rides";
-import { getDB } from "../db";
+import { getDBInWorker } from "../db";
 import { eq } from "drizzle-orm";
 import { Vehicle, vehicles } from "../db/schema/vehicles";
 
@@ -26,7 +26,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     this.streams = new Map();
     this.encoder = new TextEncoder();
     this.ctx.blockConcurrencyWhile(async () => {
-      await this.pollInfo();
+      await this.ctx.storage.setAlarm(Date.now() + 5000);
     });
   }
 
@@ -42,7 +42,6 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
       // should be unreachable due to worker middleware
       return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
     }
-
     const { readable, writable } = new TransformStream();
     const writer = writable.getWriter();
     const responseHeaders = {
@@ -58,7 +57,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
     this.streams.set(userID, writer);
 
-    await writer.write(
+    writer.write(
       this.encoder.encode(
         `retry: 10000\nevent: connected\ndata: ${rideState}\n
         ${vehicleInfo ? `event: vehicleInfo\ndata: ${this.vehicleInfoShort(vehicleInfo)}\n\n` : ""}`,
@@ -74,7 +73,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
   async pollInfo() {
     let routeUpdates = await this.pollRouteUpdates();
-    let activeRides = await getActiveRides();
+    let activeRides = await getActiveRides(this.env);
 
     if (activeRides.length === 0) {
       // durable object will be spun down
@@ -83,11 +82,11 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
     await this.streamRouteUpdates(activeRides, routeUpdates);
     let hasNextPage = routeUpdates.pagination.hasNextPage;
-    activeRides = await getActiveRides();
+    activeRides = await getActiveRides(this.env);
     while (hasNextPage) {
       await this.streamRouteUpdates(activeRides, routeUpdates);
       routeUpdates = await this.pollRouteUpdates();
-      activeRides = await getActiveRides();
+      activeRides = await getActiveRides(this.env);
       hasNextPage = routeUpdates.pagination.hasNextPage;
     }
 
@@ -141,7 +140,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
           ({ samsaraID }) => samsaraID === ride.route.id,
         )?.userID;
         if (stopType === "pickup") {
-          await setPickupStopState(stopID, stopState);
+          await setPickupStopState(stopID, stopState, this.env);
 
           if (userID) {
             if (stopState === "scheduled") {
@@ -152,7 +151,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
               // get vehicle info
               const vehicleID = ride.route.vehicle?.id;
               if (vehicleID) {
-                await getDB()
+                await getDBInWorker(this.env)
                   .update(rides)
                   .set({ vehicleID })
                   .where(eq(rides.samsaraID, ride.route.id));
@@ -161,7 +160,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                 const assetInfo = asset.data[0];
                 let vehicle: Vehicle;
                 if (assetInfo.type === "vehicle") {
-                  [vehicle] = await getDB()
+                  [vehicle] = await getDBInWorker(this.env)
                     .insert(vehicles)
                     .values({
                       samsaraID: vehicleID,
@@ -186,7 +185,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                     })
                     .returning();
                 } else {
-                  [vehicle] = await getDB()
+                  [vehicle] = await getDBInWorker(this.env)
                     .insert(vehicles)
                     .values({
                       samsaraID: vehicleID,
@@ -211,7 +210,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
             }
             if (stopState === "arrived") {
               await this.sendRouteUpdate(userID, "arrived");
-              await getDB()
+              await getDBInWorker(this.env)
                 .update(rides)
                 .set({ actualPickupTime: stop.actualArrivalTime })
                 .where(eq(rides.pickupStopID, stopID));
@@ -223,12 +222,12 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
         }
 
         if (stopType === "dropoff") {
-          await setDropoffStopState(stopID, stopState);
+          await setDropoffStopState(stopID, stopState, this.env);
 
           if (userID) {
             if (stopState === "arrived") {
               await this.sendRouteUpdate(userID, "dropped off");
-              await getDB()
+              await getDBInWorker(this.env)
                 .update(rides)
                 .set({ actualDropoffTime: stop.actualArrivalTime })
                 .where(eq(rides.dropoffStopID, stopID));

@@ -27,6 +27,7 @@ interface UserContextType {
   loadingState: LoadingState;
   guidelinesAccepted: boolean;
   acceptGuidelines: () => Promise<void>;
+  accessToken: string | null;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -203,6 +204,7 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
           setGuidelinesAccepted(true);
           await SecureStore.setItemAsync("guidelinesAccepted", "true");
         },
+        accessToken,
       }}
     >
       {children}

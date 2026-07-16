@@ -149,6 +149,10 @@ const _layout = () => {
           ),
         }}
       />
+      <Tabs.Screen
+        name="(my-ride)/current-ride-info"
+        options={{ href: null }}
+      />
     </Tabs>
   );
 };

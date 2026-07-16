@@ -39,6 +39,7 @@ export const TabProvider = ({ children }: { children: React.ReactNode }) => {
     // @ts-ignore
     if (activeTab === "my-ride") {
       homeSheetRef.current?.snapToIndex(1, anim);
+      setTimeout(() => router.dismissTo("/home"), 500);
     }
     // @ts-ignore minimize the home sheet if user presses the home tab while already on the home tab
     else if (!segments.includes("profile") && segments.length <= 2) {
@@ -49,6 +50,7 @@ export const TabProvider = ({ children }: { children: React.ReactNode }) => {
 
   const goMyRide = (instant?: boolean) => {
     const anim = instant ? { duration: 0 } : undefined;
+    const oldTab = activeTab;
     setActiveTab("my-ride");
     // @ts-ignore
     navigation.navigate("(tabs)", { screen: "home" });
@@ -57,7 +59,11 @@ export const TabProvider = ({ children }: { children: React.ReactNode }) => {
     myRideSheetRef.current?.snapToIndex(1, anim);
     // @ts-ignore
     if (segments.includes("profile")) {
-      setTimeout(() => router.dismissTo("/home"), 500);
+      setTimeout(() => {
+        if (oldTab === "home") {
+          router.dismissTo("/home");
+        }
+      }, 500);
     }
   };
 

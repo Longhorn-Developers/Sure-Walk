@@ -3,8 +3,9 @@ import { getDB } from "@/lib/db";
 import { accounts } from "@/lib/db/schema/accounts";
 import { locations } from "@/lib/db/schema/locations";
 import { users } from "@/lib/db/schema/users";
-import { getActiveRideByUserID } from "@/lib/ride-helper";
+import { getActiveRideByUserID } from "@/lib/ride-info-stream/ride-helper";
 import { createRoute } from "@/lib/ride-info-stream/samsara-utils";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
@@ -88,7 +89,8 @@ export async function POST(request: NextRequest) {
     .leftJoin(users, eq(accounts.userID, users.id))
     .then(([result]) => result.users))!;
 
-  const currentRide = await getActiveRideByUserID(user.id);
+  const { env } = getCloudflareContext();
+  const currentRide = await getActiveRideByUserID(user.id, env);
   if (currentRide) {
     return NextResponse.json(
       {
