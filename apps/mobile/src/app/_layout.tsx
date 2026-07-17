@@ -9,6 +9,7 @@ import { configureReanimatedLogger } from "react-native-reanimated";
 import { GroupRideProvider } from "../utils/context/group-ride-context";
 import { RideProvider } from "../utils/context/ride-context";
 import { TabProvider } from "../utils/context/tab-context";
+import { CurrentRideProvider } from "../utils/context/current-ride-context";
 
 configureReanimatedLogger({ strict: false });
 
@@ -33,18 +34,20 @@ export default function RootLayout() {
         <GestureHandlerRootView>
           <TabProvider>
             <SessionProvider>
-              <RideProvider>
-                <GroupRideProvider>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen
-                      name="(tabs)"
-                      options={{
-                        headerShown: false,
-                      }}
-                    />
-                  </Stack>
-                </GroupRideProvider>
-              </RideProvider>
+              <CurrentRideProvider>
+                <RideProvider>
+                  <GroupRideProvider>
+                    <Stack screenOptions={{ headerShown: false }}>
+                      <Stack.Screen
+                        name="(tabs)"
+                        options={{
+                          headerShown: false,
+                        }}
+                      />
+                    </Stack>
+                  </GroupRideProvider>
+                </RideProvider>
+              </CurrentRideProvider>
             </SessionProvider>
           </TabProvider>
         </GestureHandlerRootView>

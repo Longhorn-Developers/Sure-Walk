@@ -3,11 +3,15 @@ import { getDB } from "@/lib/db";
 import { accounts } from "@/lib/db/schema/accounts";
 import { locations } from "@/lib/db/schema/locations";
 import { users } from "@/lib/db/schema/users";
-import { getActiveRideByUserID } from "@/lib/ride-info-stream/ride-helper";
+import {
+  getActiveRideByUserID,
+  getInProgressRideStateFromRide,
+} from "@/lib/ride-info-stream/ride-helper";
 import { createRoute } from "@/lib/ride-info-stream/samsara-utils";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import CurrentRideMini from "@sure-walk/utils/types/current-ride-mini";
 import z from "zod";
 
 const groupRideMember = z.object({
@@ -111,4 +115,39 @@ export async function POST(request: NextRequest) {
     { message: "Ride successfully created." },
     { status: 200 },
   );
+}
+
+export async function GET(request: NextRequest) {
+  const authResponse = ensureAuthenticated(request);
+  if (!authResponse.success) {
+    return authResponse.failResponse!;
+  }
+
+  const accountID = authResponse.accountID!;
+  const user = (await getDB()
+    .select()
+    .from(accounts)
+    .where(eq(accounts.id, accountID))
+    .leftJoin(users, eq(accounts.userID, users.id))
+    .then(([result]) => result.users))!;
+
+  const { env } = getCloudflareContext();
+  const currentRide = await getActiveRideByUserID(user.id, env);
+  if (!currentRide) {
+    return NextResponse.json(
+      {
+        message: "No active ride present.",
+      },
+      { status: 404 },
+    );
+  }
+
+  const currentRideMini: CurrentRideMini = {
+    pickupLocationID: currentRide.pickupLocationID,
+    dropoffLocationID: currentRide.dropoffLocationID,
+    rideState: getInProgressRideStateFromRide(currentRide),
+    groupRide: currentRide.members,
+  };
+
+  return NextResponse.json(currentRideMini, { status: 200 });
 }

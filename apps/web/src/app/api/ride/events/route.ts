@@ -1,20 +1,22 @@
-import { eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
-import { ensureAuthenticated } from "../auth";
-import { getDBInWorker } from "../db";
-import { accounts } from "../db/schema/accounts";
-import { users } from "../db/schema/users";
+import { ensureAuthenticated } from "@/lib/auth";
+import { getDBInWorker } from "@/lib/db";
+import { accounts } from "@/lib/db/schema/accounts";
+import { users } from "@/lib/db/schema/users";
 import {
   getActiveRideByUserID,
   getInProgressRideStateFromRide,
-} from "./ride-helper";
+} from "@/lib/ride-info-stream/ride-helper";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { eq } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function apiRideEvents(request: Request, env: CloudflareEnv) {
+export async function GET(request: NextRequest) {
   const authResponse = ensureAuthenticated(request);
   if (!authResponse.success) {
     return authResponse.failResponse!;
   }
 
+  const { env } = getCloudflareContext();
   const accountID = authResponse.accountID!;
   const user = (await getDBInWorker(env)
     .select()
@@ -33,12 +35,10 @@ export async function apiRideEvents(request: Request, env: CloudflareEnv) {
   }
 
   const rideState = getInProgressRideStateFromRide(currentRide);
-  const vehicle = currentRide.vehicle;
+  const rideFullInfo = { ...currentRide, rideState: rideState };
 
   const forwardedHeaders = new Headers();
-  forwardedHeaders.append("x-user-id", user.id);
-  forwardedHeaders.append("x-ride-state", rideState);
-  forwardedHeaders.append("x-vehicle-info", JSON.stringify(vehicle));
+  forwardedHeaders.append("x-current-ride", JSON.stringify(rideFullInfo));
 
   const doID = env.RIDE_INFO_STREAM.idFromName("global");
   const stub = env.RIDE_INFO_STREAM.get(doID);

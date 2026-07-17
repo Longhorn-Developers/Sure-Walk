@@ -4,6 +4,7 @@ import LargeButton from "@/src/components/large-button";
 import OutlineButton from "@/src/components/outline-button";
 import RiderCard from "@/src/components/rider-card";
 import { slate700, UTBluebonnet, UTBurntOrange } from "@/src/utils/colors";
+import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
 import { useRideSession } from "@/src/utils/context/ride-context";
 import { useTabContext } from "@/src/utils/context/tab-context";
@@ -34,6 +35,7 @@ const ConfirmRide = () => {
   const { user, fetchProtected } = useSession();
   const { firstName, lastName, userType, eid } = user!;
   const { goMyRide } = useTabContext();
+  const { setCurrentRideMini, setLoadingState } = useCurrentRideSession();
   const [confirmEnabled, setConfirmEnabled] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -74,6 +76,13 @@ const ConfirmRide = () => {
     if (!response.ok) {
       console.error(await getErrorMessage(response, "Failed to submit ride."));
     } else {
+      setCurrentRideMini({
+        pickupLocationID: pickupLocation!.id,
+        dropoffLocationID: dropoffLocation!.id,
+        rideState: "received",
+        groupRide: members,
+      });
+      setLoadingState("done");
       goMyRide();
       setTimeout(() => router.push("/home/ride-info-wrapper"), 500);
     }

@@ -3,7 +3,7 @@
   "main": "custom-worker.ts",
   "name": "lifts-web",
   // Set this to today's date
-  "compatibility_date": "2026-02-28",
+  "compatibility_date": "2026-07-16",
   "compatibility_flags": ["nodejs_compat"],
   "dev": {
     "port": 3000,
