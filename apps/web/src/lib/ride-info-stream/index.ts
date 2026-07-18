@@ -3,6 +3,7 @@ import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
 import { Samsara } from "@samsarahq/samsara";
 import {
   getAsset,
+  getRoute,
   getRouteUpdates,
   getVehicleLocations,
 } from "./samsara-utils";
@@ -18,15 +19,10 @@ import { Vehicle, vehicles } from "../db/schema/vehicles";
 
 export class RideInfoStream extends DurableObject<CloudflareEnv> {
   streams: Map<string, WebSocket[]>;
-  encoder: TextEncoder;
 
   constructor(state: DurableObjectState, env: CloudflareEnv) {
     super(state, env);
     this.streams = new Map();
-    this.encoder = new TextEncoder();
-    this.ctx.blockConcurrencyWhile(async () => {
-      await this.ctx.storage.setAlarm(Date.now() + 5000);
-    });
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -36,6 +32,9 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
       vehicle: Vehicle;
       rideState: InProgressRideState;
     };
+    const pickupLocationID = currentRide.pickupLocationID;
+    const dropoffLocationID = currentRide.dropoffLocationID;
+    const groupRide = currentRide.members;
     const rideState = currentRide.rideState;
     const vehicleInfo = currentRide.vehicle;
 
@@ -49,6 +48,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     ]);
 
     server.addEventListener("close", () => {
+      server.close(1000, "Closing normally.");
       const currConnections = this.streams.get(currentRide.id);
       this.streams.set(
         currentRide.id,
@@ -56,8 +56,16 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
       );
     });
 
-    server.addEventListener("open", () => {
-      this.sendEvent("connected", { rideState }, currentRide.id);
+    server.addEventListener("error", (error) => {
+      console.log(error);
+    });
+
+    setTimeout(() => {
+      this.sendEvent(
+        "connected",
+        { rideState, pickupLocationID, dropoffLocationID, groupRide },
+        currentRide.id,
+      );
       if (vehicleInfo) {
         this.sendEvent(
           "vehicleInfo",
@@ -65,7 +73,12 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
           currentRide.id,
         );
       }
-    });
+    }, 1000);
+
+    const currentAlarm = await this.ctx.storage.getAlarm();
+    if (currentAlarm === null) {
+      this.ctx.storage.setAlarm(Date.now() + 5000);
+    }
 
     return new Response(null, {
       status: 101,
@@ -89,6 +102,9 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     let activeRides = await getActiveRides(this.env);
 
     if (activeRides.length === 0) {
+      console.log(
+        `Durable object spinning down at ${new Date().toLocaleTimeString()}`,
+      );
       // durable object will be spun down
       return;
     }
@@ -108,7 +124,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
     const currentAlarm = await this.ctx.storage.getAlarm();
     if (!currentAlarm) {
-      await this.ctx.storage.setAlarm(Date.now() + 5000);
+      this.ctx.storage.setAlarm(Date.now() + 5000);
     }
   }
 
@@ -155,14 +171,11 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
             }
             if (stopState === "en route") {
               await this.sendRouteUpdate(rideID, "en route");
-              // get vehicle info
-              const vehicleID = ride.route.vehicle?.id;
-              if (vehicleID) {
-                await getDBInWorker(this.env)
-                  .update(rides)
-                  .set({ vehicleID })
-                  .where(eq(rides.samsaraID, ride.route.id));
 
+              // get vehicle info
+              const routeInfo = await getRoute(ride.route.id);
+              const vehicleID = routeInfo.data?.vehicle?.id;
+              if (vehicleID) {
                 const asset = await getAsset(vehicleID);
                 const assetInfo = asset.data[0];
                 let vehicle: Vehicle;
@@ -212,6 +225,11 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                     .returning();
                 }
 
+                await getDBInWorker(this.env)
+                  .update(rides)
+                  .set({ vehicleID: vehicleID })
+                  .where(eq(rides.samsaraID, ride.route.id));
+
                 await this.sendVehicleInfo(rideID, vehicle);
               }
             }
@@ -243,7 +261,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
               // send feedback notification?
               this.streams
                 .get(rideID)
-                ?.forEach((ws) => ws.close(200, "complete"));
+                ?.forEach((ws) => ws.close(1000, "complete"));
               this.streams.delete(rideID);
             }
           }

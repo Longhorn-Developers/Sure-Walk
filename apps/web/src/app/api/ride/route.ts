@@ -134,12 +134,7 @@ export async function GET(request: NextRequest) {
   const { env } = getCloudflareContext();
   const currentRide = await getActiveRideByUserID(user.id, env);
   if (!currentRide) {
-    return NextResponse.json(
-      {
-        message: "No active ride present.",
-      },
-      { status: 404 },
-    );
+    return new NextResponse(null, { status: 204 });
   }
 
   const currentRideMini: CurrentRideMini = {

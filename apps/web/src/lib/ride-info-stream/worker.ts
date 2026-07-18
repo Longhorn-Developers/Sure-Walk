@@ -1,22 +1,34 @@
-import { ensureAuthenticated } from "@/lib/auth";
-import { getDBInWorker } from "@/lib/db";
-import { accounts } from "@/lib/db/schema/accounts";
-import { users } from "@/lib/db/schema/users";
+import { eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
+import { ensureAuthenticated } from "../auth";
+import { getDBInWorker } from "../db";
+import { accounts } from "../db/schema/accounts";
+import { users } from "../db/schema/users";
 import {
   getActiveRideByUserID,
   getInProgressRideStateFromRide,
-} from "@/lib/ride-info-stream/ride-helper";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { eq } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
+} from "./ride-helper";
 
-export async function GET(request: NextRequest) {
-  const authResponse = ensureAuthenticated(request);
+export async function handleRideStream(request: Request, env: CloudflareEnv) {
+  const upgradeHeader = request.headers.get("Upgrade");
+  if (!upgradeHeader || upgradeHeader !== "websocket") {
+    return new Response("Expected upgrade: websocket", { status: 426 });
+  }
+
+  const newHeaders = new Headers(request.headers);
+  newHeaders.append(
+    "Authorization",
+    request.headers.get("Sec-WebSocket-Protocol") ?? "",
+  );
+  const reqWithHeaders = new Request(request.url, {
+    method: request.method,
+    headers: newHeaders,
+  });
+  const authResponse = ensureAuthenticated(reqWithHeaders);
   if (!authResponse.success) {
     return authResponse.failResponse!;
   }
 
-  const { env } = getCloudflareContext();
   const accountID = authResponse.accountID!;
   const user = (await getDBInWorker(env)
     .select()
@@ -30,14 +42,14 @@ export async function GET(request: NextRequest) {
   if (!currentRide) {
     return NextResponse.json(
       { message: "No active ride for this account." },
-      { status: 400 },
+      { status: 404 },
     );
   }
 
   const rideState = getInProgressRideStateFromRide(currentRide);
   const rideFullInfo = { ...currentRide, rideState: rideState };
 
-  const forwardedHeaders = new Headers();
+  const forwardedHeaders = new Headers(request.headers);
   forwardedHeaders.append("x-current-ride", JSON.stringify(rideFullInfo));
 
   const doID = env.RIDE_INFO_STREAM.idFromName("global");

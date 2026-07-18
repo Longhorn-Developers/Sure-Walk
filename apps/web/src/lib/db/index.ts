@@ -7,6 +7,6 @@ export const getDB = cache(() => {
   return drizzle(env.LIFTS_DB);
 });
 
-export const getDBInWorker = cache((env: CloudflareEnv) => {
+export const getDBInWorker = (env: CloudflareEnv) => {
   return drizzle(env.LIFTS_DB);
-});
+};

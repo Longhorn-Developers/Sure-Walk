@@ -66,7 +66,7 @@ const MyRide = () => {
     const fetchCurrentRide = async () => {
       try {
         const res = await fetchProtected("/ride", "GET");
-        if (res.status === 404) {
+        if (res.status === 204) {
           setCurrentRideMini(null);
         } else if (res.status === 200) {
           setCurrentRideMini(await res.json());
@@ -80,10 +80,10 @@ const MyRide = () => {
       }
     };
 
-    const interval = setInterval(fetchCurrentRide, 30 * 1000);
+    // const interval = setInterval(fetchCurrentRide, 30 * 1000);
     fetchCurrentRide();
     return () => {
-      clearInterval(interval);
+      // clearInterval(interval);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
