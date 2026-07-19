@@ -1,5 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
+import VehicleInfoShort from "@sure-walk/utils/types/vehicle-info-short";
 import { Samsara } from "@samsarahq/samsara";
 import {
   getAsset,
@@ -276,7 +277,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     this.sendEvent("routeUpdate", { rideState }, rideID);
   }
 
-  vehicleInfoShort(vehicle: Vehicle) {
+  vehicleInfoShort(vehicle: Vehicle): VehicleInfoShort {
     let vehicleName: string;
     if (vehicle.type === "vehicle") {
       vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;

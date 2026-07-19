@@ -9,6 +9,7 @@ import {
   HamburgerIcon,
   XCircleIcon,
   IconContext,
+  PhoneCallIcon,
 } from "phosphor-react-native";
 import FontText from "./font-text";
 import { UTBurntOrange } from "../utils/colors";
@@ -91,6 +92,37 @@ const GuidelinesList = ({ includeBottomBorder = false }) => {
         </View>
       </View>
     </IconContext.Provider>
+  );
+};
+
+export const GuidelinesListShort = () => {
+  const guidelines = [
+    {
+      icon: <TimerIcon size={24} />,
+      text: "Board within 2 minutes of arrival",
+    },
+    {
+      icon: <PhoneCallIcon size={24} />,
+      text: 'Turn off "Do Not Disturb"',
+    },
+    {
+      icon: <HamburgerIcon size={24} />,
+      text: "No food or drinks in the vehicle",
+    },
+  ];
+
+  return (
+    <View className="flex-col gap-3">
+      {guidelines.map(({ icon, text }, index) => (
+        <View
+          className="flex-row gap-2 px-4 bg-gray-50 border border-gray-200 rounded-lg align-center"
+          key={index}
+        >
+          <View className="flex-col justify-center">{icon}</View>
+          <FontText className="py-4 font-medium text-lg">{text}</FontText>
+        </View>
+      ))}
+    </View>
   );
 };
 

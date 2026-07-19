@@ -1,9 +1,11 @@
 import { getErrorMessage } from "@/src/client";
 import FontText from "@/src/components/font-text";
+import { GuidelinesListShort } from "@/src/components/guidelines-list";
 import LargeButton from "@/src/components/large-button";
 import OutlineButton from "@/src/components/outline-button";
+import PickupDropoffLocationInfo from "@/src/components/pickup-dropoff-location-info";
 import RiderCard from "@/src/components/rider-card";
-import { slate700, UTBluebonnet, UTBurntOrange } from "@/src/utils/colors";
+import { slate700 } from "@/src/utils/colors";
 import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
 import { useRideSession } from "@/src/utils/context/ride-context";
@@ -11,15 +13,7 @@ import { useTabContext } from "@/src/utils/context/tab-context";
 import { useSession } from "@/src/utils/context/user-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import {
-  CaretLeftIcon,
-  CircleIcon,
-  CrownSimpleIcon,
-  HamburgerIcon,
-  MapPinIcon,
-  PhoneCallIcon,
-  TimerIcon,
-} from "phosphor-react-native";
+import { CaretLeftIcon, CrownSimpleIcon } from "phosphor-react-native";
 import { useState } from "react";
 import {
   NativeScrollEvent,
@@ -38,21 +32,6 @@ const ConfirmRide = () => {
   const { setCurrentRideMini, setLoadingState } = useCurrentRideSession();
   const [confirmEnabled, setConfirmEnabled] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
-
-  const guidelines = [
-    {
-      icon: <TimerIcon size={24} />,
-      text: "Board within 2 minutes of arrival",
-    },
-    {
-      icon: <PhoneCallIcon size={24} />,
-      text: 'Turn off "Do Not Disturb"',
-    },
-    {
-      icon: <HamburgerIcon size={24} />,
-      text: "No food or drinks in the vehicle",
-    },
-  ];
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
@@ -142,51 +121,15 @@ const ConfirmRide = () => {
                   small
                 />
               </View>
-              <View className="flex-col rounded-lg">
-                <View className="bg-slate-50 flex-row p-4 gap-4 items-center rounded-t-2xl border border-slate-200">
-                  <View className="bg-[#BF570033] rounded-full items-center justify-center w-[32px] h-[32px]">
-                    <CircleIcon color={UTBurntOrange} weight="fill" size="20" />
-                  </View>
-                  <View className="flex-1 flex-col gap-1">
-                    <FontText className="font-medium text-lg">
-                      {pickupLocation?.name}
-                    </FontText>
-                    <FontText className="text-lg color-[#333F48]">
-                      {pickupLocation?.address}
-                    </FontText>
-                  </View>
-                </View>
-                <View className="bg-slate-50 flex-row p-4 gap-4 items-center rounded-b-2xl border border-slate-200 mt-[-1px] mb-2">
-                  <View className="bg-[#005F8633] rounded-full items-center justify-center w-[32px] h-[32px]">
-                    <MapPinIcon color={UTBluebonnet} size="20" weight="fill" />
-                  </View>
-                  <View className="flex-1 flex-col gap-1">
-                    <FontText className="font-medium text-lg">
-                      {dropoffLocation?.name}
-                    </FontText>
-                    <FontText className="text-lg color-[#333F48]">
-                      {dropoffLocation?.address}
-                    </FontText>
-                  </View>
-                </View>
-              </View>
+              <PickupDropoffLocationInfo
+                pickupLocation={pickupLocation}
+                dropoffLocation={dropoffLocation}
+              />
             </View>
             <View className="h-[1px] bg-gray-200 w-full" />
             <View className="flex-col gap-4">
               <FontText className="text-xl font-semibold">Guidelines</FontText>
-              <View className="flex-col gap-3">
-                {guidelines.map(({ icon, text }, index) => (
-                  <View
-                    className="flex-row gap-2 px-4 bg-gray-50 border border-gray-200 rounded-lg align-center"
-                    key={index}
-                  >
-                    <View className="flex-col justify-center">{icon}</View>
-                    <FontText className="py-4 font-medium text-lg">
-                      {text}
-                    </FontText>
-                  </View>
-                ))}
-              </View>
+              <GuidelinesListShort />
             </View>
             <View className="h-[1px] bg-gray-200 w-full" />
             <View className="flex-col gap-4">

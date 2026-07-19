@@ -1,0 +1,46 @@
+import { CircleIcon, MapPinIcon } from "phosphor-react-native";
+import { View } from "react-native";
+import { UTBurntOrange, UTBluebonnet } from "../utils/colors";
+import Location from "../utils/types/location";
+import FontText from "./font-text";
+
+const PickupDropoffLocationInfo = ({
+  pickupLocation,
+  dropoffLocation,
+}: {
+  pickupLocation: Location | null;
+  dropoffLocation: Location | null;
+}) => {
+  return (
+    <View className="flex-col rounded-lg">
+      <View className="bg-slate-50 flex-row p-4 gap-4 items-center rounded-t-2xl border border-slate-200">
+        <View className="bg-[#BF570033] rounded-full items-center justify-center w-[32px] h-[32px]">
+          <CircleIcon color={UTBurntOrange} weight="fill" size="20" />
+        </View>
+        <View className="flex-1 flex-col gap-1">
+          <FontText className="font-medium text-lg">
+            {pickupLocation?.name}
+          </FontText>
+          <FontText className="text-lg color-[#333F48]">
+            {pickupLocation?.address}
+          </FontText>
+        </View>
+      </View>
+      <View className="bg-slate-50 flex-row p-4 gap-4 items-center rounded-b-2xl border border-slate-200 mt-[-1px] mb-2">
+        <View className="bg-[#005F8633] rounded-full items-center justify-center w-[32px] h-[32px]">
+          <MapPinIcon color={UTBluebonnet} size="20" weight="fill" />
+        </View>
+        <View className="flex-1 flex-col gap-1">
+          <FontText className="font-medium text-lg">
+            {dropoffLocation?.name}
+          </FontText>
+          <FontText className="text-lg color-[#333F48]">
+            {dropoffLocation?.address}
+          </FontText>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+export default PickupDropoffLocationInfo;

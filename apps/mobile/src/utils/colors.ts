@@ -10,7 +10,9 @@ export const gray200 = "#E5E7EB";
 export const gray500 = "#6B7280";
 export const gray900 = "#111827";
 
+export const slate50 = "#F8FAFC";
 export const slate200 = "#E2E8F0";
+export const slate400 = "#94A3B8";
 export const slate500 = "#64748B";
 export const slate700 = "#334155";
 export const slate900 = "#0F172A";

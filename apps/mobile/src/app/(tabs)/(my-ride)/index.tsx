@@ -166,7 +166,15 @@ const MyRide = () => {
                 </View>
                 <LargeButton
                   title="View Live Tracking"
-                  onPress={() => router.push("/home/ride-info-wrapper")}
+                  onPress={() => {
+                    setCurrentRideMini({
+                      pickupLocationID: currentRideMini.pickupLocationID,
+                      dropoffLocationID: currentRideMini.dropoffLocationID,
+                      groupRide: currentRideMini.groupRide,
+                      rideState: "received",
+                    });
+                    router.push("/home/ride-info-wrapper");
+                  }}
                 />
               </>
             )}
