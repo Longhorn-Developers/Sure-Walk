@@ -1,10 +1,13 @@
+import GroupRideMember from "./group-ride-member";
 import InProgressRideState from "./in-progress-ride-state";
 
-type CurrentRideMini = {
+type CurrentRideSmall = {
   pickupLocationID: number;
   dropoffLocationID: number;
   rideState: InProgressRideState;
+  groupRide: GroupRideMember[];
+  shareCode?: string;
   eta?: string;
 };
 
-export default CurrentRideMini;
+export default CurrentRideSmall;

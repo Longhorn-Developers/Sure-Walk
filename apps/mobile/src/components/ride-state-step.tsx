@@ -26,7 +26,7 @@ import Animated, {
   withDelay,
   withTiming,
 } from "react-native-reanimated";
-import { useCurrentRideSession } from "../utils/context/current-ride-context";
+import { useRideDetailsSession } from "../utils/context/ride-details-context";
 import { Component, useEffect, useState } from "react";
 
 const rideStateToStepNum = {
@@ -73,8 +73,8 @@ const RideStateStep = ({
   rideState: InProgressRideState;
   width: number;
 }) => {
-  const { currentRideMini } = useCurrentRideSession();
-  const currentRideState = currentRideMini?.rideState ?? "received";
+  const { currentRideSmall } = useRideDetailsSession();
+  const currentRideState = currentRideSmall?.rideState ?? "received";
   const [highlighted, setHighlighted] = useState<boolean>(
     rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
   );
@@ -93,7 +93,7 @@ const RideStateStep = ({
     setHighlighted(
       rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
     );
-  }, [currentRideMini]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentRideSmall]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const IconToRender = rideStateToIcon[rideState];
 
@@ -224,8 +224,8 @@ export const RideStateStepDivider = ({
   rideState: InProgressRideState;
   width: number;
 }) => {
-  const { currentRideMini } = useCurrentRideSession();
-  const currentRideState = currentRideMini?.rideState ?? "received";
+  const { currentRideSmall } = useRideDetailsSession();
+  const currentRideState = currentRideSmall?.rideState ?? "received";
   const [highlighted, setHighlighted] = useState<boolean>(
     rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
   );
@@ -234,7 +234,7 @@ export const RideStateStepDivider = ({
     setHighlighted(
       rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
     );
-  }, [currentRideMini]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentRideSmall]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* eslint-disable react-hooks/rules-of-hooks */
   const progresses: DerivedValue<0 | 1>[] = [];

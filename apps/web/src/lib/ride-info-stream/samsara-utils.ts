@@ -38,7 +38,7 @@ const createRoute = async ({
       sequencingMethod: "manual",
     },
     tagIds: ["6343755"],
-    vehicleId: "281474996183681", // temporary
+    vehicleId: "281474996183683", // temporary
     stops: [
       {
         name: pickupLocation.name,
@@ -76,6 +76,16 @@ const createRoute = async ({
   });
 
   const data = res.data!;
+  let rideCode: string | null = null;
+  if (members.length > 0) {
+    rideCode = "";
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const charsLen = chars.length;
+    for (let i = 0; i < 7; i++) {
+      rideCode += chars.charAt(Math.floor(Math.random() * charsLen));
+    }
+  }
+
   const [rideRecord] = await getDB()
     .insert(rides)
     .values({
@@ -88,6 +98,7 @@ const createRoute = async ({
       dropoffStopID: data.stops![1].id,
       estPickupTime: data.stops![0].scheduledArrivalTime!,
       estDropoffTime: data.stops![1].scheduledArrivalTime!,
+      shareCode: rideCode,
     })
     .returning();
 

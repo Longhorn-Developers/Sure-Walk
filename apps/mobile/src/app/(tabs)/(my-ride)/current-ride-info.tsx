@@ -7,7 +7,6 @@ import RideStateStep, {
 } from "@/src/components/ride-state-step";
 import RiderCard from "@/src/components/rider-card";
 import { slate700, UTBurntOrange } from "@/src/utils/colors";
-import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 import { useSession } from "@/src/utils/context/user-context";
 import { WEST_CAMPUS_LOCATIONS } from "@/src/utils/locations/dropoff-locations";
 import { CAMPUS_LOCATIONS } from "@/src/utils/locations/pickup-locations";
@@ -17,13 +16,17 @@ import BottomSheet, {
   BottomSheetScrollView,
   BottomSheetScrollViewMethods,
 } from "@gorhom/bottom-sheet";
-import CurrentRideMini from "@sure-walk/utils/types/current-ride-mini";
+import CurrentRideSmall from "@sure-walk/utils/types/current-ride-small";
 import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
 import VehicleInfoShort from "@sure-walk/utils/types/vehicle-info-short";
 import RideEvent from "@sure-walk/utils/types/ride-event";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { CaretLeftIcon, CrownSimpleIcon } from "phosphor-react-native";
+import {
+  CaretLeftIcon,
+  CopyIcon,
+  CrownSimpleIcon,
+} from "phosphor-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   View,
@@ -40,11 +43,17 @@ import Animated, {
   useSharedValue,
   Easing,
 } from "react-native-reanimated";
+import * as Clipboard from "expo-clipboard";
+import { useSearchParams } from "expo-router/build/hooks";
+import { useRideDetailsSession } from "@/src/utils/context/ride-details-context";
+import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 
 const CurrentRideInfo = () => {
   const { accessToken, fetchProtected, user } = useSession();
   const { firstName, lastName, userType, eid } = user!;
-  const { setCurrentRideMini, currentRideMini } = useCurrentRideSession();
+  const { setCurrentRideSmall, currentRideSmall } = useRideDetailsSession();
+  const { setCurrentRideMini } = useCurrentRideSession();
+  const params = useSearchParams();
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfoShort | null>(null);
   const wsRef = useRef<WebSocket>(undefined);
@@ -68,8 +77,9 @@ const CurrentRideInfo = () => {
 
   const connect = () => {
     const wsURL = API_URL.replace("http", "ws");
+    const shareCode = params.get("shareCode");
     const ws = new WebSocket(
-      `${wsURL}/ride/events`,
+      `${wsURL}/ride/events${shareCode ? `?shareCode=${shareCode}` : ""}`,
       `Bearer ${accessToken ?? ""}`,
     );
     wsRef.current = ws;
@@ -80,17 +90,19 @@ const CurrentRideInfo = () => {
         case "connected": {
           console.log("websocket connected");
           setLoadingState("done");
-          const data = payload.data as CurrentRideMini;
-          setCurrentRideMini(data);
+          const data = payload.data as CurrentRideSmall;
+          setCurrentRideSmall(data);
           break;
         }
         case "routeUpdate": {
           const data = payload.data as { rideState: InProgressRideState };
-          setCurrentRideMini({
-            pickupLocationID: currentRideMini?.pickupLocationID!,
-            dropoffLocationID: currentRideMini?.dropoffLocationID!,
-            groupRide: currentRideMini?.groupRide ?? [],
+          setCurrentRideSmall({
+            pickupLocationID: currentRideSmall?.pickupLocationID!,
+            dropoffLocationID: currentRideSmall?.dropoffLocationID!,
+            groupRide: currentRideSmall?.groupRide ?? [],
+            shareCode: currentRideSmall?.shareCode,
             rideState: data.rideState,
+            eta: currentRideSmall?.eta,
           });
           break;
         }
@@ -111,7 +123,11 @@ const CurrentRideInfo = () => {
       if (event.code === 1000) {
         ws.removeEventListener("close", onClose);
         if (event.reason === "complete") {
-          setCurrentRideMini(null);
+          setCurrentRideSmall(null);
+          if (!shareCode) {
+            // not viewing a group ride
+            setCurrentRideMini(null);
+          }
           router.dismissTo("/home");
         }
       } else if (event.reason.includes("401")) {
@@ -121,11 +137,20 @@ const CurrentRideInfo = () => {
         } catch (err) {
           console.error(err);
         }
-      } else {
+      } else if (event.reason.includes("404")) {
         // 404
         ws.removeEventListener("close", onClose);
         router.dismissTo("/home");
-        setCurrentRideMini(null);
+        setCurrentRideSmall(null);
+        if (!shareCode) {
+          console.error("There is no active ride.");
+          setCurrentRideMini(null);
+        } else {
+          console.error("Could not find a ride with that ride code.");
+        }
+      } else {
+        // unknown error, reconnect?
+        connect();
       }
     };
 
@@ -160,22 +185,22 @@ const CurrentRideInfo = () => {
   }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (currentRideMini) {
+    if (currentRideSmall) {
       setPickupLocation(
         CAMPUS_LOCATIONS.find(
-          (loc) => loc.id === currentRideMini.pickupLocationID,
+          (loc) => loc.id === currentRideSmall.pickupLocationID,
         ),
       );
       setDropoffLocation(
         WEST_CAMPUS_LOCATIONS.find(
-          (loc) => loc.id === currentRideMini.dropoffLocationID,
+          (loc) => loc.id === currentRideSmall.dropoffLocationID,
         ),
       );
     } else {
       setPickupLocation(undefined);
       setDropoffLocation(undefined);
     }
-  }, [currentRideMini]);
+  }, [currentRideSmall]);
 
   const handleLayout0 = (event: LayoutChangeEvent) => {
     let height = event.nativeEvent.layout.height;
@@ -191,6 +216,10 @@ const CurrentRideInfo = () => {
       height = 76;
     }
     snap1.set(height);
+  };
+
+  const copyCode = async () => {
+    await Clipboard.setStringAsync(currentRideSmall?.shareCode ?? "");
   };
 
   return (
@@ -314,7 +343,7 @@ const CurrentRideInfo = () => {
         snapPoints={snapPoints}
         index={0}
         onChange={(index) => {
-          if (index <= 2) {
+          if (index < 2) {
             scrollRef.current?.scrollTo({ y: 0, animated: true });
           }
         }}
@@ -342,21 +371,29 @@ const CurrentRideInfo = () => {
         )}
       >
         <BottomSheetScrollView className="px-5" ref={scrollRef}>
-          <View className="mt-2 pb-2" onLayout={handleLayout1}>
-            {pickupLocation && dropoffLocation && (
-              <PickupDropoffLocationInfo
-                pickupLocation={pickupLocation}
-                dropoffLocation={dropoffLocation}
-              />
-            )}
-          </View>
-          {loadingState === "done" && currentRideMini && (
+          {loadingState === "done" && currentRideSmall && (
             <>
-              {currentRideMini.groupRide.length !== 0 && (
+              <View className="mt-2 pb-2" onLayout={handleLayout1}>
+                {pickupLocation && dropoffLocation && (
+                  <PickupDropoffLocationInfo
+                    pickupLocation={pickupLocation}
+                    dropoffLocation={dropoffLocation}
+                  />
+                )}
+              </View>
+              {currentRideSmall.groupRide.length !== 0 && (
                 <>
                   <FontText className="text-xl font-medium py-4">
                     Share group ride
                   </FontText>
+                  <View className="bg-slate-50 rounded-lg border border-slate-200 flex-row items-center justify-between px-4 py-2.5">
+                    <FontText className="text-lg">
+                      {currentRideSmall.shareCode}
+                    </FontText>
+                    <TouchableOpacity onPress={copyCode}>
+                      <CopyIcon size={32} />
+                    </TouchableOpacity>
+                  </View>
                 </>
               )}
               <View className="flex-row items-center justify-between w-full pt-6 pb-4">
@@ -371,7 +408,7 @@ const CurrentRideInfo = () => {
                     <CrownSimpleIcon color="#FFD600" size={24} weight="fill" />
                   }
                 />
-                {currentRideMini.groupRide.map((member, index) => (
+                {currentRideSmall.groupRide.map((member, index) => (
                   <RiderCard key={index} member={member} />
                 ))}
               </View>

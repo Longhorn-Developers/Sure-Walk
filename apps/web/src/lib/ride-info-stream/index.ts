@@ -30,13 +30,14 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     const currentRide = JSON.parse(
       request.headers.get("x-current-ride") ?? "",
     ) as typeof Ride & {
-      vehicle: Vehicle;
+      vehicle: Vehicle | null;
       rideState: InProgressRideState;
     };
     const pickupLocationID = currentRide.pickupLocationID;
     const dropoffLocationID = currentRide.dropoffLocationID;
     const groupRide = currentRide.members;
     const rideState = currentRide.rideState;
+    const shareCode = currentRide.shareCode ?? undefined;
     const vehicleInfo = currentRide.vehicle;
 
     const websocketPair = new WebSocketPair();
@@ -50,21 +51,25 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
     server.addEventListener("close", () => {
       server.close(1000, "Closing normally.");
-      const currConnections = this.streams.get(currentRide.id);
-      this.streams.set(
-        currentRide.id,
-        currConnections?.filter((val) => val !== server) ?? [],
-      );
+      this.deleteSocket(server, currentRide.id);
     });
 
     server.addEventListener("error", (error) => {
       console.log(error);
+      server.close(1006, "Disconnected.");
+      this.deleteSocket(server, currentRide.id);
     });
 
     setTimeout(() => {
       this.sendEvent(
         "connected",
-        { rideState, pickupLocationID, dropoffLocationID, groupRide },
+        {
+          rideState,
+          pickupLocationID,
+          dropoffLocationID,
+          groupRide,
+          shareCode,
+        },
         currentRide.id,
       );
       if (vehicleInfo) {
@@ -87,6 +92,14 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     });
   }
 
+  deleteSocket(ws: WebSocket, rideID: string) {
+    const currConnections = this.streams.get(rideID);
+    this.streams.set(
+      rideID,
+      currConnections?.filter((val) => val !== ws) ?? [],
+    );
+  }
+
   sendEvent(eventType: string, data: object, rideID: string) {
     const payload = { data: data, eventType: eventType };
     this.streams.get(rideID)?.forEach((ws) => {
@@ -102,7 +115,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     let routeUpdates = await this.pollRouteUpdates();
     let activeRides = await getActiveRides(this.env);
 
-    if (activeRides.length === 0) {
+    if (activeRides.length === 0 && routeUpdates.data.length === 0) {
       console.log(
         `Durable object spinning down at ${new Date().toLocaleTimeString()}`,
       );
@@ -110,14 +123,16 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
       return;
     }
 
-    await this.streamRouteUpdates(activeRides, routeUpdates);
-    let hasNextPage = routeUpdates.pagination.hasNextPage;
-    activeRides = await getActiveRides(this.env);
-    while (hasNextPage) {
+    if (routeUpdates.data.length > 0) {
       await this.streamRouteUpdates(activeRides, routeUpdates);
-      routeUpdates = await this.pollRouteUpdates();
+      let hasNextPage = routeUpdates.pagination.hasNextPage;
       activeRides = await getActiveRides(this.env);
-      hasNextPage = routeUpdates.pagination.hasNextPage;
+      while (hasNextPage) {
+        await this.streamRouteUpdates(activeRides, routeUpdates);
+        routeUpdates = await this.pollRouteUpdates();
+        activeRides = await getActiveRides(this.env);
+        hasNextPage = routeUpdates.pagination.hasNextPage;
+      }
     }
 
     const vehicleLocations = await this.pollLocations();
@@ -260,11 +275,22 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
             }
             if (stopState === "departed") {
               // send feedback notification?
+              await getDBInWorker(this.env)
+                .update(rides)
+                .set({ shareCode: null })
+                .where(eq(rides.dropoffStopID, stopID));
               this.streams
                 .get(rideID)
                 ?.forEach((ws) => ws.close(1000, "complete"));
               this.streams.delete(rideID);
             }
+          }
+
+          if (stopState === "skipped") {
+            await getDBInWorker(this.env)
+              .update(rides)
+              .set({ shareCode: null })
+              .where(eq(rides.dropoffStopID, stopID));
           }
         }
       }

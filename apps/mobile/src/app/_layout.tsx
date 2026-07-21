@@ -10,6 +10,7 @@ import { GroupRideProvider } from "../utils/context/group-ride-context";
 import { RideProvider } from "../utils/context/ride-context";
 import { TabProvider } from "../utils/context/tab-context";
 import { CurrentRideProvider } from "../utils/context/current-ride-context";
+import { RideDetailsProvider } from "../utils/context/ride-details-context";
 
 configureReanimatedLogger({ strict: false });
 
@@ -35,18 +36,20 @@ export default function RootLayout() {
           <TabProvider>
             <SessionProvider>
               <CurrentRideProvider>
-                <RideProvider>
-                  <GroupRideProvider>
-                    <Stack screenOptions={{ headerShown: false }}>
-                      <Stack.Screen
-                        name="(tabs)"
-                        options={{
-                          headerShown: false,
-                        }}
-                      />
-                    </Stack>
-                  </GroupRideProvider>
-                </RideProvider>
+                <RideDetailsProvider>
+                  <RideProvider>
+                    <GroupRideProvider>
+                      <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen
+                          name="(tabs)"
+                          options={{
+                            headerShown: false,
+                          }}
+                        />
+                      </Stack>
+                    </GroupRideProvider>
+                  </RideProvider>
+                </RideDetailsProvider>
               </CurrentRideProvider>
             </SessionProvider>
           </TabProvider>

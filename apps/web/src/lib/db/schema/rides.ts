@@ -51,6 +51,7 @@ export const rides = sqliteTable("rides", {
   missedPickup: int("missed_pickup", { mode: "boolean" })
     .notNull()
     .default(false),
+  shareCode: text("share_code"),
   cancelledTime: text("cancelled_time"),
   cancellationReason: text("cancellation_reason", {
     enum: [

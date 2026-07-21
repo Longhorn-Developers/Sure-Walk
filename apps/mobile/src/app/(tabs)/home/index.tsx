@@ -233,16 +233,7 @@ const Home = () => {
         </TouchableOpacity>
       </View>
       <View className="relative flex-1 w-full">
-        <LinearGradient
-          colors={["#ffffffff", "#ffffff00"]}
-          style={{
-            position: "fixed",
-            top: -10,
-            height: 24,
-            zIndex: 100,
-          }}
-        />
-        <View className="w-full h-full mt-[-34px] items-center justify-center">
+        <View className="w-full h-full mt-[-10px] items-center justify-center">
           <MapView
             ref={mapRef}
             style={{ width: "100%", flex: 1, zIndex: 0 }}
@@ -337,6 +328,16 @@ const Home = () => {
             ))}
           </MapView>
         </View>
+        <LinearGradient
+          colors={["#ffffffff", "#ffffff00"]}
+          style={{
+            position: "absolute",
+            top: -10,
+            left: 0,
+            right: 0,
+            height: 24,
+          }}
+        />
         {legendOpen && (
           <>
             <Animated.View

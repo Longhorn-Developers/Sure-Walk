@@ -1,0 +1,1 @@
+ALTER TABLE `rides` ADD `share_code` text;

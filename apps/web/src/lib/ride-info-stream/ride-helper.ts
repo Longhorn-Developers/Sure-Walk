@@ -58,6 +58,40 @@ const getActiveRideByUserID = async (userID: string, env: CloudflareEnv) => {
   return ride;
 };
 
+const getActiveRideByShareCode = async (
+  shareCode: string,
+  env: CloudflareEnv,
+) => {
+  const ride = await getDBInWorker(env)
+    .select()
+    .from(rides)
+    .where(
+      and(
+        eq(rides.shareCode, shareCode),
+        inArray(rides.pickupStopState, [
+          "unassigned",
+          "scheduled",
+          "en route",
+          "arrived",
+          "departed",
+        ]),
+        notInArray(rides.dropoffStopState, ["skipped", "departed"]),
+        isNull(rides.cancelledTime),
+        eq(rides.missedPickup, false),
+      ),
+    )
+    .leftJoin(vehicles, eq(rides.vehicleID, vehicles.samsaraID))
+    .then(([res]) => {
+      if (res) {
+        return { ...res.rides, vehicle: res.vehicles };
+      } else {
+        return undefined;
+      }
+    });
+
+  return ride;
+};
+
 const setPickupStopState = async (
   stopID: string,
   stopState: Samsara.MinimalRouteStopAuditLogsResponseBody.State,
@@ -104,6 +138,7 @@ const getInProgressRideStateFromRide = (
 export {
   getActiveRides,
   getActiveRideByUserID,
+  getActiveRideByShareCode,
   setPickupStopState,
   setDropoffStopState,
   getInProgressRideStateFromRide,

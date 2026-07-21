@@ -12,14 +12,18 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import { ArrowCircleRightIcon } from "phosphor-react-native";
 import { useEffect, useRef, useState } from "react";
-import { LayoutChangeEvent, View } from "react-native";
 import {
-  SharedValue,
-  useDerivedValue,
-  useSharedValue,
-} from "react-native-reanimated";
+  LayoutChangeEvent,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import { useDerivedValue, useSharedValue } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const MyRide = () => {
+  const { height } = useWindowDimensions();
+  const { top } = useSafeAreaInsets();
   const [code, setCode] = useState<string>("");
   const sheetRef = useRef<BottomSheet>(null);
   const { setMyRideSheetRef } = useTabContext();
@@ -27,6 +31,7 @@ const MyRide = () => {
   const { fetchProtected } = useSession();
   const { currentRideMini, setCurrentRideMini, loadingState, setLoadingState } =
     useCurrentRideSession();
+  const inputRef = useRef<TextInput>(null);
   const [pickupLocation, setPickupLocation] = useState<Location | undefined>(
     undefined,
   );
@@ -35,10 +40,10 @@ const MyRide = () => {
   );
   const snap0 = useSharedValue<number>(180);
   const snap1 = useSharedValue<number>(340);
-  const snapPoints = useDerivedValue<number[]>(
-    () => [snap0.value, snap1.value],
-    [snap0, snap1],
-  ) as SharedValue<(string | number)[]>;
+  const snapPoints = useDerivedValue<(string | number)[]>(
+    () => [snap0.value, snap1.value, `${(1 - top / height) * 100}%`],
+    [snap0, snap1, height, top],
+  );
 
   useEffect(() => {
     setMyRideSheetRef(sheetRef);
@@ -68,6 +73,7 @@ const MyRide = () => {
         const res = await fetchProtected("/ride", "GET");
         if (res.status === 204) {
           setCurrentRideMini(null);
+          goHome();
         } else if (res.status === 200) {
           setCurrentRideMini(await res.json());
         } else {
@@ -114,6 +120,12 @@ const MyRide = () => {
           <View className="bg-slate-300 rounded w-8 h-1" />
         </View>
       )}
+      style={{ zIndex: 500 }}
+      onChange={(index) => {
+        if (index < 2) {
+          inputRef.current?.blur();
+        }
+      }}
     >
       <View className="bg-white flex-1 flex-col px-5 pb-10">
         <View className="flex-col" onLayout={handleLayout2}>
@@ -124,10 +136,7 @@ const MyRide = () => {
                 <FontText className="text-lg font-normal mt-2 mb-6">
                   No active rides currently.
                 </FontText>
-                <LargeButton
-                  title={/* @ts-ignore */ "Book Ride"}
-                  onPress={() => goHome()}
-                />
+                <LargeButton title="Book Ride" onPress={() => goHome()} />
               </>
             )}
             {loadingState === "done" && currentRideMini && (
@@ -170,7 +179,7 @@ const MyRide = () => {
                     setCurrentRideMini({
                       pickupLocationID: currentRideMini.pickupLocationID,
                       dropoffLocationID: currentRideMini.dropoffLocationID,
-                      groupRide: currentRideMini.groupRide,
+                      eta: currentRideMini.eta,
                       rideState: "received",
                     });
                     router.push("/home/ride-info-wrapper");
@@ -190,6 +199,13 @@ const MyRide = () => {
             autoCapitalize={"characters"}
             value={code}
             onChangeText={(text) => setCode(text.toUpperCase())}
+            onFocus={() => sheetRef.current?.expand()}
+            onBlur={() => sheetRef.current?.snapToIndex(1)}
+            inputRef={inputRef}
+            returnKeyType="go"
+            onSubmitEditing={() => {
+              router.push(`/home/ride-info-wrapper?shareCode=${code}`);
+            }}
           />
         </View>
       </View>

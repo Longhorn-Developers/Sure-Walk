@@ -59,7 +59,6 @@ const ConfirmRide = () => {
         pickupLocationID: pickupLocation!.id,
         dropoffLocationID: dropoffLocation!.id,
         rideState: "received",
-        groupRide: members,
       });
       setLoadingState("done");
       goMyRide();

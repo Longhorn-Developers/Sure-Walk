@@ -5,9 +5,12 @@ import { getDBInWorker } from "../db";
 import { accounts } from "../db/schema/accounts";
 import { users } from "../db/schema/users";
 import {
+  getActiveRideByShareCode,
   getActiveRideByUserID,
   getInProgressRideStateFromRide,
 } from "./ride-helper";
+import { Vehicle } from "../db/schema/vehicles";
+import { Ride } from "../db/schema/rides";
 
 export async function handleRideStream(request: Request, env: CloudflareEnv) {
   const upgradeHeader = request.headers.get("Upgrade");
@@ -29,15 +32,36 @@ export async function handleRideStream(request: Request, env: CloudflareEnv) {
     return authResponse.failResponse!;
   }
 
-  const accountID = authResponse.accountID!;
-  const user = (await getDBInWorker(env)
-    .select()
-    .from(accounts)
-    .where(eq(accounts.id, accountID))
-    .leftJoin(users, eq(accounts.userID, users.id))
-    .then(([result]) => result.users))!;
+  let currentRide:
+    | (typeof Ride & {
+        vehicle: Vehicle | null;
+      })
+    | undefined = undefined;
 
-  const currentRide = await getActiveRideByUserID(user.id, env);
+  const url = new URL(request.url);
+  const code = url.searchParams.get("shareCode");
+  if (code) {
+    if (code.length !== 7) {
+      return NextResponse.json(
+        {
+          message: "Ride share code must be 7 characters.",
+        },
+        { status: 404 },
+      );
+    }
+
+    currentRide = await getActiveRideByShareCode(code, env);
+  } else {
+    const accountID = authResponse.accountID!;
+    const user = (await getDBInWorker(env)
+      .select()
+      .from(accounts)
+      .where(eq(accounts.id, accountID))
+      .leftJoin(users, eq(accounts.userID, users.id))
+      .then(([result]) => result.users))!;
+
+    currentRide = await getActiveRideByUserID(user.id, env);
+  }
 
   if (!currentRide) {
     return NextResponse.json(

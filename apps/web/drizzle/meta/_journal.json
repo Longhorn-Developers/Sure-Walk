@@ -43,6 +43,13 @@
       "when": 1784095580951,
       "tag": "0005_add-extra-vehicle-info",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1784585506139,
+      "tag": "0006_add-ride-share-code",
+      "breakpoints": true
     }
   ]
 }

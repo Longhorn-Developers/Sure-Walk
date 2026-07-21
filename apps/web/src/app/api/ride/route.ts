@@ -30,7 +30,9 @@ const groupRideMember = z.object({
 const partialRide = z.object({
   pickupLocation: z.int(),
   dropoffLocation: z.int(),
-  groupRide: z.array(groupRideMember),
+  groupRide: z
+    .array(groupRideMember)
+    .max(4, "There may only be up to 5 total members per ride."),
 });
 
 export async function POST(request: NextRequest) {
@@ -141,7 +143,6 @@ export async function GET(request: NextRequest) {
     pickupLocationID: currentRide.pickupLocationID,
     dropoffLocationID: currentRide.dropoffLocationID,
     rideState: getInProgressRideStateFromRide(currentRide),
-    groupRide: currentRide.members,
   };
 
   return NextResponse.json(currentRideMini, { status: 200 });
