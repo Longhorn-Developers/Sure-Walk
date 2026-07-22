@@ -3,8 +3,8 @@ import { createContext, useContext, useState } from "react";
 import LoadingState from "../types/loading-state";
 
 interface CurrentRideContextType {
-  currentRideMini: CurrentRideMini | null;
-  setCurrentRideMini: (newRide: CurrentRideMini | null) => void;
+  currentRide: CurrentRideMini | null;
+  setCurrentRide: (newRide: CurrentRideMini | null) => void;
   loadingState: LoadingState;
   setLoadingState: (loadingState: LoadingState) => void;
 }
@@ -28,15 +28,14 @@ export const CurrentRideProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [currentRideMini, setCurrentRideMini] =
-    useState<CurrentRideMini | null>(null);
+  const [currentRide, setCurrentRide] = useState<CurrentRideMini | null>(null);
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
 
   return (
     <CurrentRideContext.Provider
       value={{
-        currentRideMini,
-        setCurrentRideMini,
+        currentRide,
+        setCurrentRide,
         loadingState,
         setLoadingState,
       }}

@@ -46,6 +46,10 @@ export default function RootLayout() {
                             headerShown: false,
                           }}
                         />
+                        <Stack.Screen
+                          name="cancellation-reason"
+                          options={{ presentation: "fullScreenModal" }}
+                        />
                       </Stack>
                     </GroupRideProvider>
                   </RideProvider>

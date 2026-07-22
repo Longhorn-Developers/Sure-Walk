@@ -29,7 +29,7 @@ const MyRide = () => {
   const { setMyRideSheetRef } = useTabContext();
   const { goHome } = useTabContext();
   const { fetchProtected } = useSession();
-  const { currentRideMini, setCurrentRideMini, loadingState, setLoadingState } =
+  const { currentRide, setCurrentRide, loadingState, setLoadingState } =
     useCurrentRideSession();
   const inputRef = useRef<TextInput>(null);
   const [pickupLocation, setPickupLocation] = useState<Location | undefined>(
@@ -41,7 +41,7 @@ const MyRide = () => {
   const snap0 = useSharedValue<number>(180);
   const snap1 = useSharedValue<number>(340);
   const snapPoints = useDerivedValue<(string | number)[]>(
-    () => [snap0.value, snap1.value, `${(1 - top / height) * 100}%`],
+    () => [snap0.value, snap1.value, "80.5%"],
     [snap0, snap1, height, top],
   );
 
@@ -50,32 +50,30 @@ const MyRide = () => {
   }, [setMyRideSheetRef]);
 
   useEffect(() => {
-    if (currentRideMini) {
+    if (currentRide) {
       setPickupLocation(
-        CAMPUS_LOCATIONS.find(
-          (loc) => loc.id === currentRideMini.pickupLocationID,
-        ),
+        CAMPUS_LOCATIONS.find((loc) => loc.id === currentRide.pickupLocationID),
       );
       setDropoffLocation(
         WEST_CAMPUS_LOCATIONS.find(
-          (loc) => loc.id === currentRideMini.dropoffLocationID,
+          (loc) => loc.id === currentRide.dropoffLocationID,
         ),
       );
     } else {
       setPickupLocation(undefined);
       setDropoffLocation(undefined);
     }
-  }, [currentRideMini]);
+  }, [currentRide]);
 
   useEffect(() => {
     const fetchCurrentRide = async () => {
       try {
         const res = await fetchProtected("/ride", "GET");
         if (res.status === 204) {
-          setCurrentRideMini(null);
+          setCurrentRide(null);
           goHome();
         } else if (res.status === 200) {
-          setCurrentRideMini(await res.json());
+          setCurrentRide(await res.json());
         } else {
           throw new Error("Could not fetch current ride details.");
         }
@@ -130,7 +128,7 @@ const MyRide = () => {
       <View className="bg-white flex-1 flex-col px-5 pb-10">
         <View className="flex-col" onLayout={handleLayout2}>
           <View onLayout={handleLayout1}>
-            {loadingState === "done" && !currentRideMini && (
+            {loadingState === "done" && !currentRide && (
               <>
                 <FontText className="text-2xl font-medium">My Ride</FontText>
                 <FontText className="text-lg font-normal mt-2 mb-6">
@@ -139,7 +137,7 @@ const MyRide = () => {
                 <LargeButton title="Book Ride" onPress={() => goHome()} />
               </>
             )}
-            {loadingState === "done" && currentRideMini && (
+            {loadingState === "done" && currentRide && (
               <>
                 <FontText className="text-2xl font-medium mb-6">
                   Active Ride
@@ -158,28 +156,28 @@ const MyRide = () => {
                       {dropoffLocation?.name}
                     </FontText>
                   </View>
-                  {currentRideMini.eta && (
+                  {currentRide.eta && (
                     <FontText className="text-lg font-semibold">
                       ETA:{" "}
                       <FontText className="text-lg font-regular">
-                        {currentRideMini.eta}
+                        {currentRide.eta}
                       </FontText>
                     </FontText>
                   )}
                   <FontText className="text-lg font-semibold">
                     Status:{" "}
                     <FontText className="text-lg font-regular">
-                      {`${currentRideMini.rideState.at(0)?.toUpperCase()}${currentRideMini.rideState.slice(1)}`}
+                      {`${currentRide.rideState.at(0)?.toUpperCase()}${currentRide.rideState.slice(1)}`}
                     </FontText>
                   </FontText>
                 </View>
                 <LargeButton
                   title="View Live Tracking"
                   onPress={() => {
-                    setCurrentRideMini({
-                      pickupLocationID: currentRideMini.pickupLocationID,
-                      dropoffLocationID: currentRideMini.dropoffLocationID,
-                      eta: currentRideMini.eta,
+                    setCurrentRide({
+                      pickupLocationID: currentRide.pickupLocationID,
+                      dropoffLocationID: currentRide.dropoffLocationID,
+                      eta: currentRide.eta,
                       rideState: "received",
                     });
                     router.push("/home/ride-info-wrapper");

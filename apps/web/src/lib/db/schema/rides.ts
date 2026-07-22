@@ -15,6 +15,15 @@ const stopStates: [string, ...string[]] = [
   "departed",
 ];
 
+export const cancellationReasons: [string, ...string[]] = [
+  "My ride never came",
+  "The estimated wait was too long",
+  "Weather improved",
+  "Got a different ride",
+  "I didn't receive a call",
+  "Other",
+];
+
 export const rides = sqliteTable("rides", {
   id: text("id")
     .primaryKey()
@@ -54,14 +63,7 @@ export const rides = sqliteTable("rides", {
   shareCode: text("share_code"),
   cancelledTime: text("cancelled_time"),
   cancellationReason: text("cancellation_reason", {
-    enum: [
-      "My ride never came",
-      "The estimated wait was too long",
-      "Weather improved",
-      "Got a different ride",
-      "I didn't receive a call",
-      "Other",
-    ],
+    enum: cancellationReasons,
   }),
   cancellationExtra: text("cancellation_extra"),
 });

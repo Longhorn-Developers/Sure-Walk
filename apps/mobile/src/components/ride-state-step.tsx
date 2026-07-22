@@ -73,7 +73,7 @@ const RideStateStep = ({
   rideState: InProgressRideState;
   width: number;
 }) => {
-  const { currentRideSmall } = useRideDetailsSession();
+  const { rideDetails: currentRideSmall } = useRideDetailsSession();
   const currentRideState = currentRideSmall?.rideState ?? "received";
   const [highlighted, setHighlighted] = useState<boolean>(
     rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
@@ -224,7 +224,7 @@ export const RideStateStepDivider = ({
   rideState: InProgressRideState;
   width: number;
 }) => {
-  const { currentRideSmall } = useRideDetailsSession();
+  const { rideDetails: currentRideSmall } = useRideDetailsSession();
   const currentRideState = currentRideSmall?.rideState ?? "received";
   const [highlighted, setHighlighted] = useState<boolean>(
     rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,

@@ -2,13 +2,17 @@ import { Samsara, SamsaraClient } from "@samsarahq/samsara";
 import { User } from "../db/schema/users";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
 import { Location } from "../db/schema/locations";
-import { rides } from "../db/schema/rides";
+import { rides, Ride } from "../db/schema/rides";
 import { getDB } from "../db";
 
 const samsaraClient = new SamsaraClient({ token: process.env.SAMSARA_API_KEY });
 
 const getCurrentWaitTime = async () => {
   return 30;
+};
+
+const getRideName = (user: User, members: GroupRideMember[]) => {
+  return `${members.length > 0 ? `${members.length + 1}-person ` : ``}${user.requiresAssistance ? "ADA " : ""}Sure Walk for ${user.firstName} ${user.lastName}`;
 };
 
 const createRoute = async ({
@@ -23,7 +27,7 @@ const createRoute = async ({
   dropoffLocation: Location;
 }) => {
   const waitTime = await getCurrentWaitTime();
-  const routeName = `${members.length > 0 ? `${members.length + 1}-person ` : ``}${user.requiresAssistance ? "ADA " : ""}Sure Walk for ${user.firstName} ${user.lastName}`;
+  const routeName = getRideName(user, members);
   const routeNotes =
     `Picking up ${user.firstName} ${user.lastName} (${user.phoneNumber}) at ${pickupLocation.name} and dropping off at ${dropoffLocation.name}. ` +
     `${members.length > 0 ? `Also picking up ${members.map((m) => `${m.firstName} ${m.lastName}${m.userType === "guest" ? " (guest)" : ` (${m.eid})`}`).join(", ")}.\n` : ""}Submitted at ${new Date().toLocaleString()}.`;
@@ -136,6 +140,20 @@ const getAsset = async (vehicleID: string) => {
   return res;
 };
 
+const cancelRide = async (ride: typeof Ride, user: User) => {
+  const newName = "Cancelled " + getRideName(user, ride.members);
+  await samsaraClient.routes.patchRoute({
+    id: ride.samsaraID,
+    name: newName,
+    // @ts-expect-error should be null to remove vehicleId
+    vehicleId: null,
+    // @ts-expect-error should be null to remove driverId
+    driverId: null,
+  });
+
+  await getDB().update(rides).set({ cancelledTime: new Date().toISOString() });
+};
+
 export {
   samsaraClient,
   createRoute,
@@ -144,4 +162,5 @@ export {
   getCurrentWaitTime,
   getRoute,
   getAsset,
+  cancelRide,
 };

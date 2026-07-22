@@ -7,7 +7,7 @@ import {
   getActiveRideByUserID,
   getInProgressRideStateFromRide,
 } from "@/lib/ride-info-stream/ride-helper";
-import { createRoute } from "@/lib/ride-info-stream/samsara-utils";
+import { cancelRide, createRoute } from "@/lib/ride-info-stream/samsara-utils";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
@@ -146,4 +146,43 @@ export async function GET(request: NextRequest) {
   };
 
   return NextResponse.json(currentRideMini, { status: 200 });
+}
+
+export async function DELETE(request: NextRequest) {
+  const authResponse = ensureAuthenticated(request);
+  if (!authResponse.success) {
+    return authResponse.failResponse!;
+  }
+
+  const accountID = authResponse.accountID!;
+  const user = (await getDB()
+    .select()
+    .from(accounts)
+    .where(eq(accounts.id, accountID))
+    .leftJoin(users, eq(accounts.userID, users.id))
+    .then(([result]) => result.users))!;
+
+  const { env } = getCloudflareContext();
+  const currentRide = await getActiveRideByUserID(user.id, env);
+  if (!currentRide) {
+    return NextResponse.json({ message: "No active ride." }, { status: 404 });
+  }
+
+  const rideState = getInProgressRideStateFromRide(currentRide);
+  if (rideState === "in progress" || rideState === "dropped off") {
+    return NextResponse.json(
+      { message: "Already picked up; too late to cancel." },
+      { status: 400 },
+    );
+  }
+
+  const doID = env.RIDE_INFO_STREAM.idFromName("global");
+  const stub = env.RIDE_INFO_STREAM.get(doID);
+  await cancelRide(currentRide, user);
+  await stub.afterCancelRide(currentRide.id);
+
+  return NextResponse.json(
+    { message: "Ride cancelled.", rideIDForFeedback: currentRide.id },
+    { status: 200 },
+  );
 }

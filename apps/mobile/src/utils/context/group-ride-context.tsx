@@ -6,6 +6,7 @@ interface GroupRideContextType {
   members: GroupRideMember[];
   removeMember: (memberIndex: number) => void;
   addMember: (member: GroupRideMember) => void;
+  clearMembers: () => void;
 }
 
 const GroupRideContext = createContext<GroupRideContextType | undefined>(
@@ -37,12 +38,17 @@ export const GroupRideProvider = ({
     setMembers([...members, member]);
   };
 
+  const clearMembers = () => {
+    setMembers([]);
+  };
+
   return (
     <GroupRideContext.Provider
       value={{
         members,
         removeMember,
         addMember,
+        clearMembers,
       }}
     >
       {children}

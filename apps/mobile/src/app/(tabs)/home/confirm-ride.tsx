@@ -25,11 +25,13 @@ import { ScrollView } from "react-native-gesture-handler";
 
 const ConfirmRide = () => {
   const { pickupLocation, dropoffLocation } = useRideSession();
-  const { members } = useGroupRideSession();
+  const { members, clearMembers } = useGroupRideSession();
   const { user, fetchProtected } = useSession();
   const { firstName, lastName, userType, eid } = user!;
+  const { setDropoffLocation, setPickupLocation } = useRideSession();
   const { goMyRide } = useTabContext();
-  const { setCurrentRideMini, setLoadingState } = useCurrentRideSession();
+  const { setCurrentRide: setCurrentRideMini, setLoadingState } =
+    useCurrentRideSession();
   const [confirmEnabled, setConfirmEnabled] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -55,11 +57,14 @@ const ConfirmRide = () => {
     if (!response.ok) {
       console.error(await getErrorMessage(response, "Failed to submit ride."));
     } else {
+      setDropoffLocation(null);
+      setPickupLocation(null);
       setCurrentRideMini({
         pickupLocationID: pickupLocation!.id,
         dropoffLocationID: dropoffLocation!.id,
         rideState: "received",
       });
+      clearMembers();
       setLoadingState("done");
       goMyRide();
       setTimeout(() => router.push("/home/ride-info-wrapper"), 500);

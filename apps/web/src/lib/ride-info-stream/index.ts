@@ -344,4 +344,11 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     );
     return result;
   }
+
+  async afterCancelRide(rideID: string): Promise<void> {
+    this.streams
+      .get(rideID)
+      ?.forEach((ws) => ws.close(1000, "Ride cancelled."));
+    this.streams.delete(rideID);
+  }
 }

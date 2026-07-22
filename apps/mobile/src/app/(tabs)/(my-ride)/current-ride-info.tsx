@@ -26,6 +26,7 @@ import {
   CaretLeftIcon,
   CopyIcon,
   CrownSimpleIcon,
+  WarningIcon,
 } from "phosphor-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -34,6 +35,8 @@ import {
   AppState,
   ScrollView,
   LayoutChangeEvent,
+  Modal,
+  Pressable,
 } from "react-native";
 import MapView from "react-native-maps";
 import Animated, {
@@ -47,19 +50,23 @@ import * as Clipboard from "expo-clipboard";
 import { useSearchParams } from "expo-router/build/hooks";
 import { useRideDetailsSession } from "@/src/utils/context/ride-details-context";
 import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
+import OutlineButton from "@/src/components/outline-button";
+import LargeButton from "@/src/components/large-button";
 
 const CurrentRideInfo = () => {
   const { accessToken, fetchProtected, user } = useSession();
   const { firstName, lastName, userType, eid } = user!;
-  const { setCurrentRideSmall, currentRideSmall } = useRideDetailsSession();
-  const { setCurrentRideMini } = useCurrentRideSession();
+  const { setRideDetails, rideDetails } = useRideDetailsSession();
+  const { setCurrentRide } = useCurrentRideSession();
   const params = useSearchParams();
+  const shareCode = params.get("shareCode");
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfoShort | null>(null);
   const wsRef = useRef<WebSocket>(undefined);
   const mapRef = useRef<MapView | null>(null);
   const sheetRef = useRef<BottomSheet | null>(null);
   const scrollRef = useRef<BottomSheetScrollViewMethods | null>(null);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const snap0 = useSharedValue<number>(72);
   const snap1 = useSharedValue<number>(156);
@@ -77,7 +84,6 @@ const CurrentRideInfo = () => {
 
   const connect = () => {
     const wsURL = API_URL.replace("http", "ws");
-    const shareCode = params.get("shareCode");
     const ws = new WebSocket(
       `${wsURL}/ride/events${shareCode ? `?shareCode=${shareCode}` : ""}`,
       `Bearer ${accessToken ?? ""}`,
@@ -91,18 +97,24 @@ const CurrentRideInfo = () => {
           console.log("websocket connected");
           setLoadingState("done");
           const data = payload.data as CurrentRideSmall;
-          setCurrentRideSmall(data);
+          setRideDetails(data);
           break;
         }
         case "routeUpdate": {
           const data = payload.data as { rideState: InProgressRideState };
-          setCurrentRideSmall({
-            pickupLocationID: currentRideSmall?.pickupLocationID!,
-            dropoffLocationID: currentRideSmall?.dropoffLocationID!,
-            groupRide: currentRideSmall?.groupRide ?? [],
-            shareCode: currentRideSmall?.shareCode,
+          setRideDetails({
+            pickupLocationID: rideDetails?.pickupLocationID!,
+            dropoffLocationID: rideDetails?.dropoffLocationID!,
+            groupRide: rideDetails?.groupRide ?? [],
+            shareCode: rideDetails?.shareCode,
             rideState: data.rideState,
-            eta: currentRideSmall?.eta,
+            eta: rideDetails?.eta,
+          });
+          setCurrentRide({
+            pickupLocationID: rideDetails?.pickupLocationID!,
+            dropoffLocationID: rideDetails?.dropoffLocationID!,
+            rideState: data.rideState,
+            eta: rideDetails?.eta,
           });
           break;
         }
@@ -122,11 +134,11 @@ const CurrentRideInfo = () => {
       console.log("Websocket closed: ", event.code, event.reason);
       if (event.code === 1000) {
         ws.removeEventListener("close", onClose);
-        if (event.reason === "complete") {
-          setCurrentRideSmall(null);
+        if (event.reason === "complete" || event.reason === "Ride cancelled.") {
+          setRideDetails(null);
           if (!shareCode) {
             // not viewing a group ride
-            setCurrentRideMini(null);
+            setCurrentRide(null);
           }
           router.dismissTo("/home");
         }
@@ -141,10 +153,10 @@ const CurrentRideInfo = () => {
         // 404
         ws.removeEventListener("close", onClose);
         router.dismissTo("/home");
-        setCurrentRideSmall(null);
+        setRideDetails(null);
         if (!shareCode) {
           console.error("There is no active ride.");
-          setCurrentRideMini(null);
+          setCurrentRide(null);
         } else {
           console.error("Could not find a ride with that ride code.");
         }
@@ -185,22 +197,20 @@ const CurrentRideInfo = () => {
   }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (currentRideSmall) {
+    if (rideDetails) {
       setPickupLocation(
-        CAMPUS_LOCATIONS.find(
-          (loc) => loc.id === currentRideSmall.pickupLocationID,
-        ),
+        CAMPUS_LOCATIONS.find((loc) => loc.id === rideDetails.pickupLocationID),
       );
       setDropoffLocation(
         WEST_CAMPUS_LOCATIONS.find(
-          (loc) => loc.id === currentRideSmall.dropoffLocationID,
+          (loc) => loc.id === rideDetails.dropoffLocationID,
         ),
       );
     } else {
       setPickupLocation(undefined);
       setDropoffLocation(undefined);
     }
-  }, [currentRideSmall]);
+  }, [rideDetails]);
 
   const handleLayout0 = (event: LayoutChangeEvent) => {
     let height = event.nativeEvent.layout.height;
@@ -219,7 +229,22 @@ const CurrentRideInfo = () => {
   };
 
   const copyCode = async () => {
-    await Clipboard.setStringAsync(currentRideSmall?.shareCode ?? "");
+    await Clipboard.setStringAsync(rideDetails?.shareCode ?? "");
+  };
+
+  const cancelRide = async () => {
+    try {
+      setModalVisible(false);
+      const res = await fetchProtected("/ride", "DELETE");
+      if (res.ok) {
+        const data = await res.json();
+        setTimeout(() => {
+          router.push(`/cancellation-reason?rideID=${data.rideIDForFeedback}`);
+        }, 1000);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -371,9 +396,9 @@ const CurrentRideInfo = () => {
         )}
       >
         <BottomSheetScrollView className="px-5" ref={scrollRef}>
-          {loadingState === "done" && currentRideSmall && (
+          {loadingState === "done" && rideDetails && (
             <>
-              <View className="mt-2 pb-2" onLayout={handleLayout1}>
+              <View className="mt-2 pb-3" onLayout={handleLayout1}>
                 {pickupLocation && dropoffLocation && (
                   <PickupDropoffLocationInfo
                     pickupLocation={pickupLocation}
@@ -381,14 +406,14 @@ const CurrentRideInfo = () => {
                   />
                 )}
               </View>
-              {currentRideSmall.groupRide.length !== 0 && (
+              {rideDetails.groupRide.length !== 0 && (
                 <>
-                  <FontText className="text-xl font-medium py-4">
+                  <FontText className="text-xl font-medium pt-3 pb-4">
                     Share group ride
                   </FontText>
                   <View className="bg-slate-50 rounded-lg border border-slate-200 flex-row items-center justify-between px-4 py-2.5">
                     <FontText className="text-lg">
-                      {currentRideSmall.shareCode}
+                      {rideDetails.shareCode}
                     </FontText>
                     <TouchableOpacity onPress={copyCode}>
                       <CopyIcon size={32} />
@@ -408,7 +433,7 @@ const CurrentRideInfo = () => {
                     <CrownSimpleIcon color="#FFD600" size={24} weight="fill" />
                   }
                 />
-                {currentRideSmall.groupRide.map((member, index) => (
+                {rideDetails.groupRide.map((member, index) => (
                   <RiderCard key={index} member={member} />
                 ))}
               </View>
@@ -416,11 +441,55 @@ const CurrentRideInfo = () => {
                 Guidelines
               </FontText>
               <GuidelinesListShort />
-              <View className="h-6" />
+              <View className="mt-6 mb-5 h-[1px] w-full bg-slate-200" />
+              {!shareCode && (
+                <View className="flex-row pb-6">
+                  <OutlineButton
+                    title="Cancel booking"
+                    onPress={() => setModalVisible(true)}
+                    red
+                    small
+                  />
+                </View>
+              )}
             </>
           )}
         </BottomSheetScrollView>
       </BottomSheet>
+      <Modal
+        animationType="fade"
+        transparent
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+        className="z-1000"
+      >
+        <Pressable
+          className="flex-1 bg-[#00000080] items-center justify-center"
+          onPress={() => setModalVisible(false)}
+        >
+          <Pressable className="m-5 p-4 bg-white flex-col gap-6 rounded-3xl">
+            <View className="flex-col gap-3">
+              <View className="flex-row gap-2 items-center">
+                <WarningIcon color={UTBurntOrange} size={32} />
+                <FontText className="text-2xl font-medium">
+                  Cancel Ride
+                </FontText>
+              </View>
+              <FontText className="text-lg">
+                Are you sure you want to cancel your Sure Walk?
+              </FontText>
+            </View>
+            <View className="flex-col gap-3">
+              <OutlineButton title="Yes, cancel" red onPress={cancelRide} />
+              <LargeButton
+                title="No, never mind"
+                blue
+                onPress={() => setModalVisible(false)}
+              />
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 };
