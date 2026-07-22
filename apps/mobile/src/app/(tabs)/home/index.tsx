@@ -66,7 +66,7 @@ import { useTabContext } from "@/src/utils/context/tab-context";
 import MyRide from "../(my-ride)";
 import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 import OutlineButton from "@/src/components/outline-button";
-import { useSession } from "@/src/utils/context/user-context";
+import CancelRideModal from "@/src/components/cancel-ride-modal";
 
 const Home = () => {
   let _style: StyleProp<TextStyle> = {};
@@ -74,7 +74,6 @@ const Home = () => {
     _style.lineHeight = 0;
   }
 
-  const { fetchProtected } = useSession();
   const { goMyRide } = useTabContext();
   const { members } = useGroupRideSession();
   const {
@@ -84,7 +83,7 @@ const Home = () => {
     setDropoffLocation,
   } = useRideSession();
   const { setHomeSheetRef } = useTabContext();
-  const { currentRide, setCurrentRide } = useCurrentRideSession();
+  const { currentRide } = useCurrentRideSession();
 
   const sheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
@@ -129,6 +128,7 @@ const Home = () => {
   const [activeDropoffLocation, setActiveDropoffLocation] = useState<
     LocationType | undefined
   >(undefined);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   useEffect(() => {
     if (currentRide) {
@@ -266,21 +266,6 @@ const Home = () => {
     destinationRef.current?.blur();
     if (pickupLocation) {
       router.navigate("/home/confirm-ride");
-    }
-  };
-
-  const cancelRide = async () => {
-    try {
-      const res = await fetchProtected("/ride", "DELETE");
-      if (res.ok) {
-        setCurrentRide(null);
-        const data = await res.json();
-        setTimeout(() => {
-          router.push(`/cancellation-reason?rideID=${data.rideIDForFeedback}`);
-        }, 1000);
-      }
-    } catch (err) {
-      console.error(err);
     }
   };
 
@@ -617,7 +602,7 @@ const Home = () => {
                   <View className="flex-1">
                     <OutlineButton
                       title="Cancel Ride"
-                      onPress={cancelRide}
+                      onPress={() => setModalVisible(true)}
                       red
                     />
                   </View>
@@ -707,6 +692,10 @@ const Home = () => {
         )}
       </BottomSheet>
       <MyRide />
+      <CancelRideModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+      />
     </View>
   );
 };

@@ -1,9 +1,10 @@
 import { Samsara, SamsaraClient } from "@samsarahq/samsara";
 import { User } from "../db/schema/users";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
-import { Location } from "../db/schema/locations";
+import { Location, locations } from "../db/schema/locations";
 import { rides, Ride } from "../db/schema/rides";
 import { getDB } from "../db";
+import { eq } from "drizzle-orm";
 
 const samsaraClient = new SamsaraClient({ token: process.env.SAMSARA_API_KEY });
 
@@ -42,7 +43,6 @@ const createRoute = async ({
       sequencingMethod: "manual",
     },
     tagIds: ["6343755"],
-    vehicleId: "281474996183683", // temporary
     stops: [
       {
         name: pickupLocation.name,
@@ -141,6 +141,14 @@ const getAsset = async (vehicleID: string) => {
 };
 
 const cancelRide = async (ride: typeof Ride, user: User) => {
+  const [pickupLocation] = await getDB()
+    .select()
+    .from(locations)
+    .where(eq(locations.id, ride.pickupLocationID));
+  const [dropoffLocation] = await getDB()
+    .select()
+    .from(locations)
+    .where(eq(locations.id, ride.dropoffLocationID));
   const newName = "Cancelled " + getRideName(user, ride.members);
   await samsaraClient.routes.patchRoute({
     id: ride.samsaraID,
@@ -149,6 +157,41 @@ const cancelRide = async (ride: typeof Ride, user: User) => {
     vehicleId: null,
     // @ts-expect-error should be null to remove driverId
     driverId: null,
+    settings: {
+      sequencingMethod: "manual",
+      routeStartingCondition: "arriveFirstStop",
+      routeCompletionCondition: "departLastStop",
+    },
+    stops: [
+      {
+        name: pickupLocation.name,
+        sequenceNumber: 1,
+        scheduledArrivalTime: ride.estPickupTime,
+        scheduledDepartureTime: new Date(
+          new Date(ride.estPickupTime).getTime() + 2000,
+        ).toISOString(),
+        singleUseLocation: {
+          latitude: pickupLocation.lat,
+          longitude: pickupLocation.lon,
+          address: pickupLocation.address,
+          radiusMeters: 100,
+        },
+      },
+      {
+        name: dropoffLocation.name,
+        sequenceNumber: 2,
+        scheduledArrivalTime: ride.estDropoffTime,
+        scheduledDepartureTime: new Date(
+          new Date(ride.estDropoffTime).getTime() + 1000,
+        ).toISOString(),
+        singleUseLocation: {
+          latitude: dropoffLocation.lat,
+          longitude: dropoffLocation.lon,
+          address: dropoffLocation.address,
+          radiusMeters: 100,
+        },
+      },
+    ],
   });
 
   await getDB().update(rides).set({ cancelledTime: new Date().toISOString() });

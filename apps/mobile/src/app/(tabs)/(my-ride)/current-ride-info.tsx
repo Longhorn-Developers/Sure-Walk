@@ -26,7 +26,6 @@ import {
   CaretLeftIcon,
   CopyIcon,
   CrownSimpleIcon,
-  WarningIcon,
 } from "phosphor-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -35,8 +34,6 @@ import {
   AppState,
   ScrollView,
   LayoutChangeEvent,
-  Modal,
-  Pressable,
 } from "react-native";
 import MapView from "react-native-maps";
 import Animated, {
@@ -51,7 +48,7 @@ import { useSearchParams } from "expo-router/build/hooks";
 import { useRideDetailsSession } from "@/src/utils/context/ride-details-context";
 import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 import OutlineButton from "@/src/components/outline-button";
-import LargeButton from "@/src/components/large-button";
+import CancelRideModal from "@/src/components/cancel-ride-modal";
 
 const CurrentRideInfo = () => {
   const { accessToken, fetchProtected, user } = useSession();
@@ -230,21 +227,6 @@ const CurrentRideInfo = () => {
 
   const copyCode = async () => {
     await Clipboard.setStringAsync(rideDetails?.shareCode ?? "");
-  };
-
-  const cancelRide = async () => {
-    try {
-      setModalVisible(false);
-      const res = await fetchProtected("/ride", "DELETE");
-      if (res.ok) {
-        const data = await res.json();
-        setTimeout(() => {
-          router.push(`/cancellation-reason?rideID=${data.rideIDForFeedback}`);
-        }, 1000);
-      }
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   return (
@@ -456,40 +438,10 @@ const CurrentRideInfo = () => {
           )}
         </BottomSheetScrollView>
       </BottomSheet>
-      <Modal
-        animationType="fade"
-        transparent
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-        className="z-1000"
-      >
-        <Pressable
-          className="flex-1 bg-[#00000080] items-center justify-center"
-          onPress={() => setModalVisible(false)}
-        >
-          <Pressable className="m-5 p-4 bg-white flex-col gap-6 rounded-3xl">
-            <View className="flex-col gap-3">
-              <View className="flex-row gap-2 items-center">
-                <WarningIcon color={UTBurntOrange} size={32} />
-                <FontText className="text-2xl font-medium">
-                  Cancel Ride
-                </FontText>
-              </View>
-              <FontText className="text-lg">
-                Are you sure you want to cancel your Sure Walk?
-              </FontText>
-            </View>
-            <View className="flex-col gap-3">
-              <OutlineButton title="Yes, cancel" red onPress={cancelRide} />
-              <LargeButton
-                title="No, never mind"
-                blue
-                onPress={() => setModalVisible(false)}
-              />
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <CancelRideModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+      />
     </View>
   );
 };
