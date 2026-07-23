@@ -1,7 +1,7 @@
 import { Samsara, SamsaraClient } from "@samsarahq/samsara";
 import { User } from "../db/schema/users";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
-import { Location, locations } from "../db/schema/locations";
+import { Location } from "../db/schema/locations";
 import { rides, Ride } from "../db/schema/rides";
 import { getDB } from "../db";
 import { eq } from "drizzle-orm";
@@ -90,6 +90,13 @@ const createRoute = async ({
     }
   }
 
+  await samsaraClient.forms.postFormSubmission({
+    formTemplate: { id: "3c61e884-1533-4e09-a04c-8ff9fbe4e7f7" },
+    isRequired: true,
+    status: "notStarted",
+    routeStopId: data.stops![0].id,
+  });
+
   const [rideRecord] = await getDB()
     .insert(rides)
     .values({
@@ -141,14 +148,6 @@ const getAsset = async (vehicleID: string) => {
 };
 
 const cancelRide = async (ride: typeof Ride, user: User) => {
-  const [pickupLocation] = await getDB()
-    .select()
-    .from(locations)
-    .where(eq(locations.id, ride.pickupLocationID));
-  const [dropoffLocation] = await getDB()
-    .select()
-    .from(locations)
-    .where(eq(locations.id, ride.dropoffLocationID));
   const newName = "Cancelled " + getRideName(user, ride.members);
   await samsaraClient.routes.patchRoute({
     id: ride.samsaraID,
@@ -157,44 +156,37 @@ const cancelRide = async (ride: typeof Ride, user: User) => {
     vehicleId: null,
     // @ts-expect-error should be null to remove driverId
     driverId: null,
-    settings: {
-      sequencingMethod: "manual",
-      routeStartingCondition: "arriveFirstStop",
-      routeCompletionCondition: "departLastStop",
-    },
     stops: [
       {
-        name: pickupLocation.name,
+        id: ride.pickupStopID!,
         sequenceNumber: 1,
-        scheduledArrivalTime: ride.estPickupTime,
-        scheduledDepartureTime: new Date(
-          new Date(ride.estPickupTime).getTime() + 2000,
-        ).toISOString(),
-        singleUseLocation: {
-          latitude: pickupLocation.lat,
-          longitude: pickupLocation.lon,
-          address: pickupLocation.address,
-          radiusMeters: 100,
-        },
       },
       {
-        name: dropoffLocation.name,
+        id: ride.dropoffStopID!,
         sequenceNumber: 2,
-        scheduledArrivalTime: ride.estDropoffTime,
-        scheduledDepartureTime: new Date(
-          new Date(ride.estDropoffTime).getTime() + 1000,
-        ).toISOString(),
-        singleUseLocation: {
-          latitude: dropoffLocation.lat,
-          longitude: dropoffLocation.lon,
-          address: dropoffLocation.address,
-          radiusMeters: 100,
-        },
       },
     ],
   });
 
-  await getDB().update(rides).set({ cancelledTime: new Date().toISOString() });
+  await getDB()
+    .update(rides)
+    .set({ cancelledTime: new Date().toISOString(), shareCode: null })
+    .where(eq(rides.id, ride.id));
+};
+
+const getFormSubmission = async (submissionID: string) => {
+  const res = await samsaraClient.forms.getFormSubmissions({
+    ids: submissionID,
+  });
+  return res;
+};
+
+const fetchCurrentRoutes = async () => {
+  const res = await samsaraClient.routes.fetchRoutes({
+    startTime: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
+    endTime: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
+  });
+  return res;
 };
 
 export {
@@ -206,4 +198,6 @@ export {
   getRoute,
   getAsset,
   cancelRide,
+  getFormSubmission,
+  fetchCurrentRoutes,
 };

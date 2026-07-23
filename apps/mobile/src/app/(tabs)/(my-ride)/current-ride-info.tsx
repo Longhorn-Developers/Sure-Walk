@@ -59,6 +59,7 @@ const CurrentRideInfo = () => {
   const shareCode = params.get("shareCode");
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfoShort | null>(null);
+  const [rideState, setRideState] = useState<InProgressRideState>("received");
   const wsRef = useRef<WebSocket>(undefined);
   const mapRef = useRef<MapView | null>(null);
   const sheetRef = useRef<BottomSheet | null>(null);
@@ -99,20 +100,7 @@ const CurrentRideInfo = () => {
         }
         case "routeUpdate": {
           const data = payload.data as { rideState: InProgressRideState };
-          setRideDetails({
-            pickupLocationID: rideDetails?.pickupLocationID!,
-            dropoffLocationID: rideDetails?.dropoffLocationID!,
-            groupRide: rideDetails?.groupRide ?? [],
-            shareCode: rideDetails?.shareCode,
-            rideState: data.rideState,
-            eta: rideDetails?.eta,
-          });
-          setCurrentRide({
-            pickupLocationID: rideDetails?.pickupLocationID!,
-            dropoffLocationID: rideDetails?.dropoffLocationID!,
-            rideState: data.rideState,
-            eta: rideDetails?.eta,
-          });
+          setRideState(data.rideState);
           break;
         }
         case "vehicleInfo": {
@@ -131,8 +119,12 @@ const CurrentRideInfo = () => {
       console.log("Websocket closed: ", event.code, event.reason);
       if (event.code === 1000) {
         ws.removeEventListener("close", onClose);
-        if (event.reason === "complete" || event.reason === "Ride cancelled.") {
-          setRideDetails(null);
+        setRideDetails(null);
+        if (
+          event.reason === "complete" ||
+          event.reason === "Ride cancelled." ||
+          event.reason === "Missed pickup."
+        ) {
           if (!shareCode) {
             // not viewing a group ride
             setCurrentRide(null);
@@ -165,6 +157,32 @@ const CurrentRideInfo = () => {
 
     ws.addEventListener("close", onClose);
   };
+
+  useEffect(() => {
+    setRideDetails({
+      pickupLocationID: rideDetails?.pickupLocationID!,
+      dropoffLocationID: rideDetails?.dropoffLocationID!,
+      groupRide: rideDetails?.groupRide ?? [],
+      shareCode: rideDetails?.shareCode,
+      rideState: rideState,
+      eta: rideDetails?.eta,
+    });
+  }, [rideState]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (rideDetails) {
+      setCurrentRide({
+        pickupLocationID: rideDetails?.pickupLocationID!,
+        dropoffLocationID: rideDetails?.dropoffLocationID!,
+        rideState: rideDetails?.rideState!,
+        eta: rideDetails?.eta,
+      });
+    }
+  }, [rideDetails]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setRideDetails(null);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     connect();

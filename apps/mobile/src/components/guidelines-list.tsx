@@ -5,7 +5,6 @@ import {
   MapPinIcon,
   WarningIcon,
   TimerIcon,
-  MoonIcon,
   HamburgerIcon,
   XCircleIcon,
   IconContext,
@@ -20,49 +19,47 @@ const GuidelinesList = ({ includeBottomBorder = false }) => {
       icon: <ClockIcon />,
       title: "Hours of Operation",
       description:
-        "We operate from 7 PM to 2 AM, we won’t accept any requests that are not within this time frame.",
+        "8pm - 2am, 7 days/week\n*Excludes holidays and when the campus is closed\n**7pm - 2am during standard (winter) time",
     },
     {
-      icon: <UsersIcon />,
-      title: "Rideshare Service",
+      icon: <PhoneCallIcon />,
+      title: "Enable Phone Calls",
       description:
-        "This is a free service available to everyone, you may be in a vehicle with others.",
+        "Turn off “Do Not Disturb” so dispatch can reach you about your ride",
     },
     {
       icon: <MapPinIcon />,
-      title: "Pick Up / Drop Off Boundaries",
+      title: "Pick Up & Drop-off",
       description:
-        "• Pickups: Must begin from an on-campus location \n• Drop-offs: Allowed to West Campus, off-campus neighborhoods within the service area, or to another on-campus location \n• Sure Walk does not provide rides to any food establishment",
+        "Pickups: Must begin on-campus\nDrop-offs are available:\n    • On campus\n    • West Campus\n    • Eligible off-campus neighborhoods",
+    },
+    {
+      icon: <XCircleIcon />,
+      title: "Cancellations",
+      description: "Cancel your ride in the app before your driver arrives",
     },
     {
       icon: <WarningIcon />,
       title: "No Booking in Advance",
-      description:
-        "Book when you are ready to be picked up. We do not offer advance reservations.",
+      description: "Request a ride only when you're ready for pickup",
     },
     {
       icon: <TimerIcon />,
       title: "2-Minute Wait Period",
       description:
-        "If you are not at your pickup location within 2 minutes of your scheduled pickup time, your request will be canceled.",
+        "Drivers wait 2 minutes after arriving at the pickup location before leaving",
     },
     {
-      icon: <MoonIcon />,
-      title: "Disable 'Do Not Disturb'",
+      icon: <UsersIcon />,
+      title: "Shared Rides",
       description:
-        "Please disable 'Do Not Disturb' mode on your phone to ensure you receive notifications from Sure Walk.",
+        "Sure Walk is a free ride-share service, you may be in a vehicle with others",
     },
     {
       icon: <HamburgerIcon />,
       title: "No Food or Drink in the Vehicles",
       description:
-        "To keep our vehicles clean, please avoid bringing any food or drinks.",
-    },
-    {
-      icon: <XCircleIcon />,
-      title: "Cancellations",
-      description:
-        "If you need to cancel your ride, do so through the app prior to your vehicle’s arrival.",
+        "To keep our vehicles clean, please avoid bringing any food or drinks",
     },
   ];
 

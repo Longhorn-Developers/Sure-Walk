@@ -1,7 +1,7 @@
 import FontText from "@/src/components/font-text";
 import LargeButton from "@/src/components/large-button";
 import TextInputField from "@/src/components/text-input-field";
-import { UTBluebonnet } from "@/src/utils/colors";
+import { UTBurntOrange } from "@/src/utils/colors";
 import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 import { useTabContext } from "@/src/utils/context/tab-context";
 import { useSession } from "@/src/utils/context/user-context";
@@ -142,29 +142,29 @@ const MyRide = () => {
                 <FontText className="text-2xl font-medium mb-6">
                   Active Ride
                 </FontText>
-                <View className="py-4 px-5 bg-slate-50 rounded-2xl border border-slate-200 flex-col mb-6">
-                  <View className="flex-row items-center gap-2 mb-4">
-                    <FontText className="text-lg font-semibold">
+                <View className="pb-4 bg-slate-50 rounded-2xl border border-slate-200 flex-col mb-6 gap-2">
+                  <View className="flex-row items-center gap-2 mb-2 px-5 py-1.5 bg-orange-100 rounded-t-2xl">
+                    <FontText className="text-lg font-semibold color-ut-burntorange">
                       {pickupLocation?.abbreviation}
                     </FontText>
                     <ArrowCircleRightIcon
                       weight="fill"
-                      color={UTBluebonnet}
+                      color={UTBurntOrange}
                       size={24}
                     />
-                    <FontText className="text-lg font-semibold">
+                    <FontText className="text-lg font-semibold color-ut-burntorange">
                       {dropoffLocation?.name}
                     </FontText>
                   </View>
                   {currentRide.eta && (
-                    <FontText className="text-lg font-semibold">
+                    <FontText className="text-lg font-semibold px-5">
                       ETA:{" "}
                       <FontText className="text-lg font-regular">
                         {currentRide.eta}
                       </FontText>
                     </FontText>
                   )}
-                  <FontText className="text-lg font-semibold">
+                  <FontText className="text-lg font-semibold px-5">
                     Status:{" "}
                     <FontText className="text-lg font-regular">
                       {`${currentRide.rideState.at(0)?.toUpperCase()}${currentRide.rideState.slice(1)}`}

@@ -73,8 +73,8 @@ const RideStateStep = ({
   rideState: InProgressRideState;
   width: number;
 }) => {
-  const { rideDetails: currentRideSmall } = useRideDetailsSession();
-  const currentRideState = currentRideSmall?.rideState ?? "received";
+  const { rideDetails } = useRideDetailsSession();
+  const currentRideState = rideDetails?.rideState ?? "received";
   const [highlighted, setHighlighted] = useState<boolean>(
     rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
   );
@@ -93,7 +93,7 @@ const RideStateStep = ({
     setHighlighted(
       rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
     );
-  }, [currentRideSmall]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rideDetails]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const IconToRender = rideStateToIcon[rideState];
 
@@ -224,8 +224,8 @@ export const RideStateStepDivider = ({
   rideState: InProgressRideState;
   width: number;
 }) => {
-  const { rideDetails: currentRideSmall } = useRideDetailsSession();
-  const currentRideState = currentRideSmall?.rideState ?? "received";
+  const { rideDetails } = useRideDetailsSession();
+  const currentRideState = rideDetails?.rideState ?? "received";
   const [highlighted, setHighlighted] = useState<boolean>(
     rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
   );
@@ -234,17 +234,24 @@ export const RideStateStepDivider = ({
     setHighlighted(
       rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
     );
-  }, [currentRideSmall]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rideDetails]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* eslint-disable react-hooks/rules-of-hooks */
   const progresses: DerivedValue<0 | 1>[] = [];
+  const altAnimProgress: DerivedValue<0 | 1>[] = [];
   const styles: { width: number }[] = [];
   const styles1: { width: number }[] = [];
+  const animatedLineColors: DerivedValue<string>[] = [];
   for (let i = 0; i < 6; i++) {
     progresses[i] = useDerivedValue(() => {
       return highlighted === true
         ? withDelay(150 * (i - 1), withTiming(1, { duration: 150 }))
         : withDelay(150 * (i - 1), withTiming(0, { duration: 150 }));
+    }, [highlighted]);
+    altAnimProgress[i] = useDerivedValue(() => {
+      return highlighted
+        ? withDelay(150 * i, withTiming(1, { duration: 2300 }))
+        : withDelay(150 * i, withTiming(0, { duration: 300 }));
     }, [highlighted]);
     styles[i] = useAnimatedStyle(
       () => ({
@@ -258,6 +265,13 @@ export const RideStateStepDivider = ({
       }),
       [progresses[i]],
     );
+    animatedLineColors[i] = useDerivedValue(() => {
+      return interpolateColor(
+        altAnimProgress[i].value,
+        [0, 0.13, 0.87, 1],
+        [UTBurntOrange, UTBurntOrange, UTBurntOrange, slate900],
+      );
+    }, [altAnimProgress[i]]);
   }
   /* eslint-enable react-hooks/rules-of-hooks */
 
@@ -266,8 +280,14 @@ export const RideStateStepDivider = ({
       <View className={`flex-col items-center gap-2`}>
         <View className="flex-row items-center justify-start h-8">
           <Animated.View
-            className={`bg-slate-900 h-[2px]`}
-            style={styles[rideStateToStepNum[rideState]]}
+            className={`h-[2px]`}
+            style={[
+              styles[rideStateToStepNum[rideState]],
+              {
+                backgroundColor:
+                  animatedLineColors[rideStateToStepNum[rideState]],
+              },
+            ]}
           />
           <Animated.View
             className={`bg-slate-200 h-[2px]`}

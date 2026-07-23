@@ -1,8 +1,8 @@
 import FontText from "@/src/components/font-text";
 import {
-  ArrowCircleRightIcon,
   CircleIcon,
   FadersHorizontalIcon,
+  InfoIcon,
   MapPinIcon,
   NavigationArrowIcon,
   StarIcon,
@@ -52,21 +52,13 @@ import {
 import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
 import { router } from "expo-router";
 import { Location as LocationType } from "@/src/utils/types/location";
-import {
-  CAMPUS_LOCATIONS,
-  getMatchingPickupLocations,
-} from "@/src/utils/locations/pickup-locations";
-import {
-  getMatchingDropoffLocations,
-  WEST_CAMPUS_LOCATIONS,
-} from "@/src/utils/locations/dropoff-locations";
+import { getMatchingPickupLocations } from "@/src/utils/locations/pickup-locations";
+import { getMatchingDropoffLocations } from "@/src/utils/locations/dropoff-locations";
 import { useRideSession } from "@/src/utils/context/ride-context";
 import LargeButton from "@/src/components/large-button";
 import { useTabContext } from "@/src/utils/context/tab-context";
 import MyRide from "../(my-ride)";
 import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
-import OutlineButton from "@/src/components/outline-button";
-import CancelRideModal from "@/src/components/cancel-ride-modal";
 
 const Home = () => {
   let _style: StyleProp<TextStyle> = {};
@@ -121,30 +113,6 @@ const Home = () => {
   const [destinationAddress, setDestinationAddress] = useState<string>(
     "Select your destination",
   );
-
-  const [activePickupLocation, setActivePickupLocation] = useState<
-    LocationType | undefined
-  >(undefined);
-  const [activeDropoffLocation, setActiveDropoffLocation] = useState<
-    LocationType | undefined
-  >(undefined);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (currentRide) {
-      setActivePickupLocation(
-        CAMPUS_LOCATIONS.find((loc) => loc.id === currentRide.pickupLocationID),
-      );
-      setActiveDropoffLocation(
-        WEST_CAMPUS_LOCATIONS.find(
-          (loc) => loc.id === currentRide.dropoffLocationID,
-        ),
-      );
-    } else {
-      setActivePickupLocation(undefined);
-      setActiveDropoffLocation(undefined);
-    }
-  }, [currentRide]);
 
   const centerMapOnLocation = (location: Location.LocationObject) => {
     setTimeout(() => {
@@ -465,7 +433,7 @@ const Home = () => {
             <View className="flex-col gap-5 px-5 pb-1">
               <View className="flex-row w-full justify-between items-center">
                 <FontText className="text-2xl font-medium">
-                  {currentRide ? "Ride in-progress" : "Book a ride"}
+                  Book a ride
                 </FontText>
                 {!currentRide && (
                   <TO onPress={() => router.navigate("/home/group-ride")}>
@@ -573,39 +541,26 @@ const Home = () => {
               </View>
             )}
             {currentRide && (
-              <View className="py-4 px-5 bg-slate-50 rounded-2xl border border-slate-200 flex-col mb-2">
-                <View className="flex-row items-center gap-2 mb-4">
-                  <FontText className="text-lg font-semibold">
-                    {activePickupLocation?.abbreviation}
-                  </FontText>
-                  <ArrowCircleRightIcon
-                    weight="fill"
-                    color={UTBluebonnet}
-                    size={24}
-                  />
-                  <FontText className="text-lg font-semibold">
-                    {activeDropoffLocation?.name}
+              <View className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex-col mb-2 gap-6">
+                <View className="flex-col gap-3">
+                  <View className="flex-row gap-2 items-center">
+                    <InfoIcon color={UTBurntOrange} size={32} />
+                    <FontText className="text-2xl font-medium">
+                      Ride in Progress
+                    </FontText>
+                  </View>
+                  <FontText className="text-lg">
+                    You currently have a Sure Walk booked.
                   </FontText>
                 </View>
-                <View className="flex-row items-center gap-4 justify-between">
-                  <View className="flex-1">
-                    <LargeButton
-                      title="View Ride"
-                      onPress={() => {
-                        goMyRide();
-                        setTimeout(() => {
-                          router.push("/home/ride-info-wrapper");
-                        }, 300);
-                      }}
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <OutlineButton
-                      title="Cancel Ride"
-                      onPress={() => setModalVisible(true)}
-                      red
-                    />
-                  </View>
+                <View className="flex-col gap-3">
+                  <LargeButton
+                    title="View Ride"
+                    onPress={() => {
+                      goMyRide();
+                      router.push("/home/ride-info-wrapper");
+                    }}
+                  />
                 </View>
               </View>
             )}
@@ -692,10 +647,6 @@ const Home = () => {
         )}
       </BottomSheet>
       <MyRide />
-      <CancelRideModal
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-      />
     </View>
   );
 };

@@ -60,7 +60,6 @@ const CancelRideModal = ({
             <OutlineButton title="Yes, cancel" red onPress={cancelRide} />
             <LargeButton
               title="No, never mind"
-              blue
               onPress={() => setModalVisible(false)}
             />
           </View>

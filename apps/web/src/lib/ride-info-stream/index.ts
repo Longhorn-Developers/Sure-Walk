@@ -3,7 +3,9 @@ import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
 import VehicleInfoShort from "@sure-walk/utils/types/vehicle-info-short";
 import { Samsara } from "@samsarahq/samsara";
 import {
+  fetchCurrentRoutes,
   getAsset,
+  getFormSubmission,
   getRoute,
   getRouteUpdates,
   getVehicleLocations,
@@ -112,8 +114,11 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
   }
 
   async pollInfo() {
-    let routeUpdates = await this.pollRouteUpdates();
+    const assignmentChanges = await this.pollAssignmentChanges();
     let activeRides = await getActiveRides(this.env);
+    await this.streamAssignmentChanges(activeRides, assignmentChanges);
+
+    let routeUpdates = await this.pollRouteUpdates();
 
     if (activeRides.length === 0 && routeUpdates.data.length === 0) {
       console.log(
@@ -141,6 +146,24 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     const currentAlarm = await this.ctx.storage.getAlarm();
     if (!currentAlarm) {
       this.ctx.storage.setAlarm(Date.now() + 5000);
+    }
+  }
+
+  async streamAssignmentChanges(
+    activeRides: (typeof Ride)[],
+    assignmentChanges: Samsara.RoutesFetchRoutesResponseBody,
+  ) {
+    for (const ride of activeRides) {
+      if (ride.pickupStopState === "unassigned") {
+        const route = (assignmentChanges.data ?? []).find(
+          (route) => route.id === ride.samsaraID,
+        );
+        if (route?.vehicle || route?.driver) {
+          await setPickupStopState(ride.pickupStopID, "scheduled", this.env);
+          await setDropoffStopState(ride.dropoffStopID, "scheduled", this.env);
+          await this.sendRouteUpdate(ride.id, "assigned");
+        }
+      }
     }
   }
 
@@ -183,7 +206,8 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
           if (rideID) {
             if (stopState === "scheduled") {
-              await this.sendRouteUpdate(rideID, "assigned");
+              // already done in streamAssignmentChanges
+              // await this.sendRouteUpdate(rideID, "assigned");
             }
             if (stopState === "en route") {
               await this.sendRouteUpdate(rideID, "en route");
@@ -257,7 +281,27 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                 .where(eq(rides.pickupStopID, stopID));
             }
             if (stopState === "departed") {
-              await this.sendRouteUpdate(rideID, "in progress");
+              const submissionID = ride.route.stops![0].forms![0].id;
+              const form = await getFormSubmission(submissionID);
+              let numPickedUp: number | undefined = 1;
+              if (form.data[0].status === "completed") {
+                numPickedUp = form.data[0].fields[0].numberValue?.value;
+              }
+              if (numPickedUp === undefined) {
+                numPickedUp = 1;
+              }
+              if (numPickedUp < 1) {
+                await getDBInWorker(this.env)
+                  .update(rides)
+                  .set({ shareCode: null, missedPickup: true })
+                  .where(eq(rides.id, rideID));
+                this.streams
+                  .get(rideID)
+                  ?.forEach((ws) => ws.close(1000, "Missed pickup."));
+                this.streams.delete(rideID);
+              } else {
+                await this.sendRouteUpdate(rideID, "in progress");
+              }
             }
           }
         }
@@ -342,6 +386,11 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
       "routeUpdatesEndCursor",
       result.pagination.endCursor,
     );
+    return result;
+  }
+
+  async pollAssignmentChanges(): Promise<Samsara.RoutesFetchRoutesResponseBody> {
+    const result = await fetchCurrentRoutes();
     return result;
   }
 
