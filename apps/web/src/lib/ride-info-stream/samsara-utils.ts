@@ -31,7 +31,7 @@ const createRoute = async ({
   const routeName = getRideName(user, members);
   const routeNotes =
     `Picking up ${user.firstName} ${user.lastName} (${user.phoneNumber}) at ${pickupLocation.name} and dropping off at ${dropoffLocation.name}. ` +
-    `${members.length > 0 ? `Also picking up ${members.map((m) => `${m.firstName} ${m.lastName}${m.userType === "guest" ? " (guest)" : ` (${m.eid})`}`).join(", ")}.\n` : ""}Submitted at ${new Date().toLocaleString()}.`;
+    `${members.length > 0 ? `Also picking up ${members.map((m) => `${m.firstName} ${m.lastName}${m.userType === "guest" ? " (guest)" : ` (${m.eid})`}`).join(", ")}.\n` : ""}Submitted at ${new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })}.`;
 
   const res = await samsaraClient.routes.createRoute({
     name: routeName,
@@ -189,6 +189,28 @@ const fetchCurrentRoutes = async () => {
   return res;
 };
 
+const missRide = async (ride: typeof Ride, user: User) => {
+  const newName = "Missed " + getRideName(user, ride.members);
+  await samsaraClient.routes.patchRoute({
+    id: ride.samsaraID,
+    name: newName,
+    // @ts-expect-error should be null to remove vehicleId
+    vehicleId: null,
+    // @ts-expect-error should be null to remove driverId
+    driverId: null,
+    stops: [
+      {
+        id: ride.pickupStopID!,
+        sequenceNumber: 1,
+      },
+      {
+        id: ride.dropoffStopID!,
+        sequenceNumber: 2,
+      },
+    ],
+  });
+};
+
 export {
   samsaraClient,
   createRoute,
@@ -200,4 +222,6 @@ export {
   cancelRide,
   getFormSubmission,
   fetchCurrentRoutes,
+  getRideName,
+  missRide,
 };

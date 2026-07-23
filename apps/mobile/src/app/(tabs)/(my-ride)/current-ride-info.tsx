@@ -49,6 +49,7 @@ import { useRideDetailsSession } from "@/src/utils/context/ride-details-context"
 import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 import OutlineButton from "@/src/components/outline-button";
 import CancelRideModal from "@/src/components/cancel-ride-modal";
+import { useMissedRideSession } from "@/src/utils/context/missed-ride-context";
 
 const CurrentRideInfo = () => {
   const { accessToken, fetchProtected, user } = useSession();
@@ -65,6 +66,7 @@ const CurrentRideInfo = () => {
   const sheetRef = useRef<BottomSheet | null>(null);
   const scrollRef = useRef<BottomSheetScrollViewMethods | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const { setMissedRide, setShowModal } = useMissedRideSession();
 
   const snap0 = useSharedValue<number>(72);
   const snap1 = useSharedValue<number>(156);
@@ -119,7 +121,6 @@ const CurrentRideInfo = () => {
       console.log("Websocket closed: ", event.code, event.reason);
       if (event.code === 1000) {
         ws.removeEventListener("close", onClose);
-        setRideDetails(null);
         if (
           event.reason === "complete" ||
           event.reason === "Ride cancelled." ||
@@ -129,8 +130,12 @@ const CurrentRideInfo = () => {
             // not viewing a group ride
             setCurrentRide(null);
           }
+          if (event.reason === "Missed pickup.") {
+            setShowModal(true);
+          }
           router.dismissTo("/home");
         }
+        setRideDetails(null);
       } else if (event.reason.includes("401")) {
         try {
           // force refresh
@@ -172,6 +177,12 @@ const CurrentRideInfo = () => {
   useEffect(() => {
     if (rideDetails) {
       setCurrentRide({
+        pickupLocationID: rideDetails?.pickupLocationID!,
+        dropoffLocationID: rideDetails?.dropoffLocationID!,
+        rideState: rideDetails?.rideState!,
+        eta: rideDetails?.eta,
+      });
+      setMissedRide({
         pickupLocationID: rideDetails?.pickupLocationID!,
         dropoffLocationID: rideDetails?.dropoffLocationID!,
         rideState: rideDetails?.rideState!,

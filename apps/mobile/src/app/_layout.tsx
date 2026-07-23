@@ -11,6 +11,7 @@ import { RideProvider } from "../utils/context/ride-context";
 import { TabProvider } from "../utils/context/tab-context";
 import { CurrentRideProvider } from "../utils/context/current-ride-context";
 import { RideDetailsProvider } from "../utils/context/ride-details-context";
+import { MissedRideProvider } from "../utils/context/missed-ride-context";
 
 configureReanimatedLogger({ strict: false });
 
@@ -37,22 +38,25 @@ export default function RootLayout() {
             <SessionProvider>
               <CurrentRideProvider>
                 <RideDetailsProvider>
-                  <RideProvider>
-                    <GroupRideProvider>
-                      <Stack screenOptions={{ headerShown: false }}>
-                        <Stack.Screen
-                          name="(tabs)"
-                          options={{
-                            headerShown: false,
-                          }}
-                        />
-                        <Stack.Screen
-                          name="cancellation-reason"
-                          options={{ presentation: "fullScreenModal" }}
-                        />
-                      </Stack>
-                    </GroupRideProvider>
-                  </RideProvider>
+                  <MissedRideProvider>
+                    <RideProvider>
+                      <GroupRideProvider>
+                        <Stack screenOptions={{ headerShown: false }}>
+                          <Stack.Screen
+                            name="(tabs)"
+                            options={{
+                              headerShown: false,
+                            }}
+                          />
+                          <Stack.Screen
+                            name="cancellation-reason"
+                            options={{ presentation: "fullScreenModal" }}
+                          />
+                        </Stack>
+                      </GroupRideProvider>
+                      ƒ
+                    </RideProvider>
+                  </MissedRideProvider>
                 </RideDetailsProvider>
               </CurrentRideProvider>
             </SessionProvider>

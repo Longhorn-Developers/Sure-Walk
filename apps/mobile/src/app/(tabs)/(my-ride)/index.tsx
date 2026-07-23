@@ -1,8 +1,10 @@
 import FontText from "@/src/components/font-text";
 import LargeButton from "@/src/components/large-button";
+import OutlineButton from "@/src/components/outline-button";
 import TextInputField from "@/src/components/text-input-field";
-import { UTBurntOrange } from "@/src/utils/colors";
+import { UTBluebonnet, UTBurntOrange } from "@/src/utils/colors";
 import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
+import { useMissedRideSession } from "@/src/utils/context/missed-ride-context";
 import { useTabContext } from "@/src/utils/context/tab-context";
 import { useSession } from "@/src/utils/context/user-context";
 import { WEST_CAMPUS_LOCATIONS } from "@/src/utils/locations/dropoff-locations";
@@ -10,10 +12,12 @@ import { CAMPUS_LOCATIONS } from "@/src/utils/locations/pickup-locations";
 import Location from "@/src/utils/types/location";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
-import { ArrowCircleRightIcon } from "phosphor-react-native";
+import { ArrowCircleRightIcon, WarningIcon } from "phosphor-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   LayoutChangeEvent,
+  Modal,
+  Pressable,
   TextInput,
   View,
   useWindowDimensions,
@@ -31,6 +35,7 @@ const MyRide = () => {
   const { fetchProtected } = useSession();
   const { currentRide, setCurrentRide, loadingState, setLoadingState } =
     useCurrentRideSession();
+  const { missedRide, showModal, setShowModal } = useMissedRideSession();
   const inputRef = useRef<TextInput>(null);
   const [pickupLocation, setPickupLocation] = useState<Location | undefined>(
     undefined,
@@ -38,6 +43,12 @@ const MyRide = () => {
   const [dropoffLocation, setDropoffLocation] = useState<Location | undefined>(
     undefined,
   );
+  const [missedPickupLocation, setMissedPickupLocation] = useState<
+    Location | undefined
+  >(undefined);
+  const [missedDropoffLocation, setMissedDropoffLocation] = useState<
+    Location | undefined
+  >(undefined);
   const snap0 = useSharedValue<number>(180);
   const snap1 = useSharedValue<number>(340);
   const snapPoints = useDerivedValue<(string | number)[]>(
@@ -64,6 +75,22 @@ const MyRide = () => {
       setDropoffLocation(undefined);
     }
   }, [currentRide]);
+
+  useEffect(() => {
+    if (missedRide) {
+      setMissedPickupLocation(
+        CAMPUS_LOCATIONS.find((loc) => loc.id === missedRide.pickupLocationID),
+      );
+      setMissedDropoffLocation(
+        WEST_CAMPUS_LOCATIONS.find(
+          (loc) => loc.id === missedRide.dropoffLocationID,
+        ),
+      );
+    } else {
+      setMissedPickupLocation(undefined);
+      setMissedDropoffLocation(undefined);
+    }
+  }, [missedRide]);
 
   useEffect(() => {
     const fetchCurrentRide = async () => {
@@ -108,106 +135,158 @@ const MyRide = () => {
   };
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      enableDynamicSizing={false}
-      snapPoints={snapPoints}
-      index={-1}
-      handleComponent={() => (
-        <View className="rounded-t-[28px] flex-col items-center py-4">
-          <View className="bg-slate-300 rounded w-8 h-1" />
-        </View>
-      )}
-      style={{ zIndex: 500 }}
-      onChange={(index) => {
-        if (index < 2) {
-          inputRef.current?.blur();
-        }
-      }}
-    >
-      <View className="bg-white flex-1 flex-col px-5 pb-10">
-        <View className="flex-col" onLayout={handleLayout2}>
-          <View onLayout={handleLayout1}>
-            {loadingState === "done" && !currentRide && (
-              <>
-                <FontText className="text-2xl font-medium">My Ride</FontText>
-                <FontText className="text-lg font-normal mt-2 mb-6">
-                  No active rides currently.
-                </FontText>
-                <LargeButton title="Book Ride" onPress={() => goHome()} />
-              </>
-            )}
-            {loadingState === "done" && currentRide && (
-              <>
-                <FontText className="text-2xl font-medium mb-6">
-                  Active Ride
-                </FontText>
-                <View className="pb-4 bg-slate-50 rounded-2xl border border-slate-200 flex-col mb-6 gap-2">
-                  <View className="flex-row items-center gap-2 mb-2 px-5 py-1.5 bg-orange-100 rounded-t-2xl">
-                    <FontText className="text-lg font-semibold color-ut-burntorange">
-                      {pickupLocation?.abbreviation}
-                    </FontText>
-                    <ArrowCircleRightIcon
-                      weight="fill"
-                      color={UTBurntOrange}
-                      size={24}
-                    />
-                    <FontText className="text-lg font-semibold color-ut-burntorange">
-                      {dropoffLocation?.name}
-                    </FontText>
-                  </View>
-                  {currentRide.eta && (
+    <>
+      <BottomSheet
+        ref={sheetRef}
+        enableDynamicSizing={false}
+        snapPoints={snapPoints}
+        index={-1}
+        handleComponent={() => (
+          <View className="rounded-t-[28px] flex-col items-center py-4">
+            <View className="bg-slate-300 rounded w-8 h-1" />
+          </View>
+        )}
+        style={{ zIndex: 500 }}
+        onChange={(index) => {
+          if (index < 2) {
+            inputRef.current?.blur();
+          }
+        }}
+      >
+        <View className="bg-white flex-1 flex-col px-5 pb-10">
+          <View className="flex-col" onLayout={handleLayout2}>
+            <View onLayout={handleLayout1}>
+              {loadingState === "done" && !currentRide && (
+                <>
+                  <FontText className="text-2xl font-medium">My Ride</FontText>
+                  <FontText className="text-lg font-normal mt-2 mb-6">
+                    No active rides currently.
+                  </FontText>
+                  <LargeButton title="Book Ride" onPress={() => goHome()} />
+                </>
+              )}
+              {loadingState === "done" && currentRide && (
+                <>
+                  <FontText className="text-2xl font-medium mb-6">
+                    Active Ride
+                  </FontText>
+                  <View className="pb-4 bg-slate-50 rounded-2xl border border-slate-200 flex-col mb-6 gap-2">
+                    <View className="flex-row items-center gap-2 mb-2 px-5 py-1.5 bg-orange-100 rounded-t-2xl">
+                      <FontText className="text-lg font-semibold color-ut-burntorange">
+                        {pickupLocation?.abbreviation}
+                      </FontText>
+                      <ArrowCircleRightIcon
+                        weight="fill"
+                        color={UTBurntOrange}
+                        size={24}
+                      />
+                      <FontText className="text-lg font-semibold color-ut-burntorange">
+                        {dropoffLocation?.name}
+                      </FontText>
+                    </View>
+                    {currentRide.eta && (
+                      <FontText className="text-lg font-semibold px-5">
+                        ETA:{" "}
+                        <FontText className="text-lg font-regular">
+                          {currentRide.eta}
+                        </FontText>
+                      </FontText>
+                    )}
                     <FontText className="text-lg font-semibold px-5">
-                      ETA:{" "}
+                      Status:{" "}
                       <FontText className="text-lg font-regular">
-                        {currentRide.eta}
+                        {`${currentRide.rideState.at(0)?.toUpperCase()}${currentRide.rideState.slice(1)}`}
                       </FontText>
                     </FontText>
-                  )}
-                  <FontText className="text-lg font-semibold px-5">
-                    Status:{" "}
-                    <FontText className="text-lg font-regular">
-                      {`${currentRide.rideState.at(0)?.toUpperCase()}${currentRide.rideState.slice(1)}`}
-                    </FontText>
-                  </FontText>
-                </View>
+                  </View>
+                  <LargeButton
+                    title="View Live Tracking"
+                    onPress={() => {
+                      setCurrentRide({
+                        pickupLocationID: currentRide.pickupLocationID,
+                        dropoffLocationID: currentRide.dropoffLocationID,
+                        eta: currentRide.eta,
+                        rideState: "received",
+                      });
+                      router.push("/home/ride-info-wrapper");
+                    }}
+                  />
+                </>
+              )}
+            </View>
+            <FontText className="text-2xl font-medium mt-10">
+              Join a Ride
+            </FontText>
+            <FontText className="text-lg font-normal mt-2 mb-6">
+              Enter the ride code shared by your group leader.
+            </FontText>
+            <TextInputField
+              placeholder="ABC123"
+              autoCapitalize={"characters"}
+              value={code}
+              onChangeText={(text) => setCode(text.toUpperCase())}
+              onFocus={() => sheetRef.current?.expand()}
+              onBlur={() => sheetRef.current?.snapToIndex(1)}
+              inputRef={inputRef}
+              returnKeyType="go"
+              onSubmitEditing={() => {
+                router.push(`/home/ride-info-wrapper?shareCode=${code}`);
+              }}
+            />
+          </View>
+        </View>
+      </BottomSheet>
+      <Modal
+        animationType="fade"
+        transparent
+        visible={showModal}
+        onRequestClose={() => setShowModal(false)}
+        className="z-1000"
+      >
+        <Pressable
+          className="flex-1 bg-[#00000080] items-center justify-center p-5"
+          onPress={() => setShowModal(false)}
+        >
+          <Pressable className="p-4 bg-white flex-col gap-4 rounded-3xl w-full">
+            <View className="flex-row gap-2 items-center mb-2">
+              <WarningIcon color={UTBurntOrange} size={32} />
+              <FontText className="text-2xl font-medium">Missed Ride</FontText>
+            </View>
+            <View className="flex-col gap-4">
+              <FontText className="text-lg">
+                You have missed the following ride:
+              </FontText>
+              <View className="flex-row px-5 py-4 gap-2 bg-slate-50 border border-slate-200 items-center rounded-2xl">
+                <FontText className="text-lg font-semibold">
+                  {missedPickupLocation?.abbreviation}
+                </FontText>
+                <ArrowCircleRightIcon
+                  color={UTBluebonnet}
+                  size={24}
+                  weight="fill"
+                />
+                <FontText className="text-lg font-semibold">
+                  {missedDropoffLocation?.name}
+                </FontText>
+              </View>
+              <View className="flex-col gap-3">
                 <LargeButton
-                  title="View Live Tracking"
+                  title="Book a New Ride"
                   onPress={() => {
-                    setCurrentRide({
-                      pickupLocationID: currentRide.pickupLocationID,
-                      dropoffLocationID: currentRide.dropoffLocationID,
-                      eta: currentRide.eta,
-                      rideState: "received",
-                    });
-                    router.push("/home/ride-info-wrapper");
+                    setShowModal(false);
+                    goHome();
                   }}
                 />
-              </>
-            )}
-          </View>
-          <FontText className="text-2xl font-medium mt-10">
-            Join a Ride
-          </FontText>
-          <FontText className="text-lg font-normal mt-2 mb-6">
-            Enter the ride code shared by your group leader.
-          </FontText>
-          <TextInputField
-            placeholder="ABC123"
-            autoCapitalize={"characters"}
-            value={code}
-            onChangeText={(text) => setCode(text.toUpperCase())}
-            onFocus={() => sheetRef.current?.expand()}
-            onBlur={() => sheetRef.current?.snapToIndex(1)}
-            inputRef={inputRef}
-            returnKeyType="go"
-            onSubmitEditing={() => {
-              router.push(`/home/ride-info-wrapper?shareCode=${code}`);
-            }}
-          />
-        </View>
-      </View>
-    </BottomSheet>
+                <OutlineButton
+                  title="Return"
+                  onPress={() => setShowModal(false)}
+                />
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
   );
 };
 

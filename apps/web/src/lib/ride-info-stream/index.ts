@@ -9,6 +9,7 @@ import {
   getRoute,
   getRouteUpdates,
   getVehicleLocations,
+  missRide,
 } from "./samsara-utils";
 import {
   getActiveRides,
@@ -19,6 +20,7 @@ import { Ride, rides } from "../db/schema/rides";
 import { getDBInWorker } from "../db";
 import { eq } from "drizzle-orm";
 import { Vehicle, vehicles } from "../db/schema/vehicles";
+import { users } from "../db/schema/users";
 
 export class RideInfoStream extends DurableObject<CloudflareEnv> {
   streams: Map<string, WebSocket[]>;
@@ -295,6 +297,12 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                   .update(rides)
                   .set({ shareCode: null, missedPickup: true })
                   .where(eq(rides.id, rideID));
+
+                const [user] = await getDBInWorker(this.env)
+                  .select()
+                  .from(users)
+                  .where(eq(users.id, activeRide.userID));
+                await missRide(activeRide, user);
                 this.streams
                   .get(rideID)
                   ?.forEach((ws) => ws.close(1000, "Missed pickup."));

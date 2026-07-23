@@ -43,10 +43,10 @@ const CancelRideModal = ({
       className="z-1000"
     >
       <Pressable
-        className="flex-1 bg-[#00000080] items-center justify-center"
+        className="flex-1 bg-[#00000080] items-center justify-center p-5"
         onPress={() => setModalVisible(false)}
       >
-        <Pressable className="m-5 p-4 bg-white flex-col gap-6 rounded-3xl">
+        <Pressable className="p-4 bg-white flex-col gap-6 rounded-3xl w-full">
           <View className="flex-col gap-3">
             <View className="flex-row gap-2 items-center">
               <WarningIcon color={UTBurntOrange} size={32} />
