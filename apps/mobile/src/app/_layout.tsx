@@ -54,7 +54,6 @@ export default function RootLayout() {
                           />
                         </Stack>
                       </GroupRideProvider>
-                      ƒ
                     </RideProvider>
                   </MissedRideProvider>
                 </RideDetailsProvider>

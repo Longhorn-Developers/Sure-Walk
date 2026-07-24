@@ -18,6 +18,7 @@ import {
 } from "@expo-google-fonts/geist";
 import { slate200, slate900, UTBurntOrange } from "@/src/utils/colors";
 import { useTabContext } from "@/src/utils/context/tab-context";
+import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,6 +26,7 @@ const _layout = () => {
   let paddingBottom: number = useSafeAreaInsets().bottom;
 
   const { loadingState, user, guidelinesAccepted } = useSession();
+  const { loadingState: rideLoadingState } = useCurrentRideSession();
   const { goHome, goMyRide, activeTab } = useTabContext();
   const segments = useSegments();
 
@@ -41,12 +43,20 @@ const _layout = () => {
   });
 
   useEffect(() => {
-    if (loadingState !== "loading" && (loaded || error)) {
-      SplashScreen.hideAsync();
+    if (
+      loadingState !== "loading" &&
+      rideLoadingState !== "loading" &&
+      (loaded || error)
+    ) {
+      setTimeout(() => SplashScreen.hideAsync(), 200);
     }
-  }, [loadingState, loaded, error]);
+  }, [loadingState, rideLoadingState, loaded, error]);
 
-  if (loadingState === "loading" || (!loaded && !error)) {
+  if (
+    loadingState === "loading" ||
+    rideLoadingState === "loading" ||
+    (!loaded && !error)
+  ) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color={UTBurntOrange} />

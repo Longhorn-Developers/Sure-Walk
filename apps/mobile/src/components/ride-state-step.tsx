@@ -205,7 +205,7 @@ const RideStateStep = ({
           </Animated.View>
         </View>
         <AnimatedFontText
-          className={`text-lg font-medium mx-[-36px] text-center`}
+          className={`text-lg font-medium mx-[-46px] text-center`}
           style={{
             color: animatedTextColors[rideStateToStepNum[rideState]],
           }}

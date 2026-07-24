@@ -32,7 +32,6 @@ import {
   View,
   TouchableOpacity,
   AppState,
-  ScrollView,
   LayoutChangeEvent,
 } from "react-native";
 import MapView from "react-native-maps";
@@ -42,6 +41,10 @@ import Animated, {
   useDerivedValue,
   useSharedValue,
   Easing,
+  useAnimatedRef,
+  useAnimatedReaction,
+  withTiming,
+  scrollTo,
 } from "react-native-reanimated";
 import * as Clipboard from "expo-clipboard";
 import { useSearchParams } from "expo-router/build/hooks";
@@ -65,6 +68,8 @@ const CurrentRideInfo = () => {
   const mapRef = useRef<MapView | null>(null);
   const sheetRef = useRef<BottomSheet | null>(null);
   const scrollRef = useRef<BottomSheetScrollViewMethods | null>(null);
+  const rideStepsScrollRef = useAnimatedRef<Animated.ScrollView>();
+  const scrollTarget = useSharedValue(0);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const { setMissedRide, setShowModal } = useMissedRideSession();
 
@@ -82,6 +87,25 @@ const CurrentRideInfo = () => {
     undefined,
   );
 
+  const animateToStep = (rideState: InProgressRideState) => {
+    if (rideState === "en route") {
+      scrollTarget.value = withTiming(268, {
+        duration: 1400,
+        easing: Easing.inOut(Easing.sin),
+      });
+    }
+    if (
+      rideState === "arrived" ||
+      rideState === "in progress" ||
+      rideState === "dropped off"
+    ) {
+      scrollTarget.value = withTiming(402, {
+        duration: 1700,
+        easing: Easing.inOut(Easing.sin),
+      });
+    }
+  };
+
   const connect = () => {
     const wsURL = API_URL.replace("http", "ws");
     const ws = new WebSocket(
@@ -98,16 +122,18 @@ const CurrentRideInfo = () => {
           setLoadingState("done");
           const data = payload.data as CurrentRideSmall;
           setRideDetails(data);
+          animateToStep(data.rideState);
           break;
         }
         case "routeUpdate": {
           const data = payload.data as { rideState: InProgressRideState };
           setRideState(data.rideState);
+          animateToStep(data.rideState);
           break;
         }
         case "vehicleInfo": {
           const data = payload.data as VehicleInfoShort;
-          setVehicleInfo(data);
+          setTimeout(() => setVehicleInfo(data), 2000);
           break;
         }
       }
@@ -254,6 +280,13 @@ const CurrentRideInfo = () => {
     snap1.set(height);
   };
 
+  useAnimatedReaction(
+    () => scrollTarget.value,
+    (value) => {
+      scrollTo(rideStepsScrollRef, value, 0, false);
+    },
+  );
+
   const copyCode = async () => {
     await Clipboard.setStringAsync(rideDetails?.shareCode ?? "");
   };
@@ -298,12 +331,13 @@ const CurrentRideInfo = () => {
           start={{ x: 0, y: 0.5 }}
           end={{ x: 0.8, y: 0.5 }}
         />
-        <ScrollView
+        <Animated.ScrollView
           horizontal
           contentContainerStyle={{
             paddingHorizontal: 56,
           }}
           showsHorizontalScrollIndicator={false}
+          ref={rideStepsScrollRef}
         >
           <View className="flex-row">
             <RideStateStep rideState="received" width={32} />
@@ -318,7 +352,7 @@ const CurrentRideInfo = () => {
             <RideStateStepDivider rideState="dropped off" width={102} />
             <RideStateStep rideState="dropped off" width={32} />
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
       </View>
       <View className="relative flex-1 w-full">
         <LinearGradient

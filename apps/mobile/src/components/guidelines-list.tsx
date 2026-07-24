@@ -68,9 +68,9 @@ const GuidelinesList = ({ includeBottomBorder = false }) => {
       value={{ color: UTBurntOrange, size: 20, weight: "bold" }}
     >
       <View className={"flex-1 gap-5 p-5 pt-4"}>
-        <View className="flex-1 gap-3.5 justify-start">
+        <View className="flex-1 gap-3.5 justify-start w-full">
           {guidelines.map((guideline, index) => (
-            <View key={index} className="gap-2">
+            <View key={index} className="gap-2 flex-col">
               <View className="flex-row gap-2 items-center">
                 {guideline.icon}
                 <FontText className="text-gray-900 text-xl font-semibold leading-[26px]">
@@ -80,7 +80,7 @@ const GuidelinesList = ({ includeBottomBorder = false }) => {
               <View
                 className={`ms-8 me-8 pb-3.5 ${includeBottomBorder || index < guidelines.length - 1 ? "border-b border-gray-300" : ""}`}
               >
-                <FontText className="text-gray-900 text-base leading-normal">
+                <FontText className="text-gray-900 text-lg">
                   {guideline.description}
                 </FontText>
               </View>

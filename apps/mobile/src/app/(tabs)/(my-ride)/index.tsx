@@ -25,14 +25,14 @@ import {
 import { useDerivedValue, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const MyRide = () => {
+const MyRide = ({ initialIndex }: { initialIndex: number }) => {
   const { height } = useWindowDimensions();
   const { top } = useSafeAreaInsets();
   const [code, setCode] = useState<string>("");
   const sheetRef = useRef<BottomSheet>(null);
   const { setMyRideSheetRef } = useTabContext();
   const { goHome } = useTabContext();
-  const { fetchProtected } = useSession();
+  const { fetchProtected, accessToken } = useSession();
   const { currentRide, setCurrentRide, loadingState, setLoadingState } =
     useCurrentRideSession();
   const { missedRide, showModal, setShowModal } = useMissedRideSession();
@@ -55,6 +55,7 @@ const MyRide = () => {
     () => [snap0.value, snap1.value, "80.5%"],
     [snap0, snap1, height, top],
   );
+  const [disabled, setDisabled] = useState<boolean>(false);
 
   useEffect(() => {
     setMyRideSheetRef(sheetRef);
@@ -98,7 +99,6 @@ const MyRide = () => {
         const res = await fetchProtected("/ride", "GET");
         if (res.status === 204) {
           setCurrentRide(null);
-          goHome();
         } else if (res.status === 200) {
           setCurrentRide(await res.json());
         } else {
@@ -106,17 +106,16 @@ const MyRide = () => {
         }
         setLoadingState("done");
       } catch (err) {
+        // ignore error, could be because app minimized
         console.log(err);
-        setLoadingState("error");
       }
     };
 
-    // const interval = setInterval(fetchCurrentRide, 30 * 1000);
-    fetchCurrentRide();
+    const interval = setInterval(fetchCurrentRide, 30 * 1000);
     return () => {
-      // clearInterval(interval);
+      clearInterval(interval);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLayout1 = (event: LayoutChangeEvent) => {
     let height = event.nativeEvent.layout.height;
@@ -140,7 +139,7 @@ const MyRide = () => {
         ref={sheetRef}
         enableDynamicSizing={false}
         snapPoints={snapPoints}
-        index={-1}
+        index={initialIndex}
         handleComponent={() => (
           <View className="rounded-t-[28px] flex-col items-center py-4">
             <View className="bg-slate-300 rounded w-8 h-1" />
@@ -188,7 +187,7 @@ const MyRide = () => {
                       <FontText className="text-lg font-semibold px-5">
                         ETA:{" "}
                         <FontText className="text-lg font-regular">
-                          {currentRide.eta}
+                          {currentRide.eta ?? ""}
                         </FontText>
                       </FontText>
                     )}
@@ -202,14 +201,14 @@ const MyRide = () => {
                   <LargeButton
                     title="View Live Tracking"
                     onPress={() => {
-                      setCurrentRide({
-                        pickupLocationID: currentRide.pickupLocationID,
-                        dropoffLocationID: currentRide.dropoffLocationID,
-                        eta: currentRide.eta,
-                        rideState: "received",
-                      });
-                      router.push("/home/ride-info-wrapper");
+                      setDisabled(true);
+                      setTimeout(
+                        () => router.push("/home/ride-info-wrapper"),
+                        300,
+                      );
+                      setTimeout(() => setDisabled(false), 1000);
                     }}
+                    disabled={disabled}
                   />
                 </>
               )}
@@ -258,7 +257,7 @@ const MyRide = () => {
               </FontText>
               <View className="flex-row px-5 py-4 gap-2 bg-slate-50 border border-slate-200 items-center rounded-2xl">
                 <FontText className="text-lg font-semibold">
-                  {missedPickupLocation?.abbreviation}
+                  {missedPickupLocation?.abbreviation ?? ""}
                 </FontText>
                 <ArrowCircleRightIcon
                   color={UTBluebonnet}
@@ -266,7 +265,7 @@ const MyRide = () => {
                   weight="fill"
                 />
                 <FontText className="text-lg font-semibold">
-                  {missedDropoffLocation?.name}
+                  {missedDropoffLocation?.name ?? ""}
                 </FontText>
               </View>
               <View className="flex-col gap-3">
