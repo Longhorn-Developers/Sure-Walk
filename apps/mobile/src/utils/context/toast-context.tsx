@@ -1,0 +1,39 @@
+import Toast, { ToastProps } from "@/src/components/toast";
+import React, { createContext, useContext, useState } from "react";
+import { View } from "react-native";
+
+interface ToastContextType {
+  setToast: (toast: ToastProps) => void;
+  clearToast: () => void;
+}
+
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
+
+export const useToastContext = () => {
+  const value = useContext(ToastContext);
+  if (!value) {
+    throw new Error(
+      "useToastContext must be used within a ToastContextProvider",
+    );
+  }
+  return value;
+};
+
+export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
+  const [toastProps, setToast] = useState<ToastProps | null>(null);
+  const clearToast = () => setToast(null);
+
+  return (
+    <ToastContext.Provider
+      value={{
+        setToast,
+        clearToast,
+      }}
+    >
+      {children}
+      <View className="absolute left-5 right-5 bottom-safe pb-[64px]">
+        {toastProps && <Toast {...toastProps} />}
+      </View>
+    </ToastContext.Provider>
+  );
+};

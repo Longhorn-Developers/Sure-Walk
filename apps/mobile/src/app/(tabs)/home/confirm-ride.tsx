@@ -10,6 +10,7 @@ import { useCurrentRideSession } from "@/src/utils/context/current-ride-context"
 import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
 import { useRideSession } from "@/src/utils/context/ride-context";
 import { useTabContext } from "@/src/utils/context/tab-context";
+import { useToastContext } from "@/src/utils/context/toast-context";
 import { useSession } from "@/src/utils/context/user-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -32,6 +33,7 @@ const ConfirmRide = () => {
   const { goMyRide } = useTabContext();
   const { setCurrentRide: setCurrentRideMini, setLoadingState } =
     useCurrentRideSession();
+  const { setToast, clearToast } = useToastContext();
   const [confirmEnabled, setConfirmEnabled] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -55,7 +57,16 @@ const ConfirmRide = () => {
 
     setSubmitting(false);
     if (!response.ok) {
-      console.error(await getErrorMessage(response, "Failed to submit ride."));
+      const errorMessage = await getErrorMessage(
+        response,
+        "Failed to submit ride.",
+      );
+      setToast({
+        title: "Unexpected error",
+        description: errorMessage,
+        onDismiss: clearToast,
+        isError: true,
+      });
     } else {
       setDropoffLocation(null);
       setPickupLocation(null);

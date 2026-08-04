@@ -12,6 +12,7 @@ import { TabProvider } from "../utils/context/tab-context";
 import { CurrentRideProvider } from "../utils/context/current-ride-context";
 import { RideDetailsProvider } from "../utils/context/ride-details-context";
 import { MissedRideProvider } from "../utils/context/missed-ride-context";
+import { ToastProvider } from "../utils/context/toast-context";
 
 configureReanimatedLogger({ strict: false });
 
@@ -33,34 +34,36 @@ export default function RootLayout() {
   return (
     <View className="bg-white h-full w-full">
       <View className="flex-1 bg-white">
-        <GestureHandlerRootView>
-          <TabProvider>
-            <SessionProvider>
-              <CurrentRideProvider>
-                <RideDetailsProvider>
-                  <MissedRideProvider>
-                    <RideProvider>
-                      <GroupRideProvider>
-                        <Stack screenOptions={{ headerShown: false }}>
-                          <Stack.Screen
-                            name="(tabs)"
-                            options={{
-                              headerShown: false,
-                            }}
-                          />
-                          <Stack.Screen
-                            name="cancellation-reason"
-                            options={{ presentation: "fullScreenModal" }}
-                          />
-                        </Stack>
-                      </GroupRideProvider>
-                    </RideProvider>
-                  </MissedRideProvider>
-                </RideDetailsProvider>
-              </CurrentRideProvider>
-            </SessionProvider>
-          </TabProvider>
-        </GestureHandlerRootView>
+        <ToastProvider>
+          <GestureHandlerRootView>
+            <TabProvider>
+              <SessionProvider>
+                <CurrentRideProvider>
+                  <RideDetailsProvider>
+                    <MissedRideProvider>
+                      <RideProvider>
+                        <GroupRideProvider>
+                          <Stack screenOptions={{ headerShown: false }}>
+                            <Stack.Screen
+                              name="(tabs)"
+                              options={{
+                                headerShown: false,
+                              }}
+                            />
+                            <Stack.Screen
+                              name="cancellation-reason"
+                              options={{ presentation: "fullScreenModal" }}
+                            />
+                          </Stack>
+                        </GroupRideProvider>
+                      </RideProvider>
+                    </MissedRideProvider>
+                  </RideDetailsProvider>
+                </CurrentRideProvider>
+              </SessionProvider>
+            </TabProvider>
+          </GestureHandlerRootView>
+        </ToastProvider>
       </View>
     </View>
   );
