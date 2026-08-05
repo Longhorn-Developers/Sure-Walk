@@ -26,6 +26,7 @@ import {
   CaretLeftIcon,
   CopyIcon,
   CrownSimpleIcon,
+  WarningCircleIcon,
 } from "phosphor-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -36,7 +37,6 @@ import {
 } from "react-native";
 import MapView from "react-native-maps";
 import Animated, {
-  FadeInUp,
   SharedValue,
   useDerivedValue,
   useSharedValue,
@@ -53,6 +53,7 @@ import { useCurrentRideSession } from "@/src/utils/context/current-ride-context"
 import OutlineButton from "@/src/components/outline-button";
 import CancelRideModal from "@/src/components/cancel-ride-modal";
 import { useMissedRideSession } from "@/src/utils/context/missed-ride-context";
+import { useToastContext } from "@/src/utils/context/toast-context";
 
 const CurrentRideInfo = () => {
   const { accessToken, fetchProtected, user } = useSession();
@@ -72,12 +73,13 @@ const CurrentRideInfo = () => {
   const scrollTarget = useSharedValue(0);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const { setMissedRide, setShowModal } = useMissedRideSession();
+  const { setToast } = useToastContext();
 
   const snap0 = useSharedValue<number>(72);
   const snap1 = useSharedValue<number>(156);
   const snapPoints = useDerivedValue<(string | number)[]>(
-    () => [snap0.value, snap1.value + snap0.value, "70%"],
-    [snap0],
+    () => [snap0.value, snap1.value, "70%"],
+    [snap0, snap1],
   ) as SharedValue<(string | number)[]>;
 
   const [pickupLocation, setPickupLocation] = useState<Location | undefined>(
@@ -118,7 +120,17 @@ const CurrentRideInfo = () => {
       const payload = JSON.parse(event.data) as RideEvent<object>;
       switch (payload.eventType) {
         case "connected": {
-          console.log("websocket connected");
+          if (loadingState !== "loading") {
+            setToast({
+              title: "Connected",
+              description: "Connected to ride updates.",
+              onDismiss: () => setToast(null),
+            });
+          } else {
+            setTimeout(() => {
+              sheetRef.current?.snapToIndex(1);
+            }, 200);
+          }
           setLoadingState("done");
           const data = payload.data as CurrentRideSmall;
           setRideDetails(data);
@@ -133,7 +145,7 @@ const CurrentRideInfo = () => {
         }
         case "vehicleInfo": {
           const data = payload.data as VehicleInfoShort;
-          setTimeout(() => setVehicleInfo(data), 2000);
+          setVehicleInfo(data);
           break;
         }
       }
@@ -159,6 +171,14 @@ const CurrentRideInfo = () => {
           if (event.reason === "Missed pickup.") {
             setShowModal(true);
           }
+          if (shareCode && rideDetails?.shareCode) {
+            // viewing a group ride and leader cancelled the ride
+            setToast({
+              title: "Ride Canceled",
+              description: "Your ride has been canceled by the leader.",
+              onDismiss: () => setToast(null),
+            });
+          }
           router.dismissTo("/home");
         }
         setRideDetails(null);
@@ -175,14 +195,30 @@ const CurrentRideInfo = () => {
         router.dismissTo("/home");
         setRideDetails(null);
         if (!shareCode) {
-          console.error("There is no active ride.");
+          setToast({
+            title: "Ride Not Found",
+            description: "There is no active ride.",
+            onDismiss: () => setToast(null),
+            isError: true,
+          });
           setCurrentRide(null);
         } else {
-          console.error("Could not find a ride with that ride code.");
+          setToast({
+            title: "Ride Not Found",
+            description: "There is no ride with that ride code.",
+            onDismiss: () => setToast(null),
+            isError: true,
+          });
         }
       } else {
         // unknown error, reconnect?
-        connect();
+        setToast({
+          title: "Disconnected",
+          description: "Attempting to reconnect...",
+          onDismiss: () => setToast(null),
+          isError: true,
+        });
+        setTimeout(() => connect, 2000);
       }
     };
 
@@ -277,7 +313,7 @@ const CurrentRideInfo = () => {
     if (height === 0) {
       height = 76;
     }
-    snap1.set(height);
+    snap1.set(height + 48);
   };
 
   useAnimatedReaction(
@@ -384,76 +420,103 @@ const CurrentRideInfo = () => {
             tintColor={UTBurntOrange}
           ></MapView>
         </View>
-        {vehicleInfo && (
-          <Animated.View
-            className="absolute top-1 left-2 px-4 flex-row gap-2 items-center px-2 py-2 bg-white border border-slate-200 rounded-xl"
-            entering={FadeInUp.duration(300).easing(Easing.out(Easing.cubic))}
-          >
-            <View className="flex-row gap-[6px] items-center">
-              <FontText className="text-lg">{vehicleInfo.name}</FontText>
-              {vehicleInfo.adaAccessible && (
-                <View className="bg-ut-burntorange py-[2px] px-1 rounded-md">
-                  <FontText className="text-xs color-white">ADA</FontText>
-                </View>
-              )}
-            </View>
-            {vehicleInfo.licensePlate && (
-              <View className="bg-slate-200 px-1 rounded-md">
-                <FontText className="text-lg">
-                  {vehicleInfo.licensePlate}
-                </FontText>
-              </View>
-            )}
-          </Animated.View>
-        )}
       </View>
       <BottomSheet
         ref={sheetRef}
         enableDynamicSizing={false}
         snapPoints={snapPoints}
-        index={0}
-        onChange={(index) => {
-          if (index < 2) {
-            scrollRef.current?.scrollTo({ y: 0, animated: true });
-          }
-        }}
-        handleComponent={() => (
-          <View className="relative w-full">
-            <View className="rounded-t-[28px] flex-col items-center py-4">
-              <View className="bg-slate-300 rounded w-8 h-1" />
-            </View>
-            <FontText
-              className="text-2xl font-medium pt-1 px-5"
-              onLayout={handleLayout0}
-            >
-              Booking details
-            </FontText>
-            <LinearGradient
-              colors={["#ffffffff", "#ffffff00"]}
-              style={{
-                position: "fixed",
-                top: 12,
-                height: 12,
-                zIndex: 100,
-              }}
-            />
-          </View>
-        )}
+        index={-1}
+        handleComponent={null}
       >
+        <View className="relative w-full">
+          <View className="rounded-t-[28px] flex-col items-center pt-4">
+            <View className="bg-slate-300 rounded w-8 h-1" />
+          </View>
+          <LinearGradient
+            colors={["#ffffffff", "#ffffff00"]}
+            style={{
+              position: "fixed",
+              top: 16,
+              height: 16,
+              zIndex: 100,
+            }}
+          />
+        </View>
         <BottomSheetScrollView className="px-5" ref={scrollRef}>
           {loadingState === "done" && rideDetails && (
             <>
-              <View className="mt-2 pb-3" onLayout={handleLayout1}>
-                {pickupLocation && dropoffLocation && (
-                  <PickupDropoffLocationInfo
-                    pickupLocation={pickupLocation}
-                    dropoffLocation={dropoffLocation}
-                  />
-                )}
+              {vehicleInfo && (
+                <View
+                  className="flex-col gap-4 mt-2 pb-4"
+                  onLayout={handleLayout1}
+                >
+                  {rideDetails.rideState === "arrived" && (
+                    <View className="pb-2" onLayout={handleLayout0}>
+                      <View className="flex-row items-center gap-4 px-4 py-2.5 border border-ut-burntorange rounded-xl mt-1 mb-2">
+                        <WarningCircleIcon color={UTBurntOrange} size={24} />
+                        <View className="flex-col">
+                          <FontText className="color-ut-burntorange text-lg">
+                            2 minute warning
+                          </FontText>
+                          <FontText className="text-md color-ut-burntorange">
+                            Please get to your Sure Walk ride on time!
+                          </FontText>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                  <FontText className="text-2xl font-medium">
+                    Vehicle details
+                  </FontText>
+                  <View className="bg-slate-50 rounded-2xl border border-slate-200 p-4 flex-row gap-8 items-center">
+                    <View className="flex-col gap-2 flex-1">
+                      <FontText className="text-xl font-semibold mb-1">
+                        {vehicleInfo.name}
+                      </FontText>
+                      <View className="flex-row gap-2 items-center">
+                        {vehicleInfo.licensePlate && (
+                          <View className="bg-slate-200 px-1 rounded-md">
+                            <FontText className="text-lg">
+                              {vehicleInfo.licensePlate}
+                            </FontText>
+                          </View>
+                        )}
+                        {vehicleInfo.adaAccessible && (
+                          <View className="bg-ut-burntorange py-[2px] px-1 rounded-md">
+                            <FontText className="text-md color-white">
+                              ADA
+                            </FontText>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                    <View className="bg-blue-200 rounded-xl flex-1 h-full"></View>
+                  </View>
+                </View>
+              )}
+              <View onLayout={vehicleInfo ? undefined : handleLayout1}>
+                <FontText
+                  className="text-2xl font-medium mt-2 mb-2"
+                  onLayout={
+                    rideDetails.rideState !== "arrived"
+                      ? handleLayout0
+                      : undefined
+                  }
+                >
+                  Booking details
+                </FontText>
+                <View className="mt-2">
+                  {pickupLocation && dropoffLocation && (
+                    <PickupDropoffLocationInfo
+                      pickupLocation={pickupLocation}
+                      dropoffLocation={dropoffLocation}
+                    />
+                  )}
+                </View>
               </View>
               {rideDetails.groupRide.length !== 0 && (
                 <>
-                  <FontText className="text-xl font-medium pt-3 pb-4">
+                  <FontText className="text-xl font-medium pt-6 pb-4">
                     Share group ride
                   </FontText>
                   <View className="bg-slate-50 rounded-lg border border-slate-200 flex-row items-center justify-between px-4 py-2.5">
@@ -487,16 +550,18 @@ const CurrentRideInfo = () => {
               </FontText>
               <GuidelinesListShort />
               <View className="mt-6 mb-5 h-[1px] w-full bg-slate-200" />
-              {!shareCode && (
-                <View className="flex-row pb-6">
-                  <OutlineButton
-                    title="Cancel booking"
-                    onPress={() => setModalVisible(true)}
-                    red
-                    small
-                  />
-                </View>
-              )}
+              {!shareCode &&
+                rideDetails.rideState !== "in progress" &&
+                rideDetails.rideState !== "dropped off" && (
+                  <View className="flex-row pb-6">
+                    <OutlineButton
+                      title="Cancel booking"
+                      onPress={() => setModalVisible(true)}
+                      red
+                      small
+                    />
+                  </View>
+                )}
             </>
           )}
         </BottomSheetScrollView>
@@ -504,6 +569,7 @@ const CurrentRideInfo = () => {
       <CancelRideModal
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
+        isGroupRide={rideDetails?.shareCode ? true : false}
       />
     </View>
   );

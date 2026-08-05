@@ -3,18 +3,14 @@ import LargeButton from "@/src/components/large-button";
 import RadioButton from "@/src/components/radio-button";
 import { router } from "expo-router";
 import { useSearchParams } from "expo-router/build/hooks";
-import { useEffect, useRef, useState } from "react";
-import { Keyboard, ScrollView, View } from "react-native";
+import { useState } from "react";
+import { View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import TextInputField from "../components/text-input-field";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
 import { useSession } from "../utils/context/user-context";
-import { getErrorMessage } from "../client";
+import { getErrorMessage, handleNetworkFailure } from "../client";
+import { useToastContext } from "../utils/context/toast-context";
 
 const CancellationReason = () => {
   const cancellationReasons: [string, ...string[]] = [
@@ -30,39 +26,12 @@ const CancellationReason = () => {
   const params = useSearchParams();
   const rideID = params.get("rideID");
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [extraText, setExtraText] = useState<string>("");
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  const keyboardPaddingHeight = useSharedValue(20);
-
-  const animatedStyle = useAnimatedStyle(
-    () => ({
-      height: withTiming(keyboardPaddingHeight.value, {
-        easing: Easing.out(Easing.quad),
-      }),
-    }),
-    [keyboardPaddingHeight],
-  );
-
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
-      keyboardPaddingHeight.set(270);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd();
-      }, 250);
-    });
-
-    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
-      keyboardPaddingHeight.set(20);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const { setToast } = useToastContext();
 
   const submit = async () => {
+    setSubmitting(true);
     try {
       const data = {
         rideID,
@@ -75,11 +44,26 @@ const CancellationReason = () => {
         data,
       );
       if (!res.ok) {
-        throw new Error(await getErrorMessage(res));
+        const error = await getErrorMessage(res);
+        setToast({
+          title: "Unexpected Error",
+          description: error,
+          onDismiss: () => setToast(null),
+          isError: true,
+        });
+      } else {
+        setToast({
+          title: "Feedback Received",
+          description: "Thank you for your feedback!",
+          onDismiss: () => setToast(null),
+          isError: false,
+        });
+        router.back();
       }
-      router.back();
     } catch (err) {
-      console.error(err);
+      handleNetworkFailure(err, setToast);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -90,7 +74,7 @@ const CancellationReason = () => {
           Reason for cancelling?
         </FontText>
       </View>
-      <View className="relative mt-[-16px] z-5 flex-1 mx-[-20px] mb-4">
+      <View className="relative mt-[-16px] z-5 flex-1 mx-[-20px] mb-4 flex-1">
         <LinearGradient
           colors={["#ffffffff", "#ffffff00"]}
           style={{
@@ -113,11 +97,11 @@ const CancellationReason = () => {
             zIndex: 10,
           }}
         />
-        <ScrollView
-          className="flex-col py-4 pt-[-16px] px-5 gap-4"
-          ref={scrollViewRef}
+        <KeyboardAwareScrollView
+          className="flex-col pb-4 pt-[-16px] px-5 gap-4"
+          bottomOffset={40}
         >
-          <View className="flex-col gap-4 flex-1 pt-4">
+          <View className="flex-col gap-4 flex-1 pt-4 pb-4">
             {cancellationReasons.map((option, index) => (
               <RadioButton
                 label={option}
@@ -134,15 +118,15 @@ const CancellationReason = () => {
               />
             )}
           </View>
-          <Animated.View style={[animatedStyle]} />
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
       <LargeButton
-        title="Back to Home"
+        title={submitting ? "Submitting..." : "Back to Home"}
         onPress={submit}
         disabled={
           selectedOption === null ||
-          (selectedOption === "Other" && extraText.length <= 5)
+          (selectedOption === "Other" && extraText.length <= 5) ||
+          submitting
         }
       />
     </View>

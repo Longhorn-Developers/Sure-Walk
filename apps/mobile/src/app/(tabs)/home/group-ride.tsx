@@ -16,14 +16,9 @@ import {
   MinusCircleIcon,
   UserPlusIcon,
 } from "phosphor-react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, ScrollView, TouchableOpacity, View } from "react-native";
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import { useEffect, useMemo, useState } from "react";
+import { TouchableOpacity, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 const GroupRide = () => {
   const { user } = useSession();
@@ -37,33 +32,6 @@ const GroupRide = () => {
   const [lastName, setLastName] = useState<string>("");
   const [isValid, setIsValid] = useState<boolean>(false);
   const [isFull, setIsFull] = useState<boolean>(false);
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  const keyboardPaddingHeight = useSharedValue(20);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    height: withTiming(keyboardPaddingHeight.value, {
-      easing: Easing.out(Easing.quad),
-    }),
-  }));
-
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
-      keyboardPaddingHeight.set(190);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd();
-      }, 250);
-    });
-
-    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
-      keyboardPaddingHeight.set(20);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const leaderGroupRideMember: GroupRideMember = useMemo(
     () => ({
@@ -145,10 +113,11 @@ const GroupRide = () => {
             zIndex: 10,
           }}
         />
-        <ScrollView
+        <KeyboardAwareScrollView
           className="flex-col px-5"
-          ref={scrollViewRef}
           keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 20 }}
+          bottomOffset={120}
         >
           <FontText className="text-xl font-semibold mt-5 transition-all mb-4">
             Group Leader
@@ -252,8 +221,7 @@ const GroupRide = () => {
               icon={<UserPlusIcon size={32} color={UTBluebonnet} />}
             />
           )}
-          <Animated.View style={[animatedStyle]} />
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
       <LargeButton
         onPress={() => {

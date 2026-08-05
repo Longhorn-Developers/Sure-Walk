@@ -33,7 +33,7 @@ const ConfirmRide = () => {
   const { goMyRide } = useTabContext();
   const { setCurrentRide: setCurrentRideMini, setLoadingState } =
     useCurrentRideSession();
-  const { setToast, clearToast } = useToastContext();
+  const { setToast } = useToastContext();
   const [confirmEnabled, setConfirmEnabled] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -64,7 +64,7 @@ const ConfirmRide = () => {
       setToast({
         title: "Unexpected error",
         description: errorMessage,
-        onDismiss: clearToast,
+        onDismiss: () => setToast(null),
         isError: true,
       });
     } else {

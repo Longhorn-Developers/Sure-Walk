@@ -30,5 +30,10 @@
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@gorhom/bottom-sheet@5.2.8": "patches/@gorhom-bottom-sheet-npm-5.2.8-1ad4b8f529.patch"
+    }
   }
 }

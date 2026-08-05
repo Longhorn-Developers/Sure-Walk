@@ -3,8 +3,7 @@ import React, { createContext, useContext, useState } from "react";
 import { View } from "react-native";
 
 interface ToastContextType {
-  setToast: (toast: ToastProps) => void;
-  clearToast: () => void;
+  setToast: (toast: ToastProps | null) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -21,13 +20,11 @@ export const useToastContext = () => {
 
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toastProps, setToast] = useState<ToastProps | null>(null);
-  const clearToast = () => setToast(null);
 
   return (
     <ToastContext.Provider
       value={{
         setToast,
-        clearToast,
       }}
     >
       {children}

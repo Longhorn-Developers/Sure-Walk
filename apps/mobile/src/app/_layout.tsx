@@ -13,6 +13,7 @@ import { CurrentRideProvider } from "../utils/context/current-ride-context";
 import { RideDetailsProvider } from "../utils/context/ride-details-context";
 import { MissedRideProvider } from "../utils/context/missed-ride-context";
 import { ToastProvider } from "../utils/context/toast-context";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 
 configureReanimatedLogger({ strict: false });
 
@@ -33,7 +34,7 @@ export default function RootLayout() {
 
   return (
     <View className="bg-white h-full w-full">
-      <View className="flex-1 bg-white">
+      <KeyboardProvider>
         <ToastProvider>
           <GestureHandlerRootView>
             <TabProvider>
@@ -64,7 +65,7 @@ export default function RootLayout() {
             </TabProvider>
           </GestureHandlerRootView>
         </ToastProvider>
-      </View>
+      </KeyboardProvider>
     </View>
   );
 }

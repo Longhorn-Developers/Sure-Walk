@@ -12,7 +12,10 @@ const PickupDropoffLocationInfo = ({
   dropoffLocation: Location | null;
 }) => {
   return (
-    <View className="flex-col rounded-lg">
+    <View
+      className="flex-col rounded-2xl bg-slate-50"
+      style={{ boxShadow: "0 2px 8px 0 rgba(214, 210, 196, 0.20)" }}
+    >
       <View className="bg-slate-50 flex-row p-4 gap-4 items-center rounded-t-2xl border border-slate-200">
         <View className="bg-[#BF570033] rounded-full items-center justify-center w-[32px] h-[32px]">
           <CircleIcon color={UTBurntOrange} weight="fill" size="20" />
@@ -26,7 +29,7 @@ const PickupDropoffLocationInfo = ({
           </FontText>
         </View>
       </View>
-      <View className="bg-slate-50 flex-row p-4 gap-4 items-center rounded-b-2xl border border-slate-200 mt-[-1px] mb-2">
+      <View className="bg-slate-50 flex-row p-4 gap-4 items-center rounded-b-2xl border border-slate-200 mt-[-1px]">
         <View className="bg-[#005F8633] rounded-full items-center justify-center w-[32px] h-[32px]">
           <MapPinIcon color={UTBluebonnet} size="20" weight="fill" />
         </View>

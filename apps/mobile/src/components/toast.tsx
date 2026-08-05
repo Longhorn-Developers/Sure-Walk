@@ -7,6 +7,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { slate50, UTBluebonnet } from "../utils/colors";
 import FontText from "./font-text";
+import { useEffect } from "react";
 
 export type ToastProps = {
   title: string;
@@ -16,11 +17,21 @@ export type ToastProps = {
 };
 
 const Toast = ({ title, description, onDismiss, isError }: ToastProps) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onDismiss();
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
   return (
     <Animated.View
       className={`flex-row gap-4 px-4 pt-3 pb-3.5 items-center ${isError ? "bg-red-700" : "bg-slate-50"} rounded-xl`}
       entering={FadeInDown.duration(300).easing(Easing.out(Easing.cubic))}
       exiting={FadeOutUp.duration(300).easing(Easing.out(Easing.cubic))}
+      key={Math.random()}
+      style={{ boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)" }}
     >
       {isError ? (
         <WarningCircleIcon color={slate50} size={24} />

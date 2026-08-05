@@ -6,6 +6,7 @@ import { UTBluebonnet, UTBurntOrange } from "@/src/utils/colors";
 import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 import { useMissedRideSession } from "@/src/utils/context/missed-ride-context";
 import { useTabContext } from "@/src/utils/context/tab-context";
+import { useToastContext } from "@/src/utils/context/toast-context";
 import { useSession } from "@/src/utils/context/user-context";
 import { WEST_CAMPUS_LOCATIONS } from "@/src/utils/locations/dropoff-locations";
 import { CAMPUS_LOCATIONS } from "@/src/utils/locations/pickup-locations";
@@ -36,6 +37,7 @@ const MyRide = ({ initialIndex }: { initialIndex: number }) => {
   const { currentRide, setCurrentRide, loadingState, setLoadingState } =
     useCurrentRideSession();
   const { missedRide, showModal, setShowModal } = useMissedRideSession();
+  const { setToast } = useToastContext();
   const inputRef = useRef<TextInput>(null);
   const [pickupLocation, setPickupLocation] = useState<Location | undefined>(
     undefined,
@@ -220,7 +222,7 @@ const MyRide = ({ initialIndex }: { initialIndex: number }) => {
               Enter the ride code shared by your group leader.
             </FontText>
             <TextInputField
-              placeholder="ABC123"
+              placeholder="ABC1234"
               autoCapitalize={"characters"}
               value={code}
               onChangeText={(text) => setCode(text.toUpperCase())}
@@ -229,6 +231,15 @@ const MyRide = ({ initialIndex }: { initialIndex: number }) => {
               inputRef={inputRef}
               returnKeyType="go"
               onSubmitEditing={() => {
+                if (code.length !== 7) {
+                  setToast({
+                    title: "Invalid Code",
+                    description: "Please enter a valid 7-digit ride code.",
+                    onDismiss: () => setToast(null),
+                    isError: true,
+                  });
+                  return;
+                }
                 router.push(`/home/ride-info-wrapper?shareCode=${code}`);
               }}
             />

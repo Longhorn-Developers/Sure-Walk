@@ -60,7 +60,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
     server.addEventListener("error", (error) => {
       console.log(error);
-      server.close(1006, "Disconnected.");
+      server.close(4000, "Disconnected.");
       this.deleteSocket(server, currentRide.id);
     });
 

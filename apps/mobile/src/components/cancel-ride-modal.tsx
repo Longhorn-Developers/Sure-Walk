@@ -7,16 +7,32 @@ import OutlineButton from "./outline-button";
 import { router } from "expo-router";
 import { useSession } from "../utils/context/user-context";
 import { useCurrentRideSession } from "../utils/context/current-ride-context";
+import PickupDropoffLocationInfo from "./pickup-dropoff-location-info";
+import { useEffect, useState } from "react";
+import { WEST_CAMPUS_LOCATIONS } from "../utils/locations/dropoff-locations";
+import { CAMPUS_LOCATIONS } from "../utils/locations/pickup-locations";
+import Location from "../utils/types/location";
+import { getErrorMessage, handleNetworkFailure } from "../client";
+import { useToastContext } from "../utils/context/toast-context";
 
 const CancelRideModal = ({
   modalVisible,
   setModalVisible,
+  isGroupRide,
 }: {
   modalVisible: boolean;
   setModalVisible: (state: boolean) => void;
+  isGroupRide: boolean;
 }) => {
   const { fetchProtected } = useSession();
-  const { setCurrentRide } = useCurrentRideSession();
+  const { currentRide, setCurrentRide } = useCurrentRideSession();
+  const { setToast } = useToastContext();
+  const [pickupLocation, setPickupLocation] = useState<Location | undefined>(
+    undefined,
+  );
+  const [dropoffLocation, setDropoffLocation] = useState<Location | undefined>(
+    undefined,
+  );
 
   const cancelRide = async () => {
     try {
@@ -27,12 +43,36 @@ const CancelRideModal = ({
         const data = await res.json();
         setTimeout(() => {
           router.push(`/cancellation-reason?rideID=${data.rideIDForFeedback}`);
-        }, 1000);
+        }, 100);
+      } else {
+        const error = await getErrorMessage(res, "Failed to cancel ride.");
+        setToast({
+          title: "Unexpected Error",
+          description: error,
+          onDismiss: () => setToast(null),
+          isError: true,
+        });
       }
     } catch (err) {
-      console.error(err);
+      handleNetworkFailure(err, setToast);
     }
   };
+
+  useEffect(() => {
+    if (currentRide) {
+      setPickupLocation(
+        CAMPUS_LOCATIONS.find((loc) => loc.id === currentRide.pickupLocationID),
+      );
+      setDropoffLocation(
+        WEST_CAMPUS_LOCATIONS.find(
+          (loc) => loc.id === currentRide.dropoffLocationID,
+        ),
+      );
+    } else {
+      setPickupLocation(undefined);
+      setDropoffLocation(undefined);
+    }
+  }, [currentRide]);
 
   return (
     <Modal
@@ -53,8 +93,27 @@ const CancelRideModal = ({
               <FontText className="text-2xl font-medium">Cancel Ride</FontText>
             </View>
             <FontText className="text-lg">
-              Are you sure you want to cancel your Sure Walk?
+              {isGroupRide ? (
+                <>
+                  This will cancel the following booking for{" "}
+                  <FontText className="font-semibold text-lg">
+                    everyone
+                  </FontText>{" "}
+                  in the ride. Are you sure?
+                </>
+              ) : (
+                <>
+                  You will have to make a new request if you still need a ride.
+                  Are you sure?
+                </>
+              )}
             </FontText>
+          </View>
+          <View className="my-[-4px]">
+            <PickupDropoffLocationInfo
+              pickupLocation={pickupLocation ?? null}
+              dropoffLocation={dropoffLocation ?? null}
+            />
           </View>
           <View className="flex-col gap-3">
             <OutlineButton title="Yes, cancel" red onPress={cancelRide} />

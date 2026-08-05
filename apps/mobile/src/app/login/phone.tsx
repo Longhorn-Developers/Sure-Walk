@@ -6,7 +6,8 @@ import { useState } from "react";
 import { Platform, View } from "react-native";
 import FontText from "@/src/components/font-text";
 import { registerGeneric } from "@/src/client/auth";
-import { getErrorMessage } from "@/src/client";
+import { getErrorMessage, handleNetworkFailure } from "@/src/client";
+import { useToastContext } from "@/src/utils/context/toast-context";
 
 const Phone = () => {
   const checkValidity = (value: string) => {
@@ -22,6 +23,8 @@ const Phone = () => {
     phoneNumber,
     setPhoneNumber,
   } = useLoginSession();
+  const { setToast } = useToastContext();
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [isValid, setIsValid] = useState(checkValidity(phoneNumber));
 
   const handlePhoneNumberChange = (value: string) => {
@@ -30,23 +33,30 @@ const Phone = () => {
   };
 
   const registerAccount = async () => {
-    const response = await registerGeneric({
-      firstName,
-      lastName,
-      eid,
-      phoneNumber,
-      requiresAssistance: requiresAssistance!,
-      userType: userType!,
-    });
+    setSubmitting(true);
+    try {
+      const response = await registerGeneric({
+        firstName,
+        lastName,
+        eid,
+        phoneNumber,
+        requiresAssistance: requiresAssistance!,
+        userType: userType!,
+      });
 
-    if (!response.ok) {
-      console.error(
-        await getErrorMessage(response, "Failed to register account"),
-      );
-      return;
+      if (!response.ok) {
+        console.error(
+          await getErrorMessage(response, "Failed to register account"),
+        );
+        return;
+      }
+
+      router.navigate("/login/confirm");
+    } catch (error) {
+      handleNetworkFailure(error, setToast);
+    } finally {
+      setSubmitting(false);
     }
-
-    router.navigate("/login/confirm");
   };
 
   return (
@@ -70,11 +80,9 @@ const Phone = () => {
         />
       </View>
       <LargeButton
-        title="Continue"
-        disabled={!isValid}
-        onPress={() => {
-          registerAccount();
-        }}
+        title={submitting ? "Submitting..." : "Continue"}
+        disabled={!isValid || submitting}
+        onPress={registerAccount}
       />
     </View>
   );
