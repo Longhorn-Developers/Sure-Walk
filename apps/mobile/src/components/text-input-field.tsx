@@ -34,9 +34,15 @@ const TextInputField = ({
           <FontText className="text-lg font-semibold text-gray-900">
             {fieldName}
           </FontText>
-          {optionalPressableCallback && (
-            <TouchableOpacity onPress={() => optionalPressableCallback()}>
-              <FontText className="text-lg font-semibold text-ut-bluebonnet">
+          {optionalPressableText && (
+            <TouchableOpacity
+              onPress={() =>
+                optionalPressableCallback && optionalPressableCallback()
+              }
+            >
+              <FontText
+                className={`text-lg ${optionalPressableCallback ? "font-semibold text-ut-bluebonnet" : ""}`}
+              >
                 {optionalPressableText}
               </FontText>
             </TouchableOpacity>

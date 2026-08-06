@@ -24,6 +24,10 @@ const groupRideMember = z.object({
     .min(1, "Last name must be at least 1 character.")
     .max(30, "Last name must be at most 30 characters."),
   eid: z.string().min(4, "EID must be at least 4 characters.").optional(),
+  phoneNumber: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits")
+    .optional(),
   userType: z.enum(["ut-affiliated", "guest"]),
 });
 

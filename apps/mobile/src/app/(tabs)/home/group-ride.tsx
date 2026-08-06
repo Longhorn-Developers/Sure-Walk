@@ -17,7 +17,7 @@ import {
   UserPlusIcon,
 } from "phosphor-react-native";
 import { useEffect, useMemo, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Platform, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 const GroupRide = () => {
@@ -30,6 +30,7 @@ const GroupRide = () => {
   const [utEID, setUTEID] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [isValid, setIsValid] = useState<boolean>(false);
   const [isFull, setIsFull] = useState<boolean>(false);
 
@@ -39,6 +40,7 @@ const GroupRide = () => {
       lastName: user?.lastName!.trim()!,
       eid: user?.eid?.trim(),
       userType: user?.userType!,
+      phoneNumber: user?.phoneNumber,
     }),
     [user],
   );
@@ -48,8 +50,12 @@ const GroupRide = () => {
       setIsValid(false);
       return;
     }
+    if (phoneNumber.length > 0 && phoneNumber.trim().length < 10) {
+      setIsValid(false);
+      return;
+    }
     setIsValid(firstName.trim().length > 0 && lastName.trim().length > 0);
-  }, [addingUserType, utEID, firstName, lastName]);
+  }, [addingUserType, utEID, firstName, lastName, phoneNumber]);
 
   useEffect(() => {
     setIsFull(members.length >= 4);
@@ -59,15 +65,18 @@ const GroupRide = () => {
     setFirstName("");
     setLastName("");
     setUTEID("");
+    setPhoneNumber("");
   };
 
   const addRider = () => {
     if (!isValid) return;
+    const trimmedPhone = phoneNumber.trim();
     addMember({
-      firstName,
-      lastName,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       userType: addingUserType,
       eid: addingUserType === "ut-affiliated" ? utEID : undefined,
+      phoneNumber: trimmedPhone === "" ? undefined : trimmedPhone,
     });
     setAdding(false);
     clearFields();
@@ -186,8 +195,23 @@ const GroupRide = () => {
                 maxLength={40}
                 autoCapitalize="words"
                 placeholder="Longhorn"
-                styleProps={{ marginBottom: 8 }}
               />
+              <View className="flex-col gap-2 mb-2">
+                <TextInputField
+                  fieldName="Phone Number"
+                  optionalPressableText="*Optional"
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  maxLength={14}
+                  keyboardType="phone-pad"
+                  autoComplete="tel"
+                  placeholder="(123)-456-7890"
+                  returnKeyType={Platform.OS === "ios" ? "done" : undefined}
+                />
+                <FontText className="text-md color-slate-500">
+                  For day-of-ride updates only
+                </FontText>
+              </View>
               <View className="flex-row gap-2">
                 <View className="flex-1">
                   <OutlineButton

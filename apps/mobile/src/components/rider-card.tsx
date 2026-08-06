@@ -27,7 +27,7 @@ const RiderCard = ({
       <View className="flex-col flex-1 gap-0.5 justify-center">
         <FontText className="text-lg/5 font-medium">{`${member.firstName} ${member.lastName}`}</FontText>
         <FontText className="color-slate-700 text-lg/5 font-normal">
-          {member.eid ?? "Guest"}
+          {`${member.eid ?? "Guest"}${member.phoneNumber ? ` • ${member.phoneNumber}` : ""}`}
         </FontText>
       </View>
       <View className="align-center justify-center">{actionComponent}</View>

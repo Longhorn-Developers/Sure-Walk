@@ -57,7 +57,7 @@ import { useToastContext } from "@/src/utils/context/toast-context";
 
 const CurrentRideInfo = () => {
   const { accessToken, fetchProtected, user } = useSession();
-  const { firstName, lastName, userType, eid } = user!;
+  const { firstName, lastName, userType, eid, phoneNumber } = user!;
   const { setRideDetails, rideDetails } = useRideDetailsSession();
   const { setCurrentRide } = useCurrentRideSession();
   const params = useSearchParams();
@@ -160,7 +160,7 @@ const CurrentRideInfo = () => {
       if (event.code === 1000) {
         ws.removeEventListener("close", onClose);
         if (
-          event.reason === "complete" ||
+          event.reason.startsWith("Complete: ") ||
           event.reason === "Ride cancelled." ||
           event.reason === "Missed pickup."
         ) {
@@ -536,7 +536,7 @@ const CurrentRideInfo = () => {
               </View>
               <View className="flex-col gap-4 pb-4">
                 <RiderCard
-                  member={{ firstName, lastName, userType, eid }}
+                  member={{ firstName, lastName, userType, eid, phoneNumber }}
                   actionComponent={
                     <CrownSimpleIcon color="#FFD600" size={24} weight="fill" />
                   }

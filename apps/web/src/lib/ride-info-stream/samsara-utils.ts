@@ -31,7 +31,7 @@ const createRoute = async ({
   const routeName = getRideName(user, members);
   const routeNotes =
     `Picking up ${user.firstName} ${user.lastName} (${user.phoneNumber}) at ${pickupLocation.name} and dropping off at ${dropoffLocation.name}. ` +
-    `${members.length > 0 ? `Also picking up ${members.map((m) => `${m.firstName} ${m.lastName}${m.userType === "guest" ? " (guest)" : ` (${m.eid})`}`).join(", ")}.\n` : ""}Submitted at ${new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })}.`;
+    `${members.length > 0 ? `Also picking up ${members.map((m) => `${m.firstName} ${m.lastName}${m.phoneNumber ? ` (${m.phoneNumber})` : ""}`).join(", ")}.\n` : ""}Submitted at ${new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })}.`;
 
   const res = await samsaraClient.routes.createRoute({
     name: routeName,
@@ -83,7 +83,7 @@ const createRoute = async ({
   let rideCode: string | null = null;
   if (members.length > 0) {
     rideCode = "";
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     const charsLen = chars.length;
     for (let i = 0; i < 7; i++) {
       rideCode += chars.charAt(Math.floor(Math.random() * charsLen));

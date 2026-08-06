@@ -339,7 +339,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                 .where(eq(rides.dropoffStopID, stopID));
               this.streams
                 .get(rideID)
-                ?.forEach((ws) => ws.close(1000, "complete"));
+                ?.forEach((ws) => ws.close(1000, `Complete: ${rideID}`));
               this.streams.delete(rideID);
             }
           }

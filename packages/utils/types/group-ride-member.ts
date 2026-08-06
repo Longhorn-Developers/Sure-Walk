@@ -4,6 +4,7 @@ type GroupRideMember = {
   firstName: string;
   lastName: string;
   eid?: string;
+  phoneNumber?: string;
   userType: UserType;
 };
 

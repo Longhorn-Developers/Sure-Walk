@@ -28,7 +28,7 @@ const ConfirmRide = () => {
   const { pickupLocation, dropoffLocation } = useRideSession();
   const { members, clearMembers } = useGroupRideSession();
   const { user, fetchProtected } = useSession();
-  const { firstName, lastName, userType, eid } = user!;
+  const { firstName, lastName, userType, eid, phoneNumber } = user!;
   const { setDropoffLocation, setPickupLocation } = useRideSession();
   const { goMyRide } = useTabContext();
   const { setCurrentRide: setCurrentRideMini, setLoadingState } =
@@ -160,7 +160,7 @@ const ConfirmRide = () => {
               </View>
               <View className="flex-col gap-4 pb-4">
                 <RiderCard
-                  member={{ firstName, lastName, userType, eid }}
+                  member={{ firstName, lastName, userType, eid, phoneNumber }}
                   actionComponent={
                     <CrownSimpleIcon color="#FFD600" size={24} weight="fill" />
                   }
