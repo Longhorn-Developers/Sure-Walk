@@ -37,11 +37,17 @@ const CancelRideModal = ({
   const cancelRide = async () => {
     try {
       setModalVisible(false);
+      setToast({
+        title: "Cancelling...",
+        description: "Your ride is being cancelled, hold on...",
+        onDismiss: () => setToast(null),
+      });
       const res = await fetchProtected("/ride", "DELETE");
       if (res.ok) {
         setCurrentRide(null);
         const data = await res.json();
         setTimeout(() => {
+          setToast(null);
           router.push(`/cancellation-reason?rideID=${data.rideIDForFeedback}`);
         }, 100);
       } else {

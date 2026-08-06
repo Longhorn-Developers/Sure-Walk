@@ -35,8 +35,8 @@ export default function RootLayout() {
   return (
     <View className="bg-white h-full w-full">
       <KeyboardProvider>
-        <ToastProvider>
-          <GestureHandlerRootView>
+        <GestureHandlerRootView>
+          <ToastProvider>
             <TabProvider>
               <SessionProvider>
                 <CurrentRideProvider>
@@ -53,7 +53,7 @@ export default function RootLayout() {
                             />
                             <Stack.Screen
                               name="cancellation-reason"
-                              options={{ presentation: "fullScreenModal" }}
+                              options={{ presentation: "containedModal" }}
                             />
                           </Stack>
                         </GroupRideProvider>
@@ -63,8 +63,8 @@ export default function RootLayout() {
                 </CurrentRideProvider>
               </SessionProvider>
             </TabProvider>
-          </GestureHandlerRootView>
-        </ToastProvider>
+          </ToastProvider>
+        </GestureHandlerRootView>
       </KeyboardProvider>
     </View>
   );
