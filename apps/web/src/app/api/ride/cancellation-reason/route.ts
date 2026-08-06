@@ -74,6 +74,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (cancellationReason === "Other" && (cancellationExtra ?? "").length <= 5) {
+    return NextResponse.json(
+      {
+        message: "Provide a cancellation message.",
+      },
+      { status: 400 },
+    );
+  }
+
   await getDB()
     .update(rides)
     .set({ cancellationReason, cancellationExtra })

@@ -211,6 +211,16 @@ const missRide = async (ride: typeof Ride, user: User) => {
   });
 };
 
+const getVehicleFromDriver = async (driverID: string) => {
+  const res =
+    await samsaraClient.driverVehicleAssignments.getDriverVehicleAssignments({
+      filterBy: "drivers",
+      driverIds: driverID,
+      assignmentType: "HOS",
+    });
+  return res;
+};
+
 export {
   samsaraClient,
   createRoute,
@@ -224,4 +234,5 @@ export {
   fetchCurrentRoutes,
   getRideName,
   missRide,
+  getVehicleFromDriver,
 };

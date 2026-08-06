@@ -6,8 +6,8 @@ import {
   fetchCurrentRoutes,
   getAsset,
   getFormSubmission,
-  getRoute,
   getRouteUpdates,
+  getVehicleFromDriver,
   getVehicleLocations,
   missRide,
 } from "./samsara-utils";
@@ -215,8 +215,14 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
               await this.sendRouteUpdate(rideID, "en route");
 
               // get vehicle info
-              const routeInfo = await getRoute(ride.route.id);
-              const vehicleID = routeInfo.data?.vehicle?.id;
+              let vehicleID = ride.route.vehicle?.id;
+              const driverID = ride.route.driver?.id;
+              if (driverID) {
+                const vehicleAssignment = await getVehicleFromDriver(driverID);
+                if (vehicleAssignment.data.length > 0) {
+                  vehicleID = vehicleAssignment.data[0].vehicle.id;
+                }
+              }
               if (vehicleID) {
                 const asset = await getAsset(vehicleID);
                 const assetInfo = asset.data[0];
