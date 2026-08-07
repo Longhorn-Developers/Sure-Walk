@@ -1,0 +1,1 @@
+ALTER TABLE `feedback` ADD `submitted_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL;

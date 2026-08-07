@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState } from "react";
 
 interface MissedRideContextType {
   missedRide: CurrentRideMini | null;
-  setMissedRide: (missedRide: CurrentRideMini | null) => void;
+  setMissedRide: React.Dispatch<React.SetStateAction<CurrentRideMini | null>>;
   showModal: boolean;
   setShowModal: (show: boolean) => void;
 }

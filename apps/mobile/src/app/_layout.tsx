@@ -55,6 +55,10 @@ export default function RootLayout() {
                               name="cancellation-reason"
                               options={{ presentation: "containedModal" }}
                             />
+                            <Stack.Screen
+                              name="feedback"
+                              options={{ presentation: "containedModal" }}
+                            />
                           </Stack>
                         </GroupRideProvider>
                       </RideProvider>

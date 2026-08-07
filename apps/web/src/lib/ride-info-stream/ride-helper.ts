@@ -4,6 +4,7 @@ import { rides, Ride } from "../db/schema/rides";
 import { Samsara } from "@samsarahq/samsara";
 import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
 import { vehicles } from "../db/schema/vehicles";
+import { users } from "../db/schema/users";
 
 const getActiveRides = async (env: CloudflareEnv) => {
   const results = await getDBInWorker(env)
@@ -47,9 +48,10 @@ const getActiveRideByUserID = async (userID: string, env: CloudflareEnv) => {
       ),
     )
     .leftJoin(vehicles, eq(rides.vehicleID, vehicles.samsaraID))
+    .leftJoin(users, eq(rides.userID, users.id))
     .then(([res]) => {
       if (res) {
-        return { ...res.rides, vehicle: res.vehicles };
+        return { ...res.rides, vehicle: res.vehicles, user: res.users };
       } else {
         return undefined;
       }
@@ -81,6 +83,7 @@ const getActiveRideByShareCode = async (
       ),
     )
     .leftJoin(vehicles, eq(rides.vehicleID, vehicles.samsaraID))
+    .leftJoin(users, eq(rides.userID, users.id))
     .then(([res]) => {
       if (res) {
         return { ...res.rides, vehicle: res.vehicles };

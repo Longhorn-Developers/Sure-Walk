@@ -4,7 +4,7 @@ import LoadingState from "../types/loading-state";
 
 interface RideDetailsContextType {
   rideDetails: CurrentRideSmall | null;
-  setRideDetails: (newRide: CurrentRideSmall | null) => void;
+  setRideDetails: React.Dispatch<React.SetStateAction<CurrentRideSmall | null>>;
   loadingState: LoadingState;
   setLoadingState: (loadingState: LoadingState) => void;
 }

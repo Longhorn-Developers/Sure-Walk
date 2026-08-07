@@ -20,7 +20,7 @@ import { Ride, rides } from "../db/schema/rides";
 import { getDBInWorker } from "../db";
 import { eq } from "drizzle-orm";
 import { Vehicle, vehicles } from "../db/schema/vehicles";
-import { users } from "../db/schema/users";
+import { User, users } from "../db/schema/users";
 
 export class RideInfoStream extends DurableObject<CloudflareEnv> {
   streams: Map<string, WebSocket[]>;
@@ -34,6 +34,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     const currentRide = JSON.parse(
       request.headers.get("x-current-ride") ?? "",
     ) as typeof Ride & {
+      user: User;
       vehicle: Vehicle | null;
       rideState: InProgressRideState;
     };
@@ -43,6 +44,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     const rideState = currentRide.rideState;
     const shareCode = currentRide.shareCode ?? undefined;
     const vehicleInfo = currentRide.vehicle;
+    const leader = currentRide.user;
 
     const websocketPair = new WebSocketPair();
     const [client, server] = Object.values(websocketPair);
@@ -73,6 +75,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
           dropoffLocationID,
           groupRide,
           shareCode,
+          leader,
         },
         currentRide.id,
       );
@@ -289,11 +292,14 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                 .where(eq(rides.pickupStopID, stopID));
             }
             if (stopState === "departed") {
-              const submissionID = ride.route.stops![0].forms![0].id;
-              const form = await getFormSubmission(submissionID);
+              const formObject = ride.route.stops![0].forms;
               let numPickedUp: number | undefined = 1;
-              if (form.data[0].status === "completed") {
-                numPickedUp = form.data[0].fields[0].numberValue?.value;
+              if (formObject) {
+                const submissionID = formObject![0].id;
+                const form = await getFormSubmission(submissionID);
+                if (form.data[0].status === "completed") {
+                  numPickedUp = form.data[0].fields[0].numberValue?.value;
+                }
               }
               if (numPickedUp === undefined) {
                 numPickedUp = 1;

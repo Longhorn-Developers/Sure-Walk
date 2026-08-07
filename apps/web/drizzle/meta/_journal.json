@@ -50,6 +50,20 @@
       "when": 1784585506139,
       "tag": "0006_add-ride-share-code",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1786059711767,
+      "tag": "0007_add-feedback-table",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1786127725680,
+      "tag": "0008_add-submittedAt-to-feedback",
+      "breakpoints": true
     }
   ]
 }

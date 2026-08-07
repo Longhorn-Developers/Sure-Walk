@@ -5,7 +5,7 @@ import { useSession } from "./user-context";
 
 interface CurrentRideContextType {
   currentRide: CurrentRideMini | null;
-  setCurrentRide: (newRide: CurrentRideMini | null) => void;
+  setCurrentRide: React.Dispatch<React.SetStateAction<CurrentRideMini | null>>;
   loadingState: LoadingState;
   setLoadingState: (loadingState: LoadingState) => void;
 }

@@ -56,15 +56,13 @@ import { useMissedRideSession } from "@/src/utils/context/missed-ride-context";
 import { useToastContext } from "@/src/utils/context/toast-context";
 
 const CurrentRideInfo = () => {
-  const { accessToken, fetchProtected, user } = useSession();
-  const { firstName, lastName, userType, eid, phoneNumber } = user!;
+  const { accessToken, fetchProtected } = useSession();
   const { setRideDetails, rideDetails } = useRideDetailsSession();
   const { setCurrentRide } = useCurrentRideSession();
   const params = useSearchParams();
   const shareCode = params.get("shareCode");
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfoShort | null>(null);
-  const [rideState, setRideState] = useState<InProgressRideState>("received");
   const wsRef = useRef<WebSocket>(undefined);
   const mapRef = useRef<MapView | null>(null);
   const sheetRef = useRef<BottomSheet | null>(null);
@@ -134,12 +132,25 @@ const CurrentRideInfo = () => {
           setLoadingState("done");
           const data = payload.data as CurrentRideSmall;
           setRideDetails(data);
+          setCurrentRide(data);
+          setMissedRide(data);
           animateToStep(data.rideState);
           break;
         }
         case "routeUpdate": {
           const data = payload.data as { rideState: InProgressRideState };
-          setRideState(data.rideState);
+          setRideDetails((prevDetails) => ({
+            ...prevDetails!,
+            rideState: data.rideState,
+          }));
+          setCurrentRide((prevRide) => ({
+            ...prevRide!,
+            rideState: data.rideState,
+          }));
+          setMissedRide((prevRide) => ({
+            ...prevRide!,
+            rideState: data.rideState,
+          }));
           animateToStep(data.rideState);
           break;
         }
@@ -158,6 +169,7 @@ const CurrentRideInfo = () => {
     const onClose = async (event: CloseEvent) => {
       console.log("Websocket closed: ", event.code, event.reason);
       if (event.code === 1000) {
+        setRideDetails(null);
         ws.removeEventListener("close", onClose);
         if (
           event.reason.startsWith("Complete: ") ||
@@ -179,9 +191,12 @@ const CurrentRideInfo = () => {
               onDismiss: () => setToast(null),
             });
           }
+          if (event.reason.startsWith("Complete: ")) {
+            const rideID = event.reason.split(" ")[1];
+            setTimeout(() => router.push(`/feedback?rideID=${rideID}`), 100);
+          }
           router.dismissTo("/home");
         }
-        setRideDetails(null);
       } else if (event.reason.includes("401")) {
         try {
           // force refresh
@@ -224,34 +239,6 @@ const CurrentRideInfo = () => {
 
     ws.addEventListener("close", onClose);
   };
-
-  useEffect(() => {
-    setRideDetails({
-      pickupLocationID: rideDetails?.pickupLocationID!,
-      dropoffLocationID: rideDetails?.dropoffLocationID!,
-      groupRide: rideDetails?.groupRide ?? [],
-      shareCode: rideDetails?.shareCode,
-      rideState: rideState,
-      eta: rideDetails?.eta,
-    });
-  }, [rideState]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (rideDetails) {
-      setCurrentRide({
-        pickupLocationID: rideDetails?.pickupLocationID!,
-        dropoffLocationID: rideDetails?.dropoffLocationID!,
-        rideState: rideDetails?.rideState!,
-        eta: rideDetails?.eta,
-      });
-      setMissedRide({
-        pickupLocationID: rideDetails?.pickupLocationID!,
-        dropoffLocationID: rideDetails?.dropoffLocationID!,
-        rideState: rideDetails?.rideState!,
-        eta: rideDetails?.eta,
-      });
-    }
-  }, [rideDetails]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setRideDetails(null);
@@ -465,7 +452,15 @@ const CurrentRideInfo = () => {
                       </View>
                     </View>
                   )}
-                  <FontText className="text-2xl font-medium">
+                  <FontText
+                    className="text-2xl font-medium"
+                    onLayout={
+                      rideDetails.rideState === "in progress" ||
+                      rideDetails.rideState === "dropped off"
+                        ? handleLayout0
+                        : undefined
+                    }
+                  >
                     Vehicle details
                   </FontText>
                   <View className="bg-slate-50 rounded-2xl border border-slate-200 p-4 flex-row gap-8 items-center">
@@ -498,7 +493,9 @@ const CurrentRideInfo = () => {
                 <FontText
                   className="text-2xl font-medium mt-2 mb-2"
                   onLayout={
-                    rideDetails.rideState !== "arrived"
+                    rideDetails.rideState !== "arrived" &&
+                    rideDetails.rideState !== "in progress" &&
+                    rideDetails.rideState !== "dropped off"
                       ? handleLayout0
                       : undefined
                   }
@@ -536,7 +533,13 @@ const CurrentRideInfo = () => {
               </View>
               <View className="flex-col gap-4 pb-4">
                 <RiderCard
-                  member={{ firstName, lastName, userType, eid, phoneNumber }}
+                  member={{
+                    firstName: rideDetails.leader.firstName,
+                    lastName: rideDetails.leader.lastName,
+                    userType: rideDetails.leader.userType,
+                    eid: rideDetails.leader.eid,
+                    phoneNumber: rideDetails.leader.phoneNumber,
+                  }}
                   actionComponent={
                     <CrownSimpleIcon color="#FFD600" size={24} weight="fill" />
                   }

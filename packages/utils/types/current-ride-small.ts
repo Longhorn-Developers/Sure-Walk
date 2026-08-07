@@ -5,6 +5,7 @@ type CurrentRideSmall = {
   pickupLocationID: number;
   dropoffLocationID: number;
   rideState: InProgressRideState;
+  leader: GroupRideMember;
   groupRide: GroupRideMember[];
   shareCode?: string;
   eta?: string;
