@@ -128,7 +128,9 @@ const CurrentRideInfo = () => {
         case "connected": {
           const data = payload.data as CurrentRideSmall;
           setRideDetails(data);
-          setCurrentRide(data);
+          if (!shareCode) {
+            setCurrentRide(data);
+          }
           setMissedRide(data);
           animateToStep(data.rideState);
           setLoadingState("done");
@@ -149,10 +151,12 @@ const CurrentRideInfo = () => {
             ...prevDetails!,
             rideState: data.rideState,
           }));
-          setCurrentRide((prevRide) => ({
-            ...prevRide!,
-            rideState: data.rideState,
-          }));
+          if (!shareCode) {
+            setCurrentRide((prevRide) => ({
+              ...prevRide!,
+              rideState: data.rideState,
+            }));
+          }
           setMissedRide((prevRide) => ({
             ...prevRide!,
             rideState: data.rideState,
@@ -167,7 +171,10 @@ const CurrentRideInfo = () => {
         }
         case "vehicleLocation": {
           const data = payload.data as LatLng;
-          setVehicleLocation(data);
+          setVehicleLocation({
+            latitude: data.latitude,
+            longitude: data.longitude,
+          });
           break;
         }
       }
@@ -321,6 +328,11 @@ const CurrentRideInfo = () => {
 
   const copyCode = async () => {
     await Clipboard.setStringAsync(rideDetails?.shareCode ?? "");
+    setToast({
+      title: "Copied!",
+      description: "Copied to clipboard.",
+      onDismiss: () => setToast(null),
+    });
   };
 
   return (
@@ -456,7 +468,6 @@ const CurrentRideInfo = () => {
                 latitude: vehicleLocation.latitude,
                 longitude: vehicleLocation.longitude,
               }}
-              tracksViewChanges={false}
             >
               <View
                 className="bg-white rounded-full items-center justify-center w-[44px] h-[44px]"

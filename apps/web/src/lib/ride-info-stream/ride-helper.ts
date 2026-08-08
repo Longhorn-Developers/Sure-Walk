@@ -86,7 +86,7 @@ const getActiveRideByShareCode = async (
     .leftJoin(users, eq(rides.userID, users.id))
     .then(([res]) => {
       if (res) {
-        return { ...res.rides, vehicle: res.vehicles };
+        return { ...res.rides, vehicle: res.vehicles, user: res.users };
       } else {
         return undefined;
       }
