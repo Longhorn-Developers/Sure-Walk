@@ -116,10 +116,16 @@ const createRoute = async ({
   return rideRecord;
 };
 
-const getVehicleLocations = async (): Promise<Samsara.InlineResponse2002> => {
+const getAssetLocations = async (): Promise<Samsara.InlineResponse2002> => {
   const res = await samsaraClient.assets.v1GetAllAssetCurrentLocations();
   return res;
 };
+
+const getVehicleLocations =
+  async (): Promise<Samsara.VehicleLocationsListResponse> => {
+    const res = await samsaraClient.vehicleLocations.getVehicleLocationsFeed();
+    return res;
+  };
 
 const getRouteUpdates = async (
   after?: string,
@@ -220,6 +226,7 @@ const getVehicleFromDriver = async (driverID: string) => {
 export {
   samsaraClient,
   createRoute,
+  getAssetLocations,
   getVehicleLocations,
   getRouteUpdates,
   getCurrentWaitTime,

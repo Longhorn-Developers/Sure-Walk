@@ -8,8 +8,9 @@ import {
   getFormSubmission,
   getRouteUpdates,
   getVehicleFromDriver,
-  getVehicleLocations,
+  getAssetLocations,
   missRide,
+  getVehicleLocations,
 } from "./samsara-utils";
 import {
   getActiveRides,
@@ -145,8 +146,9 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
       }
     }
 
-    const vehicleLocations = await this.pollLocations();
-    await this.streamLocations(activeRides, vehicleLocations);
+    const assetLocations = await this.pollAssetLocations();
+    const vehicleLocations = await this.pollVehicleLocations();
+    await this.streamLocations(activeRides, assetLocations, vehicleLocations);
 
     const currentAlarm = await this.ctx.storage.getAlarm();
     if (!currentAlarm) {
@@ -174,7 +176,8 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
   async streamLocations(
     activeRides: (typeof Ride)[],
-    vehicleLocations: Samsara.InlineResponse2002,
+    assetLocations: Samsara.InlineResponse2002,
+    vehicleLocations: Samsara.VehicleLocationsListResponse,
   ) {
     for (const ride of activeRides) {
       if (
@@ -182,11 +185,19 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
         ride.pickupStopState !== "scheduled" &&
         (this.streams.get(ride.id) ?? []).length !== 0
       ) {
-        const data = vehicleLocations.assets?.find(
+        const assetData = assetLocations.assets?.find(
           (vehicle) => vehicle.id + "" === ride.vehicleID,
         );
-        if (data && data.location) {
-          this.sendEvent("vehicleLocation", data.location[0], ride.id);
+        if (assetData && assetData.location) {
+          this.sendEvent("vehicleLocation", assetData.location[0], ride.id);
+          continue;
+        }
+
+        const vehicleData = vehicleLocations.data.find(
+          (vehicle) => vehicle.id === ride.vehicleID,
+        );
+        if (vehicleData && vehicleData.locations) {
+          this.sendEvent("vehicleLocation", vehicleData.locations[0], ride.id);
         }
       }
     }
@@ -392,7 +403,12 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     this.sendEvent("vehicleInfo", vehicleInfo, rideID);
   }
 
-  async pollLocations(): Promise<Samsara.InlineResponse2002> {
+  async pollAssetLocations(): Promise<Samsara.InlineResponse2002> {
+    const result = await getAssetLocations();
+    return result;
+  }
+
+  async pollVehicleLocations(): Promise<Samsara.VehicleLocationsListResponse> {
     const result = await getVehicleLocations();
     return result;
   }

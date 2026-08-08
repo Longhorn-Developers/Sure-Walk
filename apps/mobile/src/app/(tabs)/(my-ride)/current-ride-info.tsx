@@ -6,7 +6,7 @@ import RideStateStep, {
   RideStateStepDivider,
 } from "@/src/components/ride-state-step";
 import RiderCard from "@/src/components/rider-card";
-import { slate700, UTBurntOrange } from "@/src/utils/colors";
+import { slate700, UTBluebonnet, UTBurntOrange } from "@/src/utils/colors";
 import { WEST_CAMPUS_LOCATIONS } from "@/src/utils/locations/dropoff-locations";
 import { CAMPUS_LOCATIONS } from "@/src/utils/locations/pickup-locations";
 import LoadingState from "@/src/utils/types/loading-state";
@@ -23,8 +23,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
   CaretLeftIcon,
+  CarSimpleIcon,
+  CircleIcon,
   CopyIcon,
   CrownSimpleIcon,
+  MapPinIcon,
   WarningCircleIcon,
 } from "phosphor-react-native";
 import { useEffect, useRef, useState } from "react";
@@ -34,7 +37,7 @@ import {
   AppState,
   LayoutChangeEvent,
 } from "react-native";
-import MapView from "react-native-maps";
+import MapView, { LatLng, Marker } from "react-native-maps";
 import Animated, {
   SharedValue,
   useDerivedValue,
@@ -63,6 +66,10 @@ const CurrentRideInfo = () => {
   const shareCode = params.get("shareCode");
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfoShort | null>(null);
+  const [vehicleLocation, setVehicleLocation] = useState<LatLng>({
+    latitude: 0,
+    longitude: 0,
+  });
   const wsRef = useRef<WebSocket>(undefined);
   const mapRef = useRef<MapView | null>(null);
   const sheetRef = useRef<BottomSheet | null>(null);
@@ -156,6 +163,11 @@ const CurrentRideInfo = () => {
         case "vehicleInfo": {
           const data = payload.data as VehicleInfoShort;
           setVehicleInfo(data);
+          break;
+        }
+        case "vehicleLocation": {
+          const data = payload.data as LatLng;
+          setVehicleLocation(data);
           break;
         }
       }
@@ -402,7 +414,58 @@ const CurrentRideInfo = () => {
               right: 0,
             }}
             tintColor={UTBurntOrange}
-          ></MapView>
+          >
+            <Marker
+              coordinate={{
+                latitude: pickupLocation?.lat ?? 0,
+                longitude: pickupLocation?.lon ?? 0,
+              }}
+              tracksViewChanges={false}
+            >
+              <View className="bg-[#EDD9CA] rounded-full items-center justify-center w-[32px] h-[32px]">
+                <CircleIcon color={UTBurntOrange} weight="fill" size="20" />
+              </View>
+            </Marker>
+            <Marker
+              coordinate={{
+                latitude: dropoffLocation?.lat ?? 0,
+                longitude: dropoffLocation?.lon ?? 0,
+              }}
+              tracksViewChanges={false}
+            >
+              <View className="bg-[#C6DBE4] rounded-full items-center justify-center w-[32px] h-[32px]">
+                <MapPinIcon color={UTBluebonnet} size="20" weight="fill" />
+              </View>
+            </Marker>
+            {/* <Polyline
+              coordinates={[
+                {
+                  latitude: pickupLocation?.lat ?? 0,
+                  longitude: pickupLocation?.lon ?? 0,
+                },
+                {
+                  latitude: dropoffLocation?.lat ?? 0,
+                  longitude: dropoffLocation?.lon ?? 0,
+                },
+              ]}
+              strokeColor="#fff"
+              strokeWidth={4}
+            /> */}
+            <Marker
+              coordinate={{
+                latitude: vehicleLocation.latitude,
+                longitude: vehicleLocation.longitude,
+              }}
+              tracksViewChanges={false}
+            >
+              <View
+                className="bg-white rounded-full items-center justify-center w-[44px] h-[44px]"
+                style={{ boxShadow: "0px 4px 10px rgba(100, 100, 100, 0.2)" }}
+              >
+                <CarSimpleIcon color={"#000"} size={32} weight="fill" />
+              </View>
+            </Marker>
+          </MapView>
         </View>
       </View>
       <BottomSheet

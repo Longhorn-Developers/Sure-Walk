@@ -7,8 +7,8 @@ export const CAMPUS_LOCATIONS: Location[] = [
     abbreviation: "GDC",
     name: "Gates Dell Complex",
     address: "2317 Speedway, Austin, TX 78712",
-    lat: 30.2863,
-    lon: -97.7393,
+    lat: 30.286217,
+    lon: -97.736617,
     category: "academic",
   },
   {
