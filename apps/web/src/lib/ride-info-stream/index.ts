@@ -318,7 +318,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
               if (numPickedUp < 1) {
                 await getDBInWorker(this.env)
                   .update(rides)
-                  .set({ shareCode: null, missedPickup: true })
+                  .set({ shareCode: null, numPickedUp })
                   .where(eq(rides.id, rideID));
 
                 const [user] = await getDBInWorker(this.env)
@@ -331,6 +331,10 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                   ?.forEach((ws) => ws.close(1000, "Missed pickup."));
                 this.streams.delete(rideID);
               } else {
+                await getDBInWorker(this.env)
+                  .update(rides)
+                  .set({ numPickedUp })
+                  .where(eq(rides.id, rideID));
                 await this.sendRouteUpdate(rideID, "in progress");
               }
             }
