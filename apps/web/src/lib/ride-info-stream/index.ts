@@ -174,7 +174,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
   async streamLocations(
     activeRides: (typeof Ride)[],
-    vehicleLocations: Samsara.VehicleLocationsListResponse,
+    vehicleLocations: Samsara.InlineResponse2002,
   ) {
     for (const ride of activeRides) {
       if (
@@ -182,11 +182,11 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
         ride.pickupStopState !== "scheduled" &&
         (this.streams.get(ride.id) ?? []).length !== 0
       ) {
-        const data = vehicleLocations.data.find(
-          (vehicle) => vehicle.id === ride.vehicleID,
+        const data = vehicleLocations.assets?.find(
+          (vehicle) => vehicle.id + "" === ride.vehicleID,
         );
-        if (data) {
-          this.sendEvent("vehicleLocation", data.locations[0], ride.id);
+        if (data && data.location) {
+          this.sendEvent("vehicleLocation", data.location[0], ride.id);
         }
       }
     }
@@ -392,7 +392,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     this.sendEvent("vehicleInfo", vehicleInfo, rideID);
   }
 
-  async pollLocations(): Promise<Samsara.VehicleLocationsListResponse> {
+  async pollLocations(): Promise<Samsara.InlineResponse2002> {
     const result = await getVehicleLocations();
     return result;
   }

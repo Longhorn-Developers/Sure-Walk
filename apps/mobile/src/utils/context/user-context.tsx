@@ -3,31 +3,16 @@ import { PropsWithChildren, useContext, useEffect, useState } from "react";
 import { createContext } from "react";
 import * as SecureStore from "expo-secure-store";
 import LoadingState from "../types/loading-state";
-import { API_URL, logout } from "../../client/auth";
-import { router } from "expo-router";
+import { logout } from "../../client/auth";
+import { api, ok } from "@/src/client/session";
 
 interface UserContextType {
   user: User | null;
-  setUser: (
-    user: User,
-    {
-      accessToken,
-      refreshToken,
-    }: { accessToken: string; refreshToken: string },
-  ) => void;
-  updateUser: (user: User) => void;
-  fetchProtected: (
-    endpoint: string,
-    method: string,
-    body?: any,
-    accessToken?: string,
-    refreshToken?: string,
-  ) => Promise<Response>;
+  setUser: (user: User) => void;
   logOut: () => void;
   loadingState: LoadingState;
   guidelinesAccepted: boolean;
   acceptGuidelines: () => Promise<void>;
-  accessToken: string | null;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -43,115 +28,25 @@ export const useSession = () => {
 export const SessionProvider = ({ children }: PropsWithChildren) => {
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
   const [userInfo, setUserInfo] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [guidelinesAccepted, setGuidelinesAccepted] = useState<boolean>(false);
-
-  const fetchProtected = async (
-    endpoint: string,
-    method: string,
-    body?: any,
-    accessTokenFallback?: string,
-    refreshTokenFallback?: string,
-  ) => {
-    if (!accessTokenFallback || !refreshTokenFallback) {
-      if (!accessToken || !refreshToken) {
-        throw new Error("No access or refresh token available");
-      }
-    }
-
-    let response = await fetch(`${API_URL}${endpoint}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessTokenFallback ?? accessToken}`,
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    if (response.status === 401) {
-      if (response.headers.get("Content-Type")?.includes("application/json")) {
-        const data = await response.json();
-        if (data.message === "Token expired.") {
-          const refreshResponse = await fetch(`${API_URL}/auth/refresh`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              refreshToken: refreshTokenFallback ?? refreshToken,
-            }),
-          });
-          if (!refreshResponse.ok) {
-            throw new Error("Failed to refresh token");
-          }
-          const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-            await refreshResponse.json();
-          setAccessToken(newAccessToken);
-          setRefreshToken(newRefreshToken);
-          await SecureStore.setItemAsync("accessToken", newAccessToken);
-          await SecureStore.setItemAsync("refreshToken", newRefreshToken);
-
-          response = await fetch(`${API_URL}${endpoint}`, {
-            method,
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${newAccessToken}`,
-            },
-            body: body ? JSON.stringify(body) : undefined,
-          });
-          return response;
-        }
-      }
-      setAccessToken(null);
-      setRefreshToken(null);
-      await SecureStore.deleteItemAsync("accessToken");
-      await SecureStore.deleteItemAsync("refreshToken");
-      await SecureStore.deleteItemAsync("guidelinesAccepted");
-      router.dismissAll();
-      router.replace("/login");
-      throw new Error("Unauthorized.");
-    }
-
-    return response;
-  };
 
   useEffect(() => {
     const fetchUserInfo = async () => {
-      const token = await SecureStore.getItemAsync("accessToken");
-      const refresh = await SecureStore.getItemAsync("refreshToken");
       const guidelinesAcceptedValue =
         await SecureStore.getItemAsync("guidelinesAccepted");
       setGuidelinesAccepted(guidelinesAcceptedValue === "true");
-      setAccessToken(token);
-      setRefreshToken(refresh);
-
-      if (!token || !refresh) {
-        setLoadingState("done");
-        return;
-      }
 
       try {
-        const userInfoReponse = await fetchProtected(
-          "/me",
-          "GET",
-          undefined,
-          token,
-          refresh,
-        );
-        if (!userInfoReponse.ok) {
+        const userInfoReponse = await api.get("/me");
+        if (!ok(userInfoReponse)) {
           throw new Error("Failed to fetch user info");
         }
-        const parsedUserData: User = await userInfoReponse.json();
+        const parsedUserData: User = userInfoReponse.data;
         setUserInfo(parsedUserData);
         setLoadingState("done");
       } catch (error) {
         // assume user is logged out
         console.error("Error parsing user data, logging out:", error);
-        setAccessToken(null);
-        setRefreshToken(null);
-        await SecureStore.deleteItemAsync("accessToken");
-        await SecureStore.deleteItemAsync("refreshToken");
         await SecureStore.deleteItemAsync("guidelinesAccepted");
         setLoadingState("done");
         return;
@@ -162,40 +57,20 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
     };
 
     fetchUserInfo();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <UserContext.Provider
       value={{
         user: userInfo,
-        setUser: async (
-          user: User,
-          {
-            accessToken,
-            refreshToken,
-          }: { accessToken: string; refreshToken: string },
-        ) => {
-          setUserInfo(user);
-          setAccessToken(accessToken);
-          setRefreshToken(refreshToken);
-          await SecureStore.setItemAsync("accessToken", accessToken);
-          await SecureStore.setItemAsync("refreshToken", refreshToken);
-        },
-        updateUser: async (user: User) => {
-          setUserInfo(user);
-        },
-        fetchProtected,
+        setUser: setUserInfo,
         logOut: async () => {
           try {
-            await logout(refreshToken!);
+            await logout();
           } catch (error) {
             console.error("Error occurred while logging out, ignoring:", error);
           }
           setUserInfo(null);
-          setAccessToken(null);
-          setRefreshToken(null);
-          await SecureStore.deleteItemAsync("accessToken");
-          await SecureStore.deleteItemAsync("refreshToken");
           await SecureStore.deleteItemAsync("guidelinesAccepted");
         },
         loadingState: loadingState,
@@ -204,7 +79,6 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
           setGuidelinesAccepted(true);
           await SecureStore.setItemAsync("guidelinesAccepted", "true");
         },
-        accessToken,
       }}
     >
       {children}

@@ -7,7 +7,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import LoadingState from "../utils/types/loading-state";
 import { useSearchParams } from "expo-router/build/hooks";
-import { useSession } from "../utils/context/user-context";
 import { useToastContext } from "../utils/context/toast-context";
 import { getErrorMessage, handleNetworkFailure } from "../client";
 import { CAMPUS_LOCATIONS } from "../utils/locations/pickup-locations";
@@ -15,9 +14,9 @@ import { WEST_CAMPUS_LOCATIONS } from "../utils/locations/dropoff-locations";
 import Slider from "@react-native-community/slider";
 import { slate200, UTBurntOrange } from "../utils/colors";
 import { router } from "expo-router";
+import { api, ok } from "../client/session";
 
 const Feedback = () => {
-  const { fetchProtected } = useSession();
   const { setToast } = useToastContext();
 
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -35,13 +34,10 @@ const Feedback = () => {
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
-        const res = await fetchProtected(
-          `/ride/feedback?rideID=${rideID}`,
-          "GET",
-        );
-        const data = await res.json();
-        if (!res.ok) {
-          const error = await getErrorMessage(
+        const res = await api.get(`/ride/feedback?rideID=${rideID}`);
+        const data = res.data;
+        if (!ok(res)) {
+          const error = getErrorMessage(
             res,
             "Can't submit feedback for this ride.",
           );
@@ -81,13 +77,13 @@ const Feedback = () => {
   const submit = async () => {
     setSubmitting(true);
     try {
-      const res = await fetchProtected("/ride/feedback", "POST", {
+      const res = await api.post("/ride/feedback", {
         rideID,
         howLikely: rating,
         extraFeedback: feedback.trim().length > 0 ? feedback : undefined,
       });
-      if (!res.ok) {
-        const error = await getErrorMessage(res, "Could not submit feedback.");
+      if (!ok(res)) {
+        const error = getErrorMessage(res, "Could not submit feedback.");
         setToast({
           title: "Unexpected error",
           description: error,

@@ -7,7 +7,6 @@ import RideStateStep, {
 } from "@/src/components/ride-state-step";
 import RiderCard from "@/src/components/rider-card";
 import { slate700, UTBurntOrange } from "@/src/utils/colors";
-import { useSession } from "@/src/utils/context/user-context";
 import { WEST_CAMPUS_LOCATIONS } from "@/src/utils/locations/dropoff-locations";
 import { CAMPUS_LOCATIONS } from "@/src/utils/locations/pickup-locations";
 import LoadingState from "@/src/utils/types/loading-state";
@@ -54,9 +53,10 @@ import OutlineButton from "@/src/components/outline-button";
 import CancelRideModal from "@/src/components/cancel-ride-modal";
 import { useMissedRideSession } from "@/src/utils/context/missed-ride-context";
 import { useToastContext } from "@/src/utils/context/toast-context";
+import * as SecureStore from "expo-secure-store";
+import { api } from "@/src/client/session";
 
 const CurrentRideInfo = () => {
-  const { accessToken, fetchProtected } = useSession();
   const { setRideDetails, rideDetails } = useRideDetailsSession();
   const { setCurrentRide } = useCurrentRideSession();
   const params = useSearchParams();
@@ -106,8 +106,9 @@ const CurrentRideInfo = () => {
     }
   };
 
-  const connect = () => {
+  const connect = (onConnect = () => {}) => {
     const wsURL = API_URL.replace("http", "ws");
+    const accessToken = SecureStore.getItem("accessToken");
     const ws = new WebSocket(
       `${wsURL}/ride/events${shareCode ? `?shareCode=${shareCode}` : ""}`,
       `Bearer ${accessToken ?? ""}`,
@@ -118,23 +119,21 @@ const CurrentRideInfo = () => {
       const payload = JSON.parse(event.data) as RideEvent<object>;
       switch (payload.eventType) {
         case "connected": {
-          if (loadingState !== "loading") {
-            setToast({
-              title: "Connected",
-              description: "Connected to ride updates.",
-              onDismiss: () => setToast(null),
-            });
-          } else {
-            setTimeout(() => {
-              sheetRef.current?.snapToIndex(1);
-            }, 200);
-          }
-          setLoadingState("done");
           const data = payload.data as CurrentRideSmall;
           setRideDetails(data);
           setCurrentRide(data);
           setMissedRide(data);
           animateToStep(data.rideState);
+          setLoadingState("done");
+          setPickupLocation(
+            CAMPUS_LOCATIONS.find((loc) => loc.id === data.pickupLocationID),
+          );
+          setDropoffLocation(
+            WEST_CAMPUS_LOCATIONS.find(
+              (loc) => loc.id === data.dropoffLocationID,
+            ),
+          );
+          onConnect();
           break;
         }
         case "routeUpdate": {
@@ -168,19 +167,20 @@ const CurrentRideInfo = () => {
 
     const onClose = async (event: CloseEvent) => {
       console.log("Websocket closed: ", event.code, event.reason);
+      const reason = event.reason ?? "";
       if (event.code === 1000) {
         setRideDetails(null);
         ws.removeEventListener("close", onClose);
         if (
-          event.reason.startsWith("Complete: ") ||
-          event.reason === "Ride cancelled." ||
-          event.reason === "Missed pickup."
+          reason.startsWith("Complete: ") ||
+          reason === "Ride cancelled." ||
+          reason === "Missed pickup."
         ) {
           if (!shareCode) {
             // not viewing a group ride
             setCurrentRide(null);
           }
-          if (event.reason === "Missed pickup.") {
+          if (reason === "Missed pickup.") {
             setShowModal(true);
           }
           if (shareCode && rideDetails?.shareCode) {
@@ -191,20 +191,20 @@ const CurrentRideInfo = () => {
               onDismiss: () => setToast(null),
             });
           }
-          if (event.reason.startsWith("Complete: ")) {
-            const rideID = event.reason.split(" ")[1];
+          if (reason.startsWith("Complete: ")) {
+            const rideID = reason.split(" ")[1];
             setTimeout(() => router.push(`/feedback?rideID=${rideID}`), 100);
           }
           router.dismissTo("/home");
         }
-      } else if (event.reason.includes("401")) {
+      } else if (reason.includes("401")) {
         try {
           // force refresh
-          await fetchProtected("/me", "GET");
+          await api.get("/me");
         } catch (err) {
           console.error(err);
         }
-      } else if (event.reason.includes("404")) {
+      } else if (reason.includes("404")) {
         // 404
         ws.removeEventListener("close", onClose);
         router.dismissTo("/home");
@@ -233,19 +233,32 @@ const CurrentRideInfo = () => {
           onDismiss: () => setToast(null),
           isError: true,
         });
-        setTimeout(() => connect, 2000);
+        setTimeout(
+          () =>
+            connect(() => {
+              setToast({
+                title: "Connected",
+                description: "Connected to ride updates.",
+                onDismiss: () => setToast(null),
+              });
+            }),
+          2000,
+        );
       }
     };
 
-    ws.addEventListener("close", onClose);
+    ws.addEventListener("close", (event) => {
+      onClose(event).catch((err) => console.error(err));
+    });
   };
 
   useEffect(() => {
     setRideDetails(null);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    connect();
+    connect(() =>
+      setTimeout(() => {
+        sheetRef.current?.snapToIndex(1);
+      }, 200),
+    );
 
     const appStateListener = AppState.addEventListener(
       "change",
@@ -269,23 +282,7 @@ const CurrentRideInfo = () => {
         wsRef.current.close();
       }
     };
-  }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (rideDetails) {
-      setPickupLocation(
-        CAMPUS_LOCATIONS.find((loc) => loc.id === rideDetails.pickupLocationID),
-      );
-      setDropoffLocation(
-        WEST_CAMPUS_LOCATIONS.find(
-          (loc) => loc.id === rideDetails.dropoffLocationID,
-        ),
-      );
-    } else {
-      setPickupLocation(undefined);
-      setDropoffLocation(undefined);
-    }
-  }, [rideDetails]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLayout0 = (event: LayoutChangeEvent) => {
     let height = event.nativeEvent.layout.height;

@@ -5,7 +5,6 @@ import FontText from "./font-text";
 import LargeButton from "./large-button";
 import OutlineButton from "./outline-button";
 import { router } from "expo-router";
-import { useSession } from "../utils/context/user-context";
 import { useCurrentRideSession } from "../utils/context/current-ride-context";
 import PickupDropoffLocationInfo from "./pickup-dropoff-location-info";
 import { useEffect, useState } from "react";
@@ -14,6 +13,7 @@ import { CAMPUS_LOCATIONS } from "../utils/locations/pickup-locations";
 import Location from "../utils/types/location";
 import { getErrorMessage, handleNetworkFailure } from "../client";
 import { useToastContext } from "../utils/context/toast-context";
+import { api, ok } from "../client/session";
 
 const CancelRideModal = ({
   modalVisible,
@@ -24,7 +24,6 @@ const CancelRideModal = ({
   setModalVisible: (state: boolean) => void;
   isGroupRide: boolean;
 }) => {
-  const { fetchProtected } = useSession();
   const { currentRide, setCurrentRide } = useCurrentRideSession();
   const { setToast } = useToastContext();
   const [pickupLocation, setPickupLocation] = useState<Location | undefined>(
@@ -42,16 +41,16 @@ const CancelRideModal = ({
         description: "Your ride is being cancelled, hold on...",
         onDismiss: () => setToast(null),
       });
-      const res = await fetchProtected("/ride", "DELETE");
-      if (res.ok) {
+      const res = await api.delete("/ride");
+      if (ok(res)) {
         setCurrentRide(null);
-        const data = await res.json();
+        const data = res.data;
         setTimeout(() => {
           setToast(null);
           router.push(`/cancellation-reason?rideID=${data.rideIDForFeedback}`);
         }, 100);
       } else {
-        const error = await getErrorMessage(res, "Failed to cancel ride.");
+        const error = getErrorMessage(res, "Failed to cancel ride.");
         setToast({
           title: "Unexpected Error",
           description: error,

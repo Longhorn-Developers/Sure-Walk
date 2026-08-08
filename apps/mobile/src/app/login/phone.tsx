@@ -8,6 +8,7 @@ import FontText from "@/src/components/font-text";
 import { registerGeneric } from "@/src/client/auth";
 import { getErrorMessage, handleNetworkFailure } from "@/src/client";
 import { useToastContext } from "@/src/utils/context/toast-context";
+import { ok } from "@/src/client/session";
 
 const Phone = () => {
   const checkValidity = (value: string) => {
@@ -44,10 +45,14 @@ const Phone = () => {
         userType: userType!,
       });
 
-      if (!response.ok) {
-        console.error(
-          await getErrorMessage(response, "Failed to register account"),
-        );
+      if (!ok(response)) {
+        const error = getErrorMessage(response, "Failed to register account");
+        setToast({
+          title: "Failed to register account.",
+          description: error,
+          onDismiss: () => setToast(null),
+          isError: true,
+        });
         return;
       }
 

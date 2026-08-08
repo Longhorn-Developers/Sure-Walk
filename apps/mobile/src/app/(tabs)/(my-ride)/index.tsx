@@ -1,3 +1,4 @@
+import { api } from "@/src/client/session";
 import FontText from "@/src/components/font-text";
 import LargeButton from "@/src/components/large-button";
 import OutlineButton from "@/src/components/outline-button";
@@ -7,7 +8,6 @@ import { useCurrentRideSession } from "@/src/utils/context/current-ride-context"
 import { useMissedRideSession } from "@/src/utils/context/missed-ride-context";
 import { useTabContext } from "@/src/utils/context/tab-context";
 import { useToastContext } from "@/src/utils/context/toast-context";
-import { useSession } from "@/src/utils/context/user-context";
 import { WEST_CAMPUS_LOCATIONS } from "@/src/utils/locations/dropoff-locations";
 import { CAMPUS_LOCATIONS } from "@/src/utils/locations/pickup-locations";
 import Location from "@/src/utils/types/location";
@@ -33,7 +33,6 @@ const MyRide = ({ initialIndex }: { initialIndex: number }) => {
   const sheetRef = useRef<BottomSheet>(null);
   const { setMyRideSheetRef } = useTabContext();
   const { goHome } = useTabContext();
-  const { fetchProtected, accessToken } = useSession();
   const { currentRide, setCurrentRide, loadingState, setLoadingState } =
     useCurrentRideSession();
   const { missedRide, showModal, setShowModal } = useMissedRideSession();
@@ -98,11 +97,11 @@ const MyRide = ({ initialIndex }: { initialIndex: number }) => {
   useEffect(() => {
     const fetchCurrentRide = async () => {
       try {
-        const res = await fetchProtected("/ride", "GET");
+        const res = await api.get("/ride");
         if (res.status === 204) {
           setCurrentRide(null);
         } else if (res.status === 200) {
-          setCurrentRide(await res.json());
+          setCurrentRide(res.data);
         } else {
           throw new Error("Could not fetch current ride details.");
         }
@@ -117,7 +116,7 @@ const MyRide = ({ initialIndex }: { initialIndex: number }) => {
     return () => {
       clearInterval(interval);
     };
-  }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLayout1 = (event: LayoutChangeEvent) => {
     let height = event.nativeEvent.layout.height;

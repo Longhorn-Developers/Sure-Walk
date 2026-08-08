@@ -15,6 +15,8 @@ import { confirmGeneric } from "@/src/client/auth";
 import { useSession } from "@/src/utils/context/user-context";
 import { getErrorMessage, handleNetworkFailure } from "@/src/client";
 import { useToastContext } from "@/src/utils/context/toast-context";
+import { ok } from "@/src/client/session";
+import * as SecureStore from "expo-secure-store";
 
 const Confirm = () => {
   const { phoneNumber } = useLoginSession();
@@ -30,11 +32,8 @@ const Confirm = () => {
     try {
       const response = await confirmGeneric(code);
 
-      if (!response.ok) {
-        const error = await getErrorMessage(
-          response,
-          "Failed to confirm code.",
-        );
+      if (!ok(response)) {
+        const error = getErrorMessage(response, "Failed to confirm code.");
         setToast({
           title: "Error",
           description: error,
@@ -44,8 +43,10 @@ const Confirm = () => {
         return;
       }
 
-      const { accessToken, refreshToken, user } = await response.json();
-      setUser(user, { accessToken, refreshToken });
+      const { accessToken, refreshToken, user } = response.data;
+      setUser(user);
+      await SecureStore.setItemAsync("accessToken", accessToken);
+      await SecureStore.setItemAsync("refreshToken", refreshToken);
       router.dismissAll();
       router.replace("/login/guidelines");
     } catch (error) {

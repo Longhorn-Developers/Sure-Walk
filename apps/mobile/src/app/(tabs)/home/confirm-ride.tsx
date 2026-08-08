@@ -1,4 +1,5 @@
-import { getErrorMessage } from "@/src/client";
+import { getErrorMessage, handleNetworkFailure } from "@/src/client";
+import { api, ok } from "@/src/client/session";
 import FontText from "@/src/components/font-text";
 import { GuidelinesListShort } from "@/src/components/guidelines-list";
 import LargeButton from "@/src/components/large-button";
@@ -27,7 +28,7 @@ import { ScrollView } from "react-native-gesture-handler";
 const ConfirmRide = () => {
   const { pickupLocation, dropoffLocation } = useRideSession();
   const { members, clearMembers } = useGroupRideSession();
-  const { user, fetchProtected } = useSession();
+  const { user } = useSession();
   const { firstName, lastName, userType, eid, phoneNumber } = user!;
   const { setDropoffLocation, setPickupLocation } = useRideSession();
   const { goMyRide } = useTabContext();
@@ -49,36 +50,40 @@ const ConfirmRide = () => {
 
   const submitRide = async () => {
     setSubmitting(true);
-    const response = await fetchProtected("/ride", "POST", {
-      pickupLocation: pickupLocation!.id,
-      dropoffLocation: dropoffLocation!.id,
-      groupRide: members,
-    });
-
-    setSubmitting(false);
-    if (!response.ok) {
-      const errorMessage = await getErrorMessage(
-        response,
-        "Failed to submit ride.",
-      );
-      setToast({
-        title: "Unexpected error",
-        description: errorMessage,
-        onDismiss: () => setToast(null),
-        isError: true,
+    try {
+      const response = await api.post("/ride", {
+        pickupLocation: pickupLocation!.id,
+        dropoffLocation: dropoffLocation!.id,
+        groupRide: members,
       });
-    } else {
-      setDropoffLocation(null);
-      setPickupLocation(null);
-      setCurrentRideMini({
-        pickupLocationID: pickupLocation!.id,
-        dropoffLocationID: dropoffLocation!.id,
-        rideState: "received",
-      });
-      clearMembers();
-      setLoadingState("done");
-      goMyRide();
-      setTimeout(() => router.push("/home/ride-info-wrapper"), 500);
+      if (!ok(response)) {
+        const errorMessage = getErrorMessage(
+          response,
+          "Failed to submit ride.",
+        );
+        setToast({
+          title: "Unexpected error",
+          description: errorMessage,
+          onDismiss: () => setToast(null),
+          isError: true,
+        });
+      } else {
+        setDropoffLocation(null);
+        setPickupLocation(null);
+        setCurrentRideMini({
+          pickupLocationID: pickupLocation!.id,
+          dropoffLocationID: dropoffLocation!.id,
+          rideState: "received",
+        });
+        clearMembers();
+        setLoadingState("done");
+        goMyRide();
+        setTimeout(() => router.push("/home/ride-info-wrapper"), 500);
+      }
+    } catch (err) {
+      handleNetworkFailure(err, setToast);
+    } finally {
+      setSubmitting(false);
     }
   };
 

@@ -2,6 +2,7 @@ import CurrentRideMini from "@sure-walk/utils/types/current-ride-mini";
 import { createContext, useContext, useEffect, useState } from "react";
 import LoadingState from "../types/loading-state";
 import { useSession } from "./user-context";
+import { api } from "@/src/client/session";
 
 interface CurrentRideContextType {
   currentRide: CurrentRideMini | null;
@@ -31,17 +32,17 @@ export const CurrentRideProvider = ({
 }) => {
   const [currentRide, setCurrentRide] = useState<CurrentRideMini | null>(null);
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
-  const { loadingState: userLoadingState, user, fetchProtected } = useSession();
+  const { loadingState: userLoadingState, user } = useSession();
   const [firstLoad, setFirstLoad] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchCurrentRide = async () => {
       try {
-        const res = await fetchProtected("/ride", "GET");
+        const res = await api.get("/ride");
         if (res.status === 204) {
           setCurrentRide(null);
         } else if (res.status === 200) {
-          setCurrentRide(await res.json());
+          setCurrentRide(res.data);
         } else {
           throw new Error("Could not fetch current ride details.");
         }

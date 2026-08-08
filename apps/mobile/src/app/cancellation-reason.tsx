@@ -8,9 +8,9 @@ import { View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import TextInputField from "../components/text-input-field";
 import { LinearGradient } from "expo-linear-gradient";
-import { useSession } from "../utils/context/user-context";
 import { getErrorMessage, handleNetworkFailure } from "../client";
 import { useToastContext } from "../utils/context/toast-context";
+import { api, ok } from "../client/session";
 
 const CancellationReason = () => {
   const cancellationReasons: [string, ...string[]] = [
@@ -22,7 +22,6 @@ const CancellationReason = () => {
     "Other",
   ];
 
-  const { fetchProtected } = useSession();
   const params = useSearchParams();
   const rideID = params.get("rideID");
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -38,13 +37,9 @@ const CancellationReason = () => {
         cancellationReason: selectedOption,
         cancellationExtra: selectedOption === "Other" ? extraText : undefined,
       };
-      const res = await fetchProtected(
-        "/ride/cancellation-reason",
-        "POST",
-        data,
-      );
-      if (!res.ok) {
-        const error = await getErrorMessage(res);
+      const res = await api.post("/ride/cancellation-reason", data);
+      if (!ok(res)) {
+        const error = getErrorMessage(res);
         setToast({
           title: "Unexpected Error",
           description: error,
