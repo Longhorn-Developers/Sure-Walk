@@ -33,7 +33,7 @@ export async function handleRideStream(request: Request, env: CloudflareEnv) {
   }
 
   let currentRide:
-    | (typeof Ride & {
+    | (Ride & {
         vehicle: Vehicle | null;
       })
     | undefined = undefined;

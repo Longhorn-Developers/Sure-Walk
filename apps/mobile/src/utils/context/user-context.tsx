@@ -5,6 +5,7 @@ import * as SecureStore from "expo-secure-store";
 import LoadingState from "../types/loading-state";
 import { logout } from "../../client/auth";
 import { api, ok } from "@/src/client/session";
+import { SplashScreen } from "expo-router";
 
 interface UserContextType {
   user: User | null;
@@ -35,6 +36,13 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
       const guidelinesAcceptedValue =
         await SecureStore.getItemAsync("guidelinesAccepted");
       setGuidelinesAccepted(guidelinesAcceptedValue === "true");
+
+      const accessToken = await SecureStore.getItemAsync("accessToken");
+      if (!accessToken) {
+        // no login credentials
+        setLoadingState("done");
+        return;
+      }
 
       try {
         const userInfoReponse = await api.get("/me");

@@ -50,23 +50,20 @@ api.interceptors.response.use(
       if (!isRefreshing) {
         isRefreshing = true;
         try {
-          const refreshToken = await SecureStore.getItemAsync("refreshToken");
-          if (refreshToken) {
-            const resp = await axios.post(`${API_URL}/auth/refresh`, {
-              refreshToken,
-            });
+          const refreshToken =
+            (await SecureStore.getItemAsync("refreshToken")) ?? "";
+          const resp = await axios.post(`${API_URL}/auth/refresh`, {
+            refreshToken,
+          });
 
-            const {
-              accessToken: newAccessToken,
-              refreshToken: newRefreshToken,
-            } = resp.data;
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+            resp.data;
 
-            await SecureStore.setItemAsync("accessToken", newAccessToken);
-            await SecureStore.setItemAsync("refreshToken", newRefreshToken);
+          await SecureStore.setItemAsync("accessToken", newAccessToken);
+          await SecureStore.setItemAsync("refreshToken", newRefreshToken);
 
-            processQueue(null, newAccessToken);
-            return api(originalRequest);
-          }
+          processQueue(null, newAccessToken);
+          return api(originalRequest);
         } catch (refreshError: unknown) {
           if (axios.isAxiosError(refreshError) && refreshError.status === 401) {
             await SecureStore.deleteItemAsync("accessToken");

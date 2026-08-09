@@ -1,10 +1,10 @@
-import { randomUUID } from "crypto";
 import { index, int, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { users } from "./users";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
 import { locations } from "./locations";
 import { vehicles } from "./vehicles";
-import { SQL, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
+import { v7 } from "uuid";
 
 const stopStates: [string, ...string[]] = [
   "unassigned",
@@ -29,7 +29,7 @@ export const rides = sqliteTable(
   {
     id: text("id")
       .primaryKey()
-      .$defaultFn(() => randomUUID()),
+      .$defaultFn(() => v7()),
     samsaraID: text("samsara_id").unique().notNull(),
     userID: text("user_id")
       .references(() => users.id)
@@ -67,7 +67,7 @@ export const rides = sqliteTable(
     }),
     cancellationExtra: text("cancellation_extra"),
   },
-  (table) => [index("submitted_at_idx").on(table.submittedAt)],
+  (table) => [index("submitted_at_rides_idx").on(table.submittedAt)],
 );
 
-export const Ride = rides.$inferSelect;
+export type Ride = typeof rides.$inferSelect;

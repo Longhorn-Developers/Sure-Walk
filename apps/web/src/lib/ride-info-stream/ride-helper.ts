@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, notInArray, ne } from "drizzle-orm";
+import { and, eq, inArray, isNull, notInArray, ne, sql } from "drizzle-orm";
 import { getDBInWorker } from "../db";
 import { rides, Ride } from "../db/schema/rides";
 import { Samsara } from "@samsarahq/samsara";
@@ -21,7 +21,7 @@ const getActiveRides = async (env: CloudflareEnv) => {
         ]),
         notInArray(rides.dropoffStopState, ["skipped", "departed"]),
         isNull(rides.cancelledTime),
-        ne(rides.numPickedUp, 0),
+        sql`${rides.numPickedUp} IS NOT 0`,
       ),
     );
 
@@ -44,7 +44,7 @@ const getActiveRideByUserID = async (userID: string, env: CloudflareEnv) => {
         ]),
         notInArray(rides.dropoffStopState, ["skipped", "departed"]),
         isNull(rides.cancelledTime),
-        ne(rides.numPickedUp, 0),
+        sql`${rides.numPickedUp} IS NOT 0`,
       ),
     )
     .leftJoin(vehicles, eq(rides.vehicleID, vehicles.samsaraID))
@@ -79,7 +79,7 @@ const getActiveRideByShareCode = async (
         ]),
         notInArray(rides.dropoffStopState, ["skipped", "departed"]),
         isNull(rides.cancelledTime),
-        ne(rides.numPickedUp, 0),
+        sql`${rides.numPickedUp} IS NOT 0`,
       ),
     )
     .leftJoin(vehicles, eq(rides.vehicleID, vehicles.samsaraID))
@@ -117,9 +117,7 @@ const setDropoffStopState = async (
     .where(eq(rides.dropoffStopID, stopID));
 };
 
-const getInProgressRideStateFromRide = (
-  ride: typeof Ride,
-): InProgressRideState => {
+const getInProgressRideStateFromRide = (ride: Ride): InProgressRideState => {
   if (ride.dropoffStopState === "arrived") {
     return "dropped off";
   } else {

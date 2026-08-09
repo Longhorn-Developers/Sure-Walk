@@ -49,7 +49,7 @@ const Feedback = () => {
           });
           setLoadingState("error");
         } else {
-          setSubmittedAt(data.submittedAt + "Z");
+          setSubmittedAt(data.submittedAt);
           setPickupLocation(
             CAMPUS_LOCATIONS.find((loc) => loc.id === data.pickupLocationID)
               ?.name ?? "",

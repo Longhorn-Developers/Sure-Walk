@@ -149,7 +149,7 @@ const getAsset = async (vehicleID: string) => {
   return res;
 };
 
-const cancelRide = async (ride: typeof Ride, user: User) => {
+const cancelRide = async (ride: Ride, user: User) => {
   const newName = "Cancelled " + getRideName(user, ride.members);
   await samsaraClient.routes.patchRoute({
     id: ride.samsaraID,
@@ -191,7 +191,7 @@ const fetchCurrentRoutes = async () => {
   return res;
 };
 
-const missRide = async (ride: typeof Ride, user: User) => {
+const missRide = async (ride: Ride, user: User) => {
   const newName = "Missed " + getRideName(user, ride.members);
   await samsaraClient.routes.patchRoute({
     id: ride.samsaraID,

@@ -34,7 +34,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
   async fetch(request: Request): Promise<Response> {
     const currentRide = JSON.parse(
       request.headers.get("x-current-ride") ?? "",
-    ) as typeof Ride & {
+    ) as Ride & {
       user: User;
       vehicle: Vehicle | null;
       rideState: InProgressRideState;
@@ -157,7 +157,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
   }
 
   async streamAssignmentChanges(
-    activeRides: (typeof Ride)[],
+    activeRides: Ride[],
     assignmentChanges: Samsara.RoutesFetchRoutesResponseBody,
   ) {
     for (const ride of activeRides) {
@@ -175,7 +175,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
   }
 
   async streamLocations(
-    activeRides: (typeof Ride)[],
+    activeRides: Ride[],
     assetLocations: Samsara.InlineResponse2002,
     vehicleLocations: Samsara.VehicleLocationsListResponse,
   ) {
@@ -204,7 +204,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
   }
 
   async streamRouteUpdates(
-    activeRides: (typeof Ride)[],
+    activeRides: Ride[],
     routeUpdates: Samsara.RoutesGetRoutesFeedResponseBody,
   ) {
     for (const ride of routeUpdates.data) {
