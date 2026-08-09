@@ -375,8 +375,8 @@ export const WEST_CAMPUS_LOCATIONS: Location[] = [
     abbreviation: "Nueces",
     name: "Villas on Nueces",
     address: "2207 Nueces St, Austin, TX 78705",
-    lat: 30.2860,
-    lon: -97.74364, 
+    lat: 30.286,
+    lon: -97.74364,
     category: "housing",
   },
   {
@@ -388,7 +388,7 @@ export const WEST_CAMPUS_LOCATIONS: Location[] = [
     lon: -97.7432,
     category: "housing",
   },
-    {
+  {
     id: 1170,
     abbreviation: "21st Co-op",
     name: "21st Street Co-op",
@@ -493,7 +493,7 @@ export const WEST_CAMPUS_LOCATIONS: Location[] = [
     name: "Texan 26",
     address: "1009 West 26th Street, Austin, TX",
     lat: 30.2908,
-    lon: -97.7480,
+    lon: -97.748,
     category: "housing",
   },
   {
@@ -528,8 +528,8 @@ export const WEST_CAMPUS_LOCATIONS: Location[] = [
     abbreviation: "Triangle",
     name: "Triangle Apartments",
     address: "4600 W Guadalupe St, Austin, TX 78751",
-    lat: 30.3130,
-    lon: -97.7330,
+    lat: 30.313,
+    lon: -97.733,
     category: "housing",
   },
   {
@@ -540,7 +540,7 @@ export const WEST_CAMPUS_LOCATIONS: Location[] = [
     lat: 30.3146,
     lon: -97.7361,
     category: "housing",
-  }
+  },
 ];
 
 export const getMatchingDropoffLocations = (query: string): Location[] => {
