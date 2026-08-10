@@ -43,8 +43,8 @@ export const rides = sqliteTable(
     dropoffLocationID: int("dropoff_location_id")
       .references(() => locations.id)
       .notNull(),
-    pickupStopID: text("pickup_stop_id").notNull(),
-    dropoffStopID: text("dropoff_stop_id").notNull(),
+    pickupStopID: text("pickup_stop_id").unique().notNull(),
+    dropoffStopID: text("dropoff_stop_id").unique().notNull(),
     estPickupTime: text("est_pickup_time").notNull(),
     estDropoffTime: text("est_dropoff_time").notNull(),
     actualPickupTime: text("actual_pickup_time"),

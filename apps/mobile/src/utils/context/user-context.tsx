@@ -5,7 +5,8 @@ import * as SecureStore from "expo-secure-store";
 import LoadingState from "../types/loading-state";
 import { logout } from "../../client/auth";
 import { api, ok } from "@/src/client/session";
-import { SplashScreen } from "expo-router";
+import axios from "axios";
+import { useToastContext } from "./toast-context";
 
 interface UserContextType {
   user: User | null;
@@ -27,6 +28,8 @@ export const useSession = () => {
 };
 
 export const SessionProvider = ({ children }: PropsWithChildren) => {
+  const { setToast } = useToastContext();
+
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
   const [userInfo, setUserInfo] = useState<User | null>(null);
   const [guidelinesAccepted, setGuidelinesAccepted] = useState<boolean>(false);
@@ -53,19 +56,29 @@ export const SessionProvider = ({ children }: PropsWithChildren) => {
         setUserInfo(parsedUserData);
         setLoadingState("done");
       } catch (error) {
+        if (
+          axios.isAxiosError(error) &&
+          (error.code === "ECONNABORTED" || error.code === "ERR_NETWORK")
+        ) {
+          console.error("Could not establish a connection.");
+          setLoadingState("error");
+          return;
+        }
         // assume user is logged out
-        console.error("Error parsing user data, logging out:", error);
+        setToast({
+          title: "There was a problem with your login.",
+          description: "Please sign in again.",
+          onDismiss: () => setToast(null),
+          isError: true,
+        });
         await SecureStore.deleteItemAsync("guidelinesAccepted");
-        setLoadingState("done");
-        return;
-      } finally {
         setLoadingState("done");
         return;
       }
     };
 
     fetchUserInfo();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <UserContext.Provider

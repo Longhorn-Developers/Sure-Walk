@@ -53,8 +53,11 @@ const MyRide = ({ initialIndex }: { initialIndex: number }) => {
   const snap0 = useSharedValue<number>(180);
   const snap1 = useSharedValue<number>(340);
   const snapPoints = useDerivedValue<(string | number)[]>(
-    () => [snap0.value, snap1.value, "80.5%"],
-    [snap0, snap1, height, top],
+    () =>
+      currentRide
+        ? [snap0.value, snap0.value]
+        : [snap0.value, snap1.value, "80.5%"],
+    [snap0, snap1, height, top, currentRide],
   );
   const [disabled, setDisabled] = useState<boolean>(false);
 
@@ -102,6 +105,7 @@ const MyRide = ({ initialIndex }: { initialIndex: number }) => {
           setCurrentRide(null);
         } else if (res.status === 200) {
           setCurrentRide(res.data);
+          sheetRef.current?.snapToIndex(0);
         } else {
           throw new Error("Could not fetch current ride details.");
         }
@@ -214,34 +218,38 @@ const MyRide = ({ initialIndex }: { initialIndex: number }) => {
                 </>
               )}
             </View>
-            <FontText className="text-2xl font-medium mt-10">
-              Join a Ride
-            </FontText>
-            <FontText className="text-lg font-normal mt-2 mb-6">
-              Enter the ride code shared by your group leader.
-            </FontText>
-            <TextInputField
-              placeholder="ABC1234"
-              autoCapitalize={"characters"}
-              value={code}
-              onChangeText={(text) => setCode(text.toUpperCase())}
-              onFocus={() => sheetRef.current?.expand()}
-              onBlur={() => sheetRef.current?.snapToIndex(1)}
-              inputRef={inputRef}
-              returnKeyType="go"
-              onSubmitEditing={() => {
-                if (code.length !== 7) {
-                  setToast({
-                    title: "Invalid Code",
-                    description: "Please enter a valid 7-digit ride code.",
-                    onDismiss: () => setToast(null),
-                    isError: true,
-                  });
-                  return;
-                }
-                router.push(`/home/ride-info-wrapper?shareCode=${code}`);
-              }}
-            />
+            {currentRide === null && (
+              <>
+                <FontText className="text-2xl font-medium mt-10">
+                  Join a Ride
+                </FontText>
+                <FontText className="text-lg font-normal mt-2 mb-6">
+                  Enter the ride code shared by your group leader.
+                </FontText>
+                <TextInputField
+                  placeholder="ABC1234"
+                  autoCapitalize={"characters"}
+                  value={code}
+                  onChangeText={(text) => setCode(text.toUpperCase())}
+                  onFocus={() => sheetRef.current?.expand()}
+                  onBlur={() => sheetRef.current?.snapToIndex(1)}
+                  inputRef={inputRef}
+                  returnKeyType="go"
+                  onSubmitEditing={() => {
+                    if (code.length !== 7) {
+                      setToast({
+                        title: "Invalid Code",
+                        description: "Please enter a valid 7-digit ride code.",
+                        onDismiss: () => setToast(null),
+                        isError: true,
+                      });
+                      return;
+                    }
+                    router.push(`/home/ride-info-wrapper?shareCode=${code}`);
+                  }}
+                />
+              </>
+            )}
           </View>
         </View>
       </BottomSheet>

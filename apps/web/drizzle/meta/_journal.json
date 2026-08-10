@@ -71,6 +71,13 @@
       "when": 1786251016931,
       "tag": "0009_add-num-picked-up-and-submitted-at-indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1786336671993,
+      "tag": "0010_add-unique-indexes-on-pickup-dropoff-stop-ids",
+      "breakpoints": true
     }
   ]
 }

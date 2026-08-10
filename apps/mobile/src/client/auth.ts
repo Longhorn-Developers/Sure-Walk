@@ -55,7 +55,11 @@ export const confirmGeneric = async (code: string) => {
 export const logout = async () => {
   const refreshToken = await SecureStore.getItemAsync("refreshToken");
 
-  const response = await axios.post(`${API_URL}/auth/logout`, { refreshToken });
+  const response = await axios.post(
+    `${API_URL}/auth/logout`,
+    { refreshToken },
+    { validateStatus: () => true },
+  );
   return response;
 };
 

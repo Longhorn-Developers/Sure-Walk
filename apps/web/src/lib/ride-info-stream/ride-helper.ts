@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, notInArray, ne, sql } from "drizzle-orm";
+import { and, eq, isNull, notInArray, sql, gt } from "drizzle-orm";
 import { getDBInWorker } from "../db";
 import { rides, Ride } from "../db/schema/rides";
 import { Samsara } from "@samsarahq/samsara";
@@ -12,16 +12,11 @@ const getActiveRides = async (env: CloudflareEnv) => {
     .from(rides)
     .where(
       and(
-        inArray(rides.pickupStopState, [
-          "unassigned",
-          "scheduled",
-          "en route",
-          "arrived",
-          "departed",
-        ]),
-        notInArray(rides.dropoffStopState, ["skipped", "departed"]),
+        notInArray(rides.pickupStopState, ["skipped"]),
+        notInArray(rides.dropoffStopState, ["departed"]),
         isNull(rides.cancelledTime),
         sql`${rides.numPickedUp} IS NOT 0`,
+        gt(rides.submittedAt, new Date(Date.now() - 1000 * 60 * 60 * 36)),
       ),
     );
 
@@ -35,16 +30,11 @@ const getActiveRideByUserID = async (userID: string, env: CloudflareEnv) => {
     .where(
       and(
         eq(rides.userID, userID),
-        inArray(rides.pickupStopState, [
-          "unassigned",
-          "scheduled",
-          "en route",
-          "arrived",
-          "departed",
-        ]),
-        notInArray(rides.dropoffStopState, ["skipped", "departed"]),
+        notInArray(rides.pickupStopState, ["skipped"]),
+        notInArray(rides.dropoffStopState, ["departed"]),
         isNull(rides.cancelledTime),
         sql`${rides.numPickedUp} IS NOT 0`,
+        gt(rides.submittedAt, new Date(Date.now() - 1000 * 60 * 60 * 36)),
       ),
     )
     .leftJoin(vehicles, eq(rides.vehicleID, vehicles.samsaraID))
@@ -70,16 +60,11 @@ const getActiveRideByShareCode = async (
     .where(
       and(
         eq(rides.shareCode, shareCode),
-        inArray(rides.pickupStopState, [
-          "unassigned",
-          "scheduled",
-          "en route",
-          "arrived",
-          "departed",
-        ]),
-        notInArray(rides.dropoffStopState, ["skipped", "departed"]),
+        notInArray(rides.pickupStopState, ["skipped"]),
+        notInArray(rides.dropoffStopState, ["departed"]),
         isNull(rides.cancelledTime),
         sql`${rides.numPickedUp} IS NOT 0`,
+        gt(rides.submittedAt, new Date(Date.now() - 1000 * 60 * 60 * 36)),
       ),
     )
     .leftJoin(vehicles, eq(rides.vehicleID, vehicles.samsaraID))
@@ -120,6 +105,8 @@ const setDropoffStopState = async (
 const getInProgressRideStateFromRide = (ride: Ride): InProgressRideState => {
   if (ride.dropoffStopState === "arrived") {
     return "dropped off";
+  } else if (ride.dropoffStopState === "skipped") {
+    return "in progress";
   } else {
     switch (ride.pickupStopState) {
       case "departed":

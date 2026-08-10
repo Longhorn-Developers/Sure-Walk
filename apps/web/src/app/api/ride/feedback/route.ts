@@ -35,6 +35,19 @@ const canProvideFeedback = async (user: User, rideID: string) => {
   }
 
   if (
+    ride.cancelledTime ||
+    ride.numPickedUp === 0 ||
+    ride.dropoffStopState !== "departed"
+  ) {
+    return NextResponse.json(
+      {
+        message: "Ride is incomplete",
+      },
+      { status: 403 },
+    );
+  }
+
+  if (
     ride.userID != user.id &&
     ride.members.find(
       (m) => m.phoneNumber === user.phoneNumber || m.eid === user.eid,

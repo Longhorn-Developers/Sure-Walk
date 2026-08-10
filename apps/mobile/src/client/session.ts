@@ -65,10 +65,13 @@ api.interceptors.response.use(
           processQueue(null, newAccessToken);
           return api(originalRequest);
         } catch (refreshError: unknown) {
-          if (axios.isAxiosError(refreshError) && refreshError.status === 401) {
+          if (
+            axios.isAxiosError(refreshError) &&
+            (refreshError.status === 401 || refreshError.status === 400)
+          ) {
             await SecureStore.deleteItemAsync("accessToken");
             await SecureStore.deleteItemAsync("refreshToken");
-            router.replace("/login");
+            setTimeout(() => router.replace("/login"), 1000);
           }
           processQueue(refreshError, null);
           throw refreshError;

@@ -23,6 +23,7 @@ import { RideProvider } from "../utils/context/ride-context";
 import { RideDetailsProvider } from "../utils/context/ride-details-context";
 import { useTabContext } from "../utils/context/tab-context";
 import { useSession } from "../utils/context/user-context";
+import FontText from "./font-text";
 
 const TabScreens = () => {
   let paddingBottom: number = useSafeAreaInsets().bottom;
@@ -62,6 +63,15 @@ const TabScreens = () => {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color={UTBurntOrange} />
+      </View>
+    );
+  }
+
+  if (loadingState === "error") {
+    // network issues
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <FontText className="text-2xl font-medium">No internet</FontText>
       </View>
     );
   }
