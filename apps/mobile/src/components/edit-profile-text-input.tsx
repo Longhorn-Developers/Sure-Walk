@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import {
   Platform,
   Pressable,
@@ -6,9 +7,9 @@ import {
   TextStyle,
   View,
 } from "react-native";
-import FontText from "./font-text";
+
 import { gray500 } from "../utils/colors";
-import { useRef } from "react";
+import FontText from "./font-text";
 
 const EditProfileTextInput = ({
   fieldName,

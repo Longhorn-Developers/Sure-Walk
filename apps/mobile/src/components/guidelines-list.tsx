@@ -1,17 +1,18 @@
-import { View } from "react-native";
 import {
   ClockIcon,
-  UsersIcon,
-  MapPinIcon,
-  WarningIcon,
-  TimerIcon,
   HamburgerIcon,
-  XCircleIcon,
   IconContext,
+  MapPinIcon,
   PhoneCallIcon,
+  TimerIcon,
+  UsersIcon,
+  WarningIcon,
+  XCircleIcon,
 } from "phosphor-react-native";
-import FontText from "./font-text";
+import { View } from "react-native";
+
 import { UTBurntOrange } from "../utils/colors";
+import FontText from "./font-text";
 
 const GuidelinesList = ({ includeBottomBorder = false }) => {
   const guidelines = [

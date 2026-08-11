@@ -29,6 +29,7 @@ export const TabProvider = ({ children }: { children: React.ReactNode }) => {
   const [myRideSheetRef, setMyRideSheetRef] =
     useState<React.RefObject<BottomSheet>>(createRef());
   const [activeTab, setActiveTab] = useState<"home" | "my-ride">("home");
+
   const segments = useSegments();
   const navigation = useNavigation();
 

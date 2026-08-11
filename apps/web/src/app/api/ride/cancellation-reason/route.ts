@@ -1,11 +1,12 @@
+import { and, eq } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
+import z from "zod";
+
 import { ensureAuthenticated } from "@/lib/auth";
 import { getDB } from "@/lib/db";
 import { accounts } from "@/lib/db/schema/accounts";
 import { cancellationReasons, rides } from "@/lib/db/schema/rides";
 import { users } from "@/lib/db/schema/users";
-import { eq, and } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
-import z from "zod";
 
 const cancellationBody = z.object({
   rideID: z.string(),

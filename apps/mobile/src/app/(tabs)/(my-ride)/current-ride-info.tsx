@@ -1,26 +1,16 @@
-import { API_URL } from "@/src/client/auth";
-import FontText from "@/src/components/font-text";
-import { GuidelinesListShort } from "@/src/components/guidelines-list";
-import PickupDropoffLocationInfo from "@/src/components/pickup-dropoff-location-info";
-import RideStateStep, {
-  RideStateStepDivider,
-} from "@/src/components/ride-state-step";
-import RiderCard from "@/src/components/rider-card";
-import { slate700, UTBluebonnet, UTBurntOrange } from "@/src/utils/colors";
-import { WEST_CAMPUS_LOCATIONS } from "@/src/utils/locations/dropoff-locations";
-import { CAMPUS_LOCATIONS } from "@/src/utils/locations/pickup-locations";
-import LoadingState from "@/src/utils/types/loading-state";
-import Location from "@/src/utils/types/location";
 import BottomSheet, {
   BottomSheetScrollView,
   BottomSheetScrollViewMethods,
 } from "@gorhom/bottom-sheet";
 import CurrentRideSmall from "@sure-walk/utils/types/current-ride-small";
 import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
-import VehicleInfoShort from "@sure-walk/utils/types/vehicle-info-short";
 import RideEvent from "@sure-walk/utils/types/ride-event";
+import VehicleInfoShort from "@sure-walk/utils/types/vehicle-info-short";
+import * as Clipboard from "expo-clipboard";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { useSearchParams } from "expo-router/build/hooks";
+import * as SecureStore from "expo-secure-store";
 import {
   CaretLeftIcon,
   CarSimpleIcon,
@@ -31,87 +21,78 @@ import {
   WarningCircleIcon,
 } from "phosphor-react-native";
 import { useEffect, useRef, useState } from "react";
-import {
-  View,
-  TouchableOpacity,
-  AppState,
-  LayoutChangeEvent,
-} from "react-native";
+import { LayoutChangeEvent, TouchableOpacity, View } from "react-native";
 import MapView, { LatLng, Marker } from "react-native-maps";
 import Animated, {
+  Easing,
+  scrollTo,
   SharedValue,
+  useAnimatedReaction,
+  useAnimatedRef,
   useDerivedValue,
   useSharedValue,
-  Easing,
-  useAnimatedRef,
-  useAnimatedReaction,
   withTiming,
-  scrollTo,
 } from "react-native-reanimated";
-import * as Clipboard from "expo-clipboard";
-import { useSearchParams } from "expo-router/build/hooks";
-import { useRideDetailsSession } from "@/src/utils/context/ride-details-context";
-import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
-import OutlineButton from "@/src/components/outline-button";
-import CancelRideModal from "@/src/components/cancel-ride-modal";
-import { useMissedRideSession } from "@/src/utils/context/missed-ride-context";
-import { useToastContext } from "@/src/utils/context/toast-context";
-import * as SecureStore from "expo-secure-store";
+
+import { API_URL } from "@/src/client/auth";
 import { api } from "@/src/client/session";
+import CancelRideModal from "@/src/components/cancel-ride-modal";
+import FontText from "@/src/components/font-text";
+import { GuidelinesListShort } from "@/src/components/guidelines-list";
+import OutlineButton from "@/src/components/outline-button";
+import PickupDropoffLocationInfo from "@/src/components/pickup-dropoff-location-info";
+import RideStateStep, {
+  RideStateStepDivider,
+} from "@/src/components/ride-state-step";
+import RiderCard from "@/src/components/rider-card";
+import { slate700, UTBluebonnet, UTBurntOrange } from "@/src/utils/colors";
+import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
+import { useMissedRideSession } from "@/src/utils/context/missed-ride-context";
+import { useRideDetailsSession } from "@/src/utils/context/ride-details-context";
+import { useToastContext } from "@/src/utils/context/toast-context";
+import { WEST_CAMPUS_LOCATIONS } from "@/src/utils/locations/dropoff-locations";
+import { CAMPUS_LOCATIONS } from "@/src/utils/locations/pickup-locations";
+import LoadingState from "@/src/utils/types/loading-state";
+import Location from "@/src/utils/types/location";
 
 const CurrentRideInfo = () => {
   const { setRideDetails, rideDetails } = useRideDetailsSession();
   const { setCurrentRide } = useCurrentRideSession();
+  const { setMissedRide, setShowModal } = useMissedRideSession();
+  const { setToast } = useToastContext();
+
+  // shareCode is for viewing group rides
   const params = useSearchParams();
   const shareCode = params.get("shareCode");
+
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
   const [vehicleInfo, setVehicleInfo] = useState<VehicleInfoShort | null>(null);
   const [vehicleLocation, setVehicleLocation] = useState<LatLng>({
     latitude: 0,
     longitude: 0,
   });
-  const wsRef = useRef<WebSocket>(undefined);
-  const mapRef = useRef<MapView | null>(null);
-  const sheetRef = useRef<BottomSheet | null>(null);
-  const scrollRef = useRef<BottomSheetScrollViewMethods | null>(null);
-  const rideStepsScrollRef = useAnimatedRef<Animated.ScrollView>();
-  const scrollTarget = useSharedValue(0);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const { setMissedRide, setShowModal } = useMissedRideSession();
-  const { setToast } = useToastContext();
-
-  const snap0 = useSharedValue<number>(72);
-  const snap1 = useSharedValue<number>(156);
-  const snapPoints = useDerivedValue<(string | number)[]>(
-    () => [snap0.value, snap1.value, "70%"],
-    [snap0, snap1],
-  ) as SharedValue<(string | number)[]>;
-
   const [pickupLocation, setPickupLocation] = useState<Location | undefined>(
     undefined,
   );
   const [dropoffLocation, setDropoffLocation] = useState<Location | undefined>(
     undefined,
   );
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
 
-  const animateToStep = (rideState: InProgressRideState) => {
-    if (rideState === "en route") {
-      scrollTarget.value = withTiming(262, {
-        duration: 1400,
-        easing: Easing.inOut(Easing.cubic),
-      });
-    }
-    if (
-      rideState === "arrived" ||
-      rideState === "in progress" ||
-      rideState === "dropped off"
-    ) {
-      scrollTarget.value = withTiming(392, {
-        duration: 1700,
-        easing: Easing.inOut(Easing.cubic),
-      });
-    }
-  };
+  const wsRef = useRef<WebSocket>(undefined);
+  const mapRef = useRef<MapView | null>(null);
+  const sheetRef = useRef<BottomSheet | null>(null);
+  const scrollRef = useRef<BottomSheetScrollViewMethods | null>(null);
+  const rideStepsScrollRef = useAnimatedRef<Animated.ScrollView>();
+
+  const scrollTarget = useSharedValue(0);
+  // automatic bottom sheet placement on stops
+  const snap0 = useSharedValue<number>(72);
+  const snap1 = useSharedValue<number>(156);
+  const snapPoints = useDerivedValue<(string | number)[]>(
+    () => [snap0.value, snap1.value, "70%"],
+    [snap0, snap1],
+  ) as SharedValue<(string | number)[]>;
 
   const connect = (onConnect = () => {}) => {
     const wsURL = API_URL.replace("http", "ws");
@@ -261,7 +242,6 @@ const CurrentRideInfo = () => {
         });
         setTimeout(
           () =>
-            wsRef.current?.onclose !== null &&
             connect(() => {
               setToast({
                 title: "Connected",
@@ -287,29 +267,32 @@ const CurrentRideInfo = () => {
       }, 200),
     );
 
-    const appStateListener = AppState.addEventListener(
-      "change",
-      (nextAppState) => {
-        if (
-          nextAppState === "active" &&
-          (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED)
-        ) {
-          console.log(
-            "App returned to foreground, rebuilding socket connection.",
-          );
-          connect();
-        }
-      },
-    );
-
     return () => {
-      appStateListener.remove();
       if (wsRef.current) {
         wsRef.current.onclose = null;
         wsRef.current.close();
       }
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const animateToStep = (rideState: InProgressRideState) => {
+    if (rideState === "en route") {
+      scrollTarget.value = withTiming(262, {
+        duration: 1400,
+        easing: Easing.inOut(Easing.cubic),
+      });
+    }
+    if (
+      rideState === "arrived" ||
+      rideState === "in progress" ||
+      rideState === "dropped off"
+    ) {
+      scrollTarget.value = withTiming(392, {
+        duration: 1700,
+        easing: Easing.inOut(Easing.cubic),
+      });
+    }
+  };
 
   const handleLayout0 = (event: LayoutChangeEvent) => {
     let height = event.nativeEvent.layout.height;

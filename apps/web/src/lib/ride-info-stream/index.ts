@@ -1,27 +1,28 @@
-import { DurableObject } from "cloudflare:workers";
+import { Samsara } from "@samsarahq/samsara";
 import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
 import VehicleInfoShort from "@sure-walk/utils/types/vehicle-info-short";
-import { Samsara } from "@samsarahq/samsara";
-import {
-  fetchCurrentRoutes,
-  getAsset,
-  getFormSubmission,
-  getRouteUpdates,
-  getVehicleFromDriver,
-  getAssetLocations,
-  missRide,
-  getVehicleLocations,
-} from "./samsara-utils";
+import { DurableObject } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
+
+import { getDBInWorker } from "../db";
+import { Ride, rides } from "../db/schema/rides";
+import { User, users } from "../db/schema/users";
+import { Vehicle, vehicles } from "../db/schema/vehicles";
 import {
   getActiveRides,
   setDropoffStopState,
   setPickupStopState,
 } from "./ride-helper";
-import { Ride, rides } from "../db/schema/rides";
-import { getDBInWorker } from "../db";
-import { eq } from "drizzle-orm";
-import { Vehicle, vehicles } from "../db/schema/vehicles";
-import { User, users } from "../db/schema/users";
+import {
+  fetchCurrentRoutes,
+  getAsset,
+  getAssetLocations,
+  getFormSubmission,
+  getRouteUpdates,
+  getVehicleFromDriver,
+  getVehicleLocations,
+  missRide,
+} from "./samsara-utils";
 
 export class RideInfoStream extends DurableObject<CloudflareEnv> {
   streams: Map<string, WebSocket[]>;
@@ -233,7 +234,10 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
               const driverID = ride.route.driver?.id;
               if (driverID) {
                 const vehicleAssignment = await getVehicleFromDriver(driverID);
-                if (vehicleAssignment.data.length > 0) {
+                if (
+                  vehicleAssignment.data &&
+                  vehicleAssignment.data.length > 0
+                ) {
                   vehicleID = vehicleAssignment.data[0].vehicle.id;
                 }
               }

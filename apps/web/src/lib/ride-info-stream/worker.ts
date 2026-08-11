@@ -1,16 +1,17 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+
 import { ensureAuthenticated } from "../auth";
 import { getDBInWorker } from "../db";
 import { accounts } from "../db/schema/accounts";
+import { Ride } from "../db/schema/rides";
 import { users } from "../db/schema/users";
+import { Vehicle } from "../db/schema/vehicles";
 import {
   getActiveRideByShareCode,
   getActiveRideByUserID,
   getInProgressRideStateFromRide,
 } from "./ride-helper";
-import { Vehicle } from "../db/schema/vehicles";
-import { Ride } from "../db/schema/rides";
 
 export async function handleRideStream(request: Request, env: CloudflareEnv) {
   const upgradeHeader = request.headers.get("Upgrade");

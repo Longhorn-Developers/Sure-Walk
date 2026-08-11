@@ -1,10 +1,11 @@
-import { index, int, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { users } from "./users";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
-import { locations } from "./locations";
-import { vehicles } from "./vehicles";
 import { sql } from "drizzle-orm";
+import { index, int, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { v7 } from "uuid";
+
+import { locations } from "./locations";
+import { users } from "./users";
+import { vehicles } from "./vehicles";
 
 const stopStates: [string, ...string[]] = [
   "unassigned",

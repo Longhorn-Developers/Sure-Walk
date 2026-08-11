@@ -1,25 +1,27 @@
-import FontText from "@/src/components/font-text";
-import LargeButton from "@/src/components/large-button";
-import { useSession } from "@/src/utils/context/user-context";
-import { useEffect, useState } from "react";
-import { Linking, ScrollView, TouchableOpacity, View } from "react-native";
-import OutlineButton from "@/src/components/outline-button";
-import EditProfileTextInput from "@/src/components/edit-profile-text-input";
-import DropdownSelect from "@/src/components/dropdown-select";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import {
   ArrowUpRightIcon,
   ArrowUUpLeftIcon,
   CaretRightIcon,
   SignOutIcon,
 } from "phosphor-react-native";
-import { UTBluebonnet } from "@/src/utils/colors";
-import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { api, ok } from "@/src/client/session";
+import { useEffect, useState } from "react";
+import { Linking, ScrollView, TouchableOpacity, View } from "react-native";
+
 import { getErrorMessage } from "@/src/client";
+import { api, ok } from "@/src/client/session";
+import DropdownSelect from "@/src/components/dropdown-select";
+import EditProfileTextInput from "@/src/components/edit-profile-text-input";
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
+import OutlineButton from "@/src/components/outline-button";
+import { UTBluebonnet } from "@/src/utils/colors";
+import { useSession } from "@/src/utils/context/user-context";
 
 const Profile = () => {
   const { user, loadingState, logOut, setUser } = useSession();
+
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

@@ -1,7 +1,8 @@
 import { TouchableOpacity } from "react-native";
-import FontText from "./font-text";
 import { View } from "react-native";
 import Animated from "react-native-reanimated";
+
+import FontText from "./font-text";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 

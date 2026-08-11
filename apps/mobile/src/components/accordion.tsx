@@ -1,12 +1,13 @@
-import { LayoutChangeEvent, TouchableOpacity, View } from "react-native";
-import FontText from "./font-text";
 import { CaretDownIcon } from "phosphor-react-native";
-import { UTBurntOrange } from "../utils/colors";
+import { LayoutChangeEvent, TouchableOpacity, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+
+import { UTBurntOrange } from "../utils/colors";
+import FontText from "./font-text";
 
 const Accordion = ({ title, body }: { title: string; body: string }) => {
   const isOpen = useSharedValue<boolean>(false);

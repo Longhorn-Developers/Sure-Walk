@@ -1,30 +1,33 @@
-import LargeButton from "@/src/components/large-button";
-import { useLoginSession } from "@/src/utils/context/login-context";
 import { router } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { CircleIcon } from "phosphor-react-native";
 import { useRef, useState } from "react";
 import {
-  View,
+  Platform,
   TextInput,
   TouchableWithoutFeedback,
-  Platform,
+  View,
 } from "react-native";
-import FontText from "@/src/components/font-text";
-import { gray500 } from "@/src/utils/colors";
-import { confirmGeneric } from "@/src/client/auth";
-import { useSession } from "@/src/utils/context/user-context";
+
 import { getErrorMessage, handleNetworkFailure } from "@/src/client";
-import { useToastContext } from "@/src/utils/context/toast-context";
+import { confirmGeneric } from "@/src/client/auth";
 import { ok } from "@/src/client/session";
-import * as SecureStore from "expo-secure-store";
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
+import { gray500 } from "@/src/utils/colors";
+import { useLoginSession } from "@/src/utils/context/login-context";
+import { useToastContext } from "@/src/utils/context/toast-context";
+import { useSession } from "@/src/utils/context/user-context";
 
 const Confirm = () => {
   const { phoneNumber } = useLoginSession();
   const { setUser } = useSession();
   const { setToast } = useToastContext();
+
   const [code, setCode] = useState("");
   const [focused, setFocus] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
+
   const textInputRef = useRef<TextInput | null>(null);
 
   const confirmCode = async () => {

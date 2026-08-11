@@ -1,3 +1,9 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import CurrentRideMini from "@sure-walk/utils/types/current-ride-mini";
+import { and, eq } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
+import z from "zod";
+
 import { ensureAuthenticated } from "@/lib/auth";
 import { getDB } from "@/lib/db";
 import { accounts } from "@/lib/db/schema/accounts";
@@ -8,11 +14,6 @@ import {
   getInProgressRideStateFromRide,
 } from "@/lib/ride-info-stream/ride-helper";
 import { cancelRide, createRoute } from "@/lib/ride-info-stream/samsara-utils";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { eq, and } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
-import CurrentRideMini from "@sure-walk/utils/types/current-ride-mini";
-import z from "zod";
 
 const groupRideMember = z.object({
   firstName: z

@@ -1,4 +1,10 @@
-import FontText from "@/src/components/font-text";
+import BottomSheet, {
+  BottomSheetFlatList,
+  TouchableOpacity as TO,
+} from "@gorhom/bottom-sheet";
+import { LinearGradient } from "expo-linear-gradient";
+import * as Location from "expo-location";
+import { router, useFocusEffect } from "expo-router";
 import {
   CircleIcon,
   FadersHorizontalIcon,
@@ -19,10 +25,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import BottomSheet, {
-  BottomSheetFlatList,
-  TouchableOpacity as TO,
-} from "@gorhom/bottom-sheet";
+import MapView, { Marker, Polygon } from "react-native-maps";
 import Animated, {
   Easing,
   FadeInDown,
@@ -35,10 +38,10 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
+
 import CheckButton from "@/src/components/check-button";
-import MapView, { Marker, Polygon } from "react-native-maps";
-import * as Location from "expo-location";
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
 import {
   dropoffBoundaryPolygons,
   pickupBoundaryPolygons,
@@ -53,16 +56,15 @@ import {
   UTTangerine,
   UTTurquoise,
 } from "@/src/utils/colors";
-import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
-import { router, useFocusEffect } from "expo-router";
-import { Location as LocationType } from "@/src/utils/types/location";
-import { getMatchingPickupLocations } from "@/src/utils/locations/pickup-locations";
-import { getMatchingDropoffLocations } from "@/src/utils/locations/dropoff-locations";
-import { useRideSession } from "@/src/utils/context/ride-context";
-import LargeButton from "@/src/components/large-button";
-import { useTabContext } from "@/src/utils/context/tab-context";
-import MyRide from "../(my-ride)";
 import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
+import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
+import { useRideSession } from "@/src/utils/context/ride-context";
+import { useTabContext } from "@/src/utils/context/tab-context";
+import { getMatchingDropoffLocations } from "@/src/utils/locations/dropoff-locations";
+import { getMatchingPickupLocations } from "@/src/utils/locations/pickup-locations";
+import { Location as LocationType } from "@/src/utils/types/location";
+
+import MyRide from "../(my-ride)";
 
 const Home = () => {
   let _style: StyleProp<TextStyle> = {};
@@ -101,15 +103,12 @@ const Home = () => {
   const [legendOpen, setLegendOpen] = useState<boolean>(false);
   const [showPickupBoundary, setPickupBoundary] = useState<boolean>(true);
   const [showDropoffBoundary, setDropoffBoundary] = useState<boolean>(true);
-
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
   );
   const [markerReady, setMarkerReady] = useState(false);
-
   const [userLocationLabel, setUserLocationLabel] =
     useState<string>("Loading...");
-
   const [startLocationText, setStartLocationText] = useState<string>(
     pickupLocation?.name ?? "",
   );
@@ -128,7 +127,6 @@ const Home = () => {
   const [destinationAddress, setDestinationAddress] = useState<string>(
     dropoffLocation?.address ?? "Select your destination",
   );
-
   const [showHome, setShowHome] = useState<boolean>(false);
   const [showMyRide, setShowMyRide] = useState<boolean>(false);
 

@@ -1,11 +1,13 @@
 import User from "@sure-walk/utils/types/user";
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 import { PropsWithChildren, useContext, useEffect, useState } from "react";
 import { createContext } from "react";
-import * as SecureStore from "expo-secure-store";
-import LoadingState from "../types/loading-state";
-import { logout } from "../../client/auth";
+
 import { api, ok } from "@/src/client/session";
-import axios from "axios";
+
+import { logout } from "../../client/auth";
+import LoadingState from "../types/loading-state";
 import { useToastContext } from "./toast-context";
 
 interface UserContextType {

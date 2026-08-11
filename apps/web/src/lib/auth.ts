@@ -1,10 +1,11 @@
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
-import { Account, accounts } from "./db/schema/accounts";
-import { getDB } from "./db";
-import { refreshTokens } from "./db/schema/refresh-tokens";
 import { eq } from "drizzle-orm";
+import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
+
+import { getDB } from "./db";
+import { Account, accounts } from "./db/schema/accounts";
+import { refreshTokens } from "./db/schema/refresh-tokens";
 
 export const ACCESS_TOKEN_TTL = "15m";
 export const REFRESH_TOKEN_TTL = "30d";

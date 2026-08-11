@@ -1,10 +1,11 @@
+import { and, eq } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
+import z from "zod";
+
 import { getDB } from "@/lib/db";
 import { accounts } from "@/lib/db/schema/accounts";
 import { codes } from "@/lib/db/schema/codes";
 import { users } from "@/lib/db/schema/users";
-import { and, eq } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
-import z from "zod";
 
 const partialUser = z.object({
   firstName: z

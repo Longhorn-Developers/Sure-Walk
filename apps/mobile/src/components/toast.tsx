@@ -1,5 +1,7 @@
 import { InfoIcon, WarningCircleIcon, XIcon } from "phosphor-react-native";
+import { useEffect, useRef } from "react";
 import { TouchableOpacity, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Easing,
   FadeInDown,
@@ -9,10 +11,9 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+
 import { slate50, UTBluebonnet } from "../utils/colors";
 import FontText from "./font-text";
-import { useEffect, useRef } from "react";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 export type ToastProps = {
   title: string;

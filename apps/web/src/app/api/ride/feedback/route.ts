@@ -1,12 +1,13 @@
+import { and, eq } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
+import z from "zod";
+
 import { ensureAuthenticated } from "@/lib/auth";
 import { getDB } from "@/lib/db";
 import { accounts } from "@/lib/db/schema/accounts";
 import { feedback } from "@/lib/db/schema/feedback";
 import { rides } from "@/lib/db/schema/rides";
 import { User, users } from "@/lib/db/schema/users";
-import { and, eq } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
-import z from "zod";
 
 const canProvideFeedback = async (user: User, rideID: string) => {
   const [existingFeedback] = await getDB()

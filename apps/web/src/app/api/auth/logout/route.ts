@@ -1,9 +1,10 @@
-import { hashToken } from "@/lib/auth";
-import { getDB } from "@/lib/db";
-import { refreshTokens } from "@/lib/db/schema/refresh-tokens";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
+
+import { hashToken } from "@/lib/auth";
+import { getDB } from "@/lib/db";
+import { refreshTokens } from "@/lib/db/schema/refresh-tokens";
 
 const logoutFormat = z.object({
   refreshToken: z.string(),

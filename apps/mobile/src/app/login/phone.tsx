@@ -1,20 +1,17 @@
-import LargeButton from "@/src/components/large-button";
-import TextInputField from "@/src/components/text-input-field";
-import { useLoginSession } from "@/src/utils/context/login-context";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Platform, View } from "react-native";
-import FontText from "@/src/components/font-text";
-import { registerGeneric } from "@/src/client/auth";
+
 import { getErrorMessage, handleNetworkFailure } from "@/src/client";
-import { useToastContext } from "@/src/utils/context/toast-context";
+import { registerGeneric } from "@/src/client/auth";
 import { ok } from "@/src/client/session";
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
+import TextInputField from "@/src/components/text-input-field";
+import { useLoginSession } from "@/src/utils/context/login-context";
+import { useToastContext } from "@/src/utils/context/toast-context";
 
 const Phone = () => {
-  const checkValidity = (value: string) => {
-    return value.replace(/\D/g, "").length >= 10;
-  };
-
   const {
     firstName,
     lastName,
@@ -25,6 +22,11 @@ const Phone = () => {
     setPhoneNumber,
   } = useLoginSession();
   const { setToast } = useToastContext();
+
+  const checkValidity = (value: string) => {
+    return value.replace(/\D/g, "").length >= 10;
+  };
+
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [isValid, setIsValid] = useState(checkValidity(phoneNumber));
 

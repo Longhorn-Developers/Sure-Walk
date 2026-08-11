@@ -1,19 +1,20 @@
-import { WarningIcon } from "phosphor-react-native";
-import { Modal, Pressable, View } from "react-native";
-import { UTBurntOrange } from "../utils/colors";
-import FontText from "./font-text";
-import LargeButton from "./large-button";
-import OutlineButton from "./outline-button";
 import { router } from "expo-router";
-import { useCurrentRideSession } from "../utils/context/current-ride-context";
-import PickupDropoffLocationInfo from "./pickup-dropoff-location-info";
+import { WarningIcon } from "phosphor-react-native";
 import { useEffect, useState } from "react";
+import { Modal, Pressable, View } from "react-native";
+
+import { getErrorMessage, handleNetworkFailure } from "../client";
+import { api, ok } from "../client/session";
+import { UTBurntOrange } from "../utils/colors";
+import { useCurrentRideSession } from "../utils/context/current-ride-context";
+import { useToastContext } from "../utils/context/toast-context";
 import { WEST_CAMPUS_LOCATIONS } from "../utils/locations/dropoff-locations";
 import { CAMPUS_LOCATIONS } from "../utils/locations/pickup-locations";
 import Location from "../utils/types/location";
-import { getErrorMessage, handleNetworkFailure } from "../client";
-import { useToastContext } from "../utils/context/toast-context";
-import { api, ok } from "../client/session";
+import FontText from "./font-text";
+import LargeButton from "./large-button";
+import OutlineButton from "./outline-button";
+import PickupDropoffLocationInfo from "./pickup-dropoff-location-info";
 
 const CancelRideModal = ({
   modalVisible,
@@ -26,6 +27,7 @@ const CancelRideModal = ({
 }) => {
   const { currentRide, setCurrentRide } = useCurrentRideSession();
   const { setToast } = useToastContext();
+
   const [pickupLocation, setPickupLocation] = useState<Location | undefined>(
     undefined,
   );

@@ -1,15 +1,17 @@
-import CheckButton from "@/src/components/check-button";
-import GuidelinesList from "@/src/components/guidelines-list";
-import LargeButton from "@/src/components/large-button";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+
+import CheckButton from "@/src/components/check-button";
 import FontText from "@/src/components/font-text";
+import GuidelinesList from "@/src/components/guidelines-list";
+import LargeButton from "@/src/components/large-button";
 import { useSession } from "@/src/utils/context/user-context";
 
 const Guidelines = () => {
   const { acceptGuidelines } = useSession();
+
   const [checked, setChecked] = useState(false);
 
   const updateUserAndContinue = async () => {

@@ -1,3 +1,15 @@
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { CaretLeftIcon, CrownSimpleIcon } from "phosphor-react-native";
+import { useState } from "react";
+import {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
+
 import { getErrorMessage, handleNetworkFailure } from "@/src/client";
 import { api, ok } from "@/src/client/session";
 import FontText from "@/src/components/font-text";
@@ -13,17 +25,6 @@ import { useRideSession } from "@/src/utils/context/ride-context";
 import { useTabContext } from "@/src/utils/context/tab-context";
 import { useToastContext } from "@/src/utils/context/toast-context";
 import { useSession } from "@/src/utils/context/user-context";
-import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { CaretLeftIcon, CrownSimpleIcon } from "phosphor-react-native";
-import { useState } from "react";
-import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
 
 const ConfirmRide = () => {
   const { pickupLocation, dropoffLocation } = useRideSession();
@@ -35,6 +36,7 @@ const ConfirmRide = () => {
   const { setCurrentRide: setCurrentRideMini, setLoadingState } =
     useCurrentRideSession();
   const { setToast } = useToastContext();
+
   const [confirmEnabled, setConfirmEnabled] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 

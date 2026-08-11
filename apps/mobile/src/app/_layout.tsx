@@ -1,13 +1,16 @@
-import { SplashScreen, Stack } from "expo-router";
 import "../app/globals.css";
-import { Platform, View } from "react-native";
-import { useEffect } from "react";
+
 import * as NavigationBar from "expo-navigation-bar";
+import { SplashScreen, Stack } from "expo-router";
+import { useEffect } from "react";
+import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { configureReanimatedLogger } from "react-native-reanimated";
-import { ToastProvider } from "../utils/context/toast-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { configureReanimatedLogger } from "react-native-reanimated";
+
 import { SessionProvider } from "@/src/utils/context/user-context";
+
+import { ToastProvider } from "../utils/context/toast-context";
 
 configureReanimatedLogger({ strict: false });
 

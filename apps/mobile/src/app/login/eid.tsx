@@ -1,10 +1,11 @@
-import { useLoginSession } from "@/src/utils/context/login-context";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
+
 import FontText from "@/src/components/font-text";
-import TextInputField from "@/src/components/text-input-field";
 import LargeButton from "@/src/components/large-button";
-import { router } from "expo-router";
+import TextInputField from "@/src/components/text-input-field";
+import { useLoginSession } from "@/src/utils/context/login-context";
 
 const EID = () => {
   const { eid, setEid } = useLoginSession();

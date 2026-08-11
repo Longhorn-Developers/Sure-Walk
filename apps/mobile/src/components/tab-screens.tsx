@@ -1,5 +1,4 @@
 import {
-  useFonts,
   Geist_100Thin,
   Geist_200ExtraLight,
   Geist_300Light,
@@ -9,13 +8,15 @@ import {
   Geist_700Bold,
   Geist_800ExtraBold,
   Geist_900Black,
+  useFonts,
 } from "@expo-google-fonts/geist";
-import { useSegments, SplashScreen, Redirect, Tabs } from "expo-router";
-import { HouseIcon, CarIcon, UserCircleIcon } from "phosphor-react-native";
+import { Redirect, SplashScreen, Tabs, useSegments } from "expo-router";
+import { CarIcon, HouseIcon, UserCircleIcon } from "phosphor-react-native";
 import { useEffect } from "react";
-import { View, ActivityIndicator, Platform } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { UTBurntOrange, slate200, slate900 } from "../utils/colors";
+
+import { slate200, slate900, UTBurntOrange } from "../utils/colors";
 import { useCurrentRideSession } from "../utils/context/current-ride-context";
 import { GroupRideProvider } from "../utils/context/group-ride-context";
 import { MissedRideProvider } from "../utils/context/missed-ride-context";
@@ -26,12 +27,12 @@ import { useSession } from "../utils/context/user-context";
 import FontText from "./font-text";
 
 const TabScreens = () => {
-  let paddingBottom: number = useSafeAreaInsets().bottom;
-
   const { loadingState, user, guidelinesAccepted } = useSession();
   const { loadingState: rideLoadingState } = useCurrentRideSession();
   const { goHome, goMyRide, activeTab } = useTabContext();
+
   const segments = useSegments();
+  let paddingBottom: number = useSafeAreaInsets().bottom;
 
   const [loaded, error] = useFonts({
     Geist_100Thin,

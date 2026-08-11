@@ -1,6 +1,7 @@
 import { CircleIcon, MapPinIcon } from "phosphor-react-native";
 import { View } from "react-native";
-import { UTBurntOrange, UTBluebonnet } from "../utils/colors";
+
+import { UTBluebonnet, UTBurntOrange } from "../utils/colors";
 import Location from "../utils/types/location";
 import FontText from "./font-text";
 

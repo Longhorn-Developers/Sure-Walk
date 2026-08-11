@@ -1,23 +1,28 @@
-import FontText from "@/src/components/font-text";
-import LargeButton from "@/src/components/large-button";
+import Slider from "@react-native-community/slider";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { useSearchParams } from "expo-router/build/hooks";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import TextInputField from "../components/text-input-field";
-import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
-import LoadingState from "../utils/types/loading-state";
-import { useSearchParams } from "expo-router/build/hooks";
-import { useToastContext } from "../utils/context/toast-context";
+
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
+
 import { getErrorMessage, handleNetworkFailure } from "../client";
-import { CAMPUS_LOCATIONS } from "../utils/locations/pickup-locations";
-import { WEST_CAMPUS_LOCATIONS } from "../utils/locations/dropoff-locations";
-import Slider from "@react-native-community/slider";
-import { slate200, UTBurntOrange } from "../utils/colors";
-import { router } from "expo-router";
 import { api, ok } from "../client/session";
+import TextInputField from "../components/text-input-field";
+import { slate200, UTBurntOrange } from "../utils/colors";
+import { useToastContext } from "../utils/context/toast-context";
+import { WEST_CAMPUS_LOCATIONS } from "../utils/locations/dropoff-locations";
+import { CAMPUS_LOCATIONS } from "../utils/locations/pickup-locations";
+import LoadingState from "../utils/types/loading-state";
 
 const Feedback = () => {
   const { setToast } = useToastContext();
+
+  const params = useSearchParams();
+  const rideID = params.get("rideID") ?? "";
 
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(false);
@@ -27,9 +32,6 @@ const Feedback = () => {
   const [submittedAt, setSubmittedAt] = useState<string>("");
   const [feedback, setFeedback] = useState<string>("");
   const [rating, setRating] = useState<number>(3);
-
-  const params = useSearchParams();
-  const rideID = params.get("rideID") ?? "";
 
   useEffect(() => {
     const fetchFeedback = async () => {

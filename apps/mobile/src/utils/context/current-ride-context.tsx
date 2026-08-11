@@ -1,8 +1,10 @@
 import CurrentRideMini from "@sure-walk/utils/types/current-ride-mini";
 import { createContext, useContext, useEffect, useState } from "react";
+
+import { api } from "@/src/client/session";
+
 import LoadingState from "../types/loading-state";
 import { useSession } from "./user-context";
-import { api } from "@/src/client/session";
 
 interface CurrentRideContextType {
   currentRide: CurrentRideMini | null;
@@ -30,9 +32,10 @@ export const CurrentRideProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  const { loadingState: userLoadingState, user } = useSession();
+
   const [currentRide, setCurrentRide] = useState<CurrentRideMini | null>(null);
   const [loadingState, setLoadingState] = useState<LoadingState>("loading");
-  const { loadingState: userLoadingState, user } = useSession();
   const [firstLoad, setFirstLoad] = useState<boolean>(true);
 
   useEffect(() => {

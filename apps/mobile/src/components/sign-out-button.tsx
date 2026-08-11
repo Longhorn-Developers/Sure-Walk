@@ -1,9 +1,10 @@
-import { TouchableOpacity } from "react-native";
-import FontText from "./font-text";
-import Animated from "react-native-reanimated";
 import { SignOutIcon } from "phosphor-react-native";
+import { TouchableOpacity } from "react-native";
 import { View } from "react-native";
+import Animated from "react-native-reanimated";
+
 import { UTBluebonnet, UTBurntOrange } from "../utils/colors";
+import FontText from "./font-text";
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 

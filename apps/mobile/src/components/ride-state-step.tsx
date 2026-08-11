@@ -1,6 +1,4 @@
 import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
-import { View } from "react-native";
-import FontText from "./font-text";
 import {
   CarIcon,
   CarProfileIcon,
@@ -9,13 +7,8 @@ import {
   MapPinIcon,
   UserCheckIcon,
 } from "phosphor-react-native";
-import {
-  slate50,
-  slate400,
-  slate900,
-  slate200,
-  UTBurntOrange,
-} from "../utils/colors";
+import { Component, useEffect } from "react";
+import { View } from "react-native";
 import Animated, {
   DerivedValue,
   interpolate,
@@ -27,8 +20,16 @@ import Animated, {
   withDelay,
   withTiming,
 } from "react-native-reanimated";
+
+import {
+  slate50,
+  slate200,
+  slate400,
+  slate900,
+  UTBurntOrange,
+} from "../utils/colors";
 import { useRideDetailsSession } from "../utils/context/ride-details-context";
-import { Component, useEffect } from "react";
+import FontText from "./font-text";
 
 const rideStateToStepNum = {
   received: 0,
@@ -75,6 +76,7 @@ const RideStateStep = ({
   width: number;
 }) => {
   const { rideDetails } = useRideDetailsSession();
+
   const currentRideState = rideDetails?.rideState ?? "received";
   const highlighted = useSharedValue<boolean>(
     rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
@@ -225,6 +227,7 @@ export const RideStateStepDivider = ({
   width: number;
 }) => {
   const { rideDetails } = useRideDetailsSession();
+
   const currentRideState = rideDetails?.rideState ?? "received";
   const highlighted = useSharedValue<boolean>(
     rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,

@@ -1,10 +1,11 @@
-import { and, eq, isNull, notInArray, sql, gt } from "drizzle-orm";
-import { getDBInWorker } from "../db";
-import { rides, Ride } from "../db/schema/rides";
 import { Samsara } from "@samsarahq/samsara";
 import InProgressRideState from "@sure-walk/utils/types/in-progress-ride-state";
-import { vehicles } from "../db/schema/vehicles";
+import { and, eq, gt, isNull, notInArray, sql } from "drizzle-orm";
+
+import { getDBInWorker } from "../db";
+import { Ride, rides } from "../db/schema/rides";
 import { users } from "../db/schema/users";
+import { vehicles } from "../db/schema/vehicles";
 
 const getActiveRides = async (env: CloudflareEnv) => {
   const results = await getDBInWorker(env)
@@ -124,10 +125,10 @@ const getInProgressRideStateFromRide = (ride: Ride): InProgressRideState => {
 };
 
 export {
-  getActiveRides,
-  getActiveRideByUserID,
   getActiveRideByShareCode,
-  setPickupStopState,
-  setDropoffStopState,
+  getActiveRideByUserID,
+  getActiveRides,
   getInProgressRideStateFromRide,
+  setDropoffStopState,
+  setPickupStopState,
 };

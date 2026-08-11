@@ -1,5 +1,5 @@
-import { createContext, useContext, useState } from "react";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
+import { createContext, useContext, useState } from "react";
 
 interface GroupRideContextType {
   // the group ride leader is the currently signed in user, use user-context to get that value

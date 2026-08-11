@@ -1,18 +1,29 @@
-import FontText from "@/src/components/font-text";
-import LargeButton from "@/src/components/large-button";
-import RadioButton from "@/src/components/radio-button";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useSearchParams } from "expo-router/build/hooks";
 import { useState } from "react";
 import { View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import TextInputField from "../components/text-input-field";
-import { LinearGradient } from "expo-linear-gradient";
+
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
+import RadioButton from "@/src/components/radio-button";
+
 import { getErrorMessage, handleNetworkFailure } from "../client";
-import { useToastContext } from "../utils/context/toast-context";
 import { api, ok } from "../client/session";
+import TextInputField from "../components/text-input-field";
+import { useToastContext } from "../utils/context/toast-context";
 
 const CancellationReason = () => {
+  const { setToast } = useToastContext();
+
+  const params = useSearchParams();
+  const rideID = params.get("rideID");
+
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [extraText, setExtraText] = useState<string>("");
+
   const cancellationReasons: [string, ...string[]] = [
     "My ride never came",
     "The estimated wait was too long",
@@ -21,13 +32,6 @@ const CancellationReason = () => {
     "I didn't receive a call",
     "Other",
   ];
-
-  const params = useSearchParams();
-  const rideID = params.get("rideID");
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [extraText, setExtraText] = useState<string>("");
-  const { setToast } = useToastContext();
 
   const submit = async () => {
     setSubmitting(true);

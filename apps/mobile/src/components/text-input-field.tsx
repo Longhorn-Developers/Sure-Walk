@@ -5,8 +5,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import FontText from "./font-text";
+
 import { gray500 } from "../utils/colors";
+import FontText from "./font-text";
 
 const TextInputField = ({
   fieldName,

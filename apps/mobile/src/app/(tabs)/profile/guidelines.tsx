@@ -1,10 +1,11 @@
-import { ScrollView, TouchableOpacity, View } from "react-native";
-import GuidelinesList from "@/src/components/guidelines-list";
-import FontText from "@/src/components/font-text";
 import { LinearGradient } from "expo-linear-gradient";
-import { slate700 } from "@/src/utils/colors";
 import { router } from "expo-router";
 import { CaretLeftIcon } from "phosphor-react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
+
+import FontText from "@/src/components/font-text";
+import GuidelinesList from "@/src/components/guidelines-list";
+import { slate700 } from "@/src/utils/colors";
 
 const guidelines = () => {
   return (

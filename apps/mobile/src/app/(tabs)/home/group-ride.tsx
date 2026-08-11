@@ -1,11 +1,3 @@
-import FontText from "@/src/components/font-text";
-import LargeButton from "@/src/components/large-button";
-import OutlineButton from "@/src/components/outline-button";
-import RiderCard from "@/src/components/rider-card";
-import TextInputField from "@/src/components/text-input-field";
-import { red500, slate500, slate700, UTBluebonnet } from "@/src/utils/colors";
-import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
-import { useSession } from "@/src/utils/context/user-context";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
 import UserType from "@sure-walk/utils/types/user-type";
 import { LinearGradient } from "expo-linear-gradient";
@@ -19,6 +11,15 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { Platform, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
+import OutlineButton from "@/src/components/outline-button";
+import RiderCard from "@/src/components/rider-card";
+import TextInputField from "@/src/components/text-input-field";
+import { red500, slate500, slate700, UTBluebonnet } from "@/src/utils/colors";
+import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
+import { useSession } from "@/src/utils/context/user-context";
 
 const GroupRide = () => {
   const { user } = useSession();

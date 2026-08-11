@@ -1,7 +1,8 @@
 import axios, { AxiosResponse } from "axios";
-import { API_URL } from "./auth";
-import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+
+import { API_URL } from "./auth";
 
 export const api = axios.create({
   baseURL: API_URL,

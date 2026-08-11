@@ -1,8 +1,9 @@
-import { index, int, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { users } from "./users";
-import { rides } from "./rides";
 import { sql } from "drizzle-orm";
+import { index, int, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { v7 } from "uuid";
+
+import { rides } from "./rides";
+import { users } from "./users";
 
 export const feedback = sqliteTable(
   "feedback",

@@ -1,3 +1,18 @@
+import BottomSheet from "@gorhom/bottom-sheet";
+import { router } from "expo-router";
+import { ArrowCircleRightIcon, WarningIcon } from "phosphor-react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  LayoutChangeEvent,
+  Modal,
+  Pressable,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { useDerivedValue, useSharedValue } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { api } from "@/src/client/session";
 import FontText from "@/src/components/font-text";
 import LargeButton from "@/src/components/large-button";
@@ -11,33 +26,18 @@ import { useToastContext } from "@/src/utils/context/toast-context";
 import { WEST_CAMPUS_LOCATIONS } from "@/src/utils/locations/dropoff-locations";
 import { CAMPUS_LOCATIONS } from "@/src/utils/locations/pickup-locations";
 import Location from "@/src/utils/types/location";
-import BottomSheet from "@gorhom/bottom-sheet";
-import { router } from "expo-router";
-import { ArrowCircleRightIcon, WarningIcon } from "phosphor-react-native";
-import { useEffect, useRef, useState } from "react";
-import {
-  LayoutChangeEvent,
-  Modal,
-  Pressable,
-  TextInput,
-  View,
-  useWindowDimensions,
-} from "react-native";
-import { useDerivedValue, useSharedValue } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const MyRide = ({ initialIndex }: { initialIndex: number }) => {
   const { height } = useWindowDimensions();
   const { top } = useSafeAreaInsets();
-  const [code, setCode] = useState<string>("");
-  const sheetRef = useRef<BottomSheet>(null);
   const { setMyRideSheetRef } = useTabContext();
   const { goHome } = useTabContext();
   const { currentRide, setCurrentRide, loadingState, setLoadingState } =
     useCurrentRideSession();
   const { missedRide, showModal, setShowModal } = useMissedRideSession();
   const { setToast } = useToastContext();
-  const inputRef = useRef<TextInput>(null);
+
+  const [code, setCode] = useState<string>("");
   const [pickupLocation, setPickupLocation] = useState<Location | undefined>(
     undefined,
   );
@@ -50,6 +50,11 @@ const MyRide = ({ initialIndex }: { initialIndex: number }) => {
   const [missedDropoffLocation, setMissedDropoffLocation] = useState<
     Location | undefined
   >(undefined);
+
+  const sheetRef = useRef<BottomSheet>(null);
+  const inputRef = useRef<TextInput>(null);
+
+  // automatic bottom sheet placement on stops
   const snap0 = useSharedValue<number>(180);
   const snap1 = useSharedValue<number>(340);
   const snapPoints = useDerivedValue<(string | number)[]>(

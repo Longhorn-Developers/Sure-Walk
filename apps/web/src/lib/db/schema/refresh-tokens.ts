@@ -1,6 +1,7 @@
-import { sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { accounts } from "./accounts";
 import { sql } from "drizzle-orm";
+import { sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+import { accounts } from "./accounts";
 
 export const refreshTokens = sqliteTable("refresh_tokens", {
   jti: text("jti").primaryKey(),

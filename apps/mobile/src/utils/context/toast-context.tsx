@@ -1,6 +1,7 @@
-import Toast, { ToastProps } from "@/src/components/toast";
 import React, { createContext, useContext, useState } from "react";
 import { View } from "react-native";
+
+import Toast, { ToastProps } from "@/src/components/toast";
 
 interface ToastContextType {
   setToast: (toast: ToastProps | null) => void;

@@ -1,5 +1,6 @@
 import CurrentRideSmall from "@sure-walk/utils/types/current-ride-small";
 import { createContext, useContext, useState } from "react";
+
 import LoadingState from "../types/loading-state";
 
 interface RideDetailsContextType {

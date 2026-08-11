@@ -1,10 +1,11 @@
 import { Samsara, SamsaraClient, SamsaraError } from "@samsarahq/samsara";
-import { User } from "../db/schema/users";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
-import { Location } from "../db/schema/locations";
-import { rides, Ride } from "../db/schema/rides";
-import { getDB } from "../db";
 import { eq } from "drizzle-orm";
+
+import { getDB } from "../db";
+import { Location } from "../db/schema/locations";
+import { Ride, rides } from "../db/schema/rides";
+import { User } from "../db/schema/users";
 
 const samsaraClient = new SamsaraClient({ token: process.env.SAMSARA_API_KEY });
 
@@ -275,18 +276,18 @@ const getVehicleFromDriver = async (driverID: string) => {
 };
 
 export {
-  samsaraClient,
-  createRoute,
-  getAssetLocations,
-  getVehicleLocations,
-  getRouteUpdates,
-  getCurrentWaitTime,
-  getRoute,
-  getAsset,
   cancelRide,
-  getFormSubmission,
+  createRoute,
   fetchCurrentRoutes,
+  getAsset,
+  getAssetLocations,
+  getCurrentWaitTime,
+  getFormSubmission,
   getRideName,
-  missRide,
+  getRoute,
+  getRouteUpdates,
   getVehicleFromDriver,
+  getVehicleLocations,
+  missRide,
+  samsaraClient,
 };
