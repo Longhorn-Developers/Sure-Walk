@@ -261,6 +261,7 @@ const CurrentRideInfo = () => {
         });
         setTimeout(
           () =>
+            wsRef.current?.onclose !== null &&
             connect(() => {
               setToast({
                 title: "Connected",

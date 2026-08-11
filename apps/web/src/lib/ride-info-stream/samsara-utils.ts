@@ -118,7 +118,7 @@ const createRoute = async ({
     }
   }
 
-  retry(
+  await retry(
     async () =>
       await samsaraClient.forms.postFormSubmission({
         formTemplate: { id: "3c61e884-1533-4e09-a04c-8ff9fbe4e7f7" },
