@@ -7,7 +7,7 @@ import {
   StarIcon,
   UserCirclePlusIcon,
 } from "phosphor-react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -28,10 +28,14 @@ import Animated, {
   FadeInUp,
   FadeOutDown,
   FadeOutUp,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import CheckButton from "@/src/components/check-button";
-import MapView, { Polygon } from "react-native-maps";
+import MapView, { Marker, Polygon } from "react-native-maps";
 import * as Location from "expo-location";
 import {
   dropoffBoundaryPolygons,
@@ -47,7 +51,7 @@ import {
   UTTurquoise,
 } from "@/src/utils/colors";
 import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Location as LocationType } from "@/src/utils/types/location";
 import { getMatchingPickupLocations } from "@/src/utils/locations/pickup-locations";
 import { getMatchingDropoffLocations } from "@/src/utils/locations/dropoff-locations";
@@ -92,21 +96,51 @@ const Home = () => {
   const [showPickupBoundary, setPickupBoundary] = useState<boolean>(true);
   const [showDropoffBoundary, setDropoffBoundary] = useState<boolean>(true);
 
-  const [, setLocation] = useState<Location.LocationObject | null>(null);
+  const [location, setLocation] = useState<Location.LocationObject | null>(
+    null,
+  );
+  const [markerReady, setMarkerReady] = useState(false);
 
-  const [startLocationText, setStartLocationText] = useState<string>("");
-  const [destinationText, setDestinationText] = useState<string>("");
+  const [userLocationLabel, setUserLocationLabel] =
+    useState<string>("Loading...");
+
+  const [startLocationText, setStartLocationText] = useState<string>(
+    pickupLocation?.name ?? "",
+  );
+  const [destinationText, setDestinationText] = useState<string>(
+    dropoffLocation?.name ?? "",
+  );
   const [focusedInput, setFocusedInput] = useState<"pickup" | "dropoff">(
     "pickup",
   );
+  const [, setIsInputFocused] = useState<boolean>(false);
+  const shouldNavigateRef = useRef<boolean>(false);
   const [pickupList, setPickupList] = useState<LocationType[]>([]);
   const [dropoffList, setDropoffList] = useState<LocationType[]>([]);
   const [startLocationAddress, setStartAddress] = useState<string>(
-    "Select your pickup location",
+    pickupLocation?.address ?? "Select your pickup location",
   );
   const [destinationAddress, setDestinationAddress] = useState<string>(
-    "Select your destination",
+    dropoffLocation?.address ?? "Select your destination",
   );
+
+  const pulseScale = useSharedValue(1);
+  useEffect(() => {
+    pulseScale.value = withRepeat(
+      withSequence(
+        withTiming(18 / 16, {
+          duration: 1400,
+          easing: Easing.inOut(Easing.ease),
+        }),
+        withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    );
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // const _pulseStyle = useAnimatedStyle(() => ({
+  //   transform: [{ scale: pulseScale.value }],
+  // }));
 
   const centerMapOnLocation = (location: Location.LocationObject) => {
     setTimeout(() => {
@@ -148,11 +182,64 @@ const Home = () => {
         });
         setLocation(location);
         centerMapOnLocation(location);
+
+        const userLat = location.coords.latitude;
+        const userLon = location.coords.longitude;
+        console.log("[Location] GPS coordinates:", userLat, userLon);
+
+        const haversine = (
+          lat1: number,
+          lon1: number,
+          lat2: number,
+          lon2: number,
+        ) => {
+          const toRad = (v: number) => (v * Math.PI) / 180;
+          const dLat = toRad(lat2 - lat1);
+          const dLon = toRad(lon2 - lon1);
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) *
+              Math.cos(toRad(lat2)) *
+              Math.sin(dLon / 2) ** 2;
+          return Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        };
+
+        const allPickupLocations = getMatchingPickupLocations("");
+        if (allPickupLocations.length > 0) {
+          const nearest = allPickupLocations.reduce((closest, loc) =>
+            haversine(userLat, userLon, loc.lat, loc.lon) <
+            haversine(userLat, userLon, closest.lat, closest.lon)
+              ? loc
+              : closest,
+          );
+          const { latitude, longitude } = location.coords;
+          const dist = Math.hypot(
+            latitude - nearest.lat,
+            longitude - nearest.lon,
+          );
+          if (dist > 0.001) {
+            setUserLocationLabel("Off-Campus");
+            return;
+          }
+          console.log(
+            "[Location] Selected nearest:",
+            nearest.name,
+            `(id=${nearest.id})`,
+          );
+          if (startLocationText === "") {
+            // if the user has started editing ignore this
+            setStartLocationText(nearest.name);
+            setStartAddress(nearest.address);
+            setPickupLocation(nearest);
+            setUserLocationLabel(nearest.name);
+            setFocusedInput("dropoff");
+          }
+        }
       }
     }
 
     requestLocationPermissions();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setPickupList(getMatchingPickupLocations(startLocationText));
@@ -165,6 +252,26 @@ const Home = () => {
   useEffect(() => {
     setHomeSheetRef(sheetRef);
   }, [setHomeSheetRef]);
+
+  useEffect(() => {
+    if (shouldNavigateRef.current && pickupLocation && dropoffLocation) {
+      shouldNavigateRef.current = false;
+      router.navigate("/home/confirm-ride");
+    }
+  }, [pickupLocation, dropoffLocation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (pickupLocation) {
+        setStartLocationText(pickupLocation.name);
+        setStartAddress(pickupLocation.address);
+      }
+      if (dropoffLocation) {
+        setDestinationText(dropoffLocation.name);
+        setDestinationAddress(dropoffLocation.address);
+      }
+    }, [pickupLocation, dropoffLocation]),
+  );
 
   // const resetMapView = (location: LocationType) => {
   //   setPickupList([]);
@@ -187,7 +294,7 @@ const Home = () => {
     setFocusedInput("dropoff");
     if (dropoffLocation) {
       startLocationRef.current?.blur();
-      router.navigate("/home/confirm-ride");
+      shouldNavigateRef.current = true;
     } else if (startLocationRef.current?.isFocused()) {
       destinationRef.current?.focus();
     }
@@ -199,7 +306,7 @@ const Home = () => {
     setDropoffLocation(location);
     destinationRef.current?.blur();
     if (pickupLocation) {
-      router.navigate("/home/confirm-ride");
+      shouldNavigateRef.current = true;
     }
   };
 
@@ -219,7 +326,7 @@ const Home = () => {
             </FontText>
           </View>
           <FontText className="font-medium text-4 text-center">
-            Perry-Castañeda Library
+            {userLocationLabel}
           </FontText>
         </View>
         <TouchableOpacity
@@ -246,7 +353,6 @@ const Home = () => {
           <MapView
             ref={mapRef}
             style={{ width: "100%", flex: 1, zIndex: 0 }}
-            showsUserLocation
             initialRegion={{
               latitude: 30.282962,
               longitude: -97.737224,
@@ -335,6 +441,41 @@ const Home = () => {
                 }
               />
             ))}
+            {location && (
+              <Marker
+                coordinate={{
+                  latitude: location.coords.latitude,
+                  longitude: location.coords.longitude,
+                }}
+                tracksViewChanges={!markerReady}
+              >
+                <View
+                  onLayout={() => setMarkerReady(true)}
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor: "white",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 4,
+                    elevation: 4,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 8,
+                      backgroundColor: UTBurntOrange,
+                    }}
+                  />
+                </View>
+              </Marker>
+            )}
           </MapView>
         </View>
         {legendOpen && (
@@ -442,8 +583,10 @@ const Home = () => {
                     ref={startLocationRef}
                     onFocus={() => {
                       setFocusedInput("pickup");
+                      setIsInputFocused(true);
                       snapIndex !== 2 && sheetRef.current?.expand();
                     }}
+                    onBlur={() => setIsInputFocused(false)}
                     className="font-medium text-lg"
                     placeholder="Where from?"
                     placeholderTextColor={gray900}
@@ -474,8 +617,10 @@ const Home = () => {
                     ref={destinationRef}
                     onFocus={() => {
                       setFocusedInput("dropoff");
+                      setIsInputFocused(true);
                       snapIndex !== 2 && sheetRef.current?.expand();
                     }}
+                    onBlur={() => setIsInputFocused(false)}
                     className="font-medium text-lg"
                     placeholder="Where to?"
                     placeholderTextColor={gray900}
@@ -510,7 +655,13 @@ const Home = () => {
           scrollEnabled={
             Platform.OS === "android" ? snapIndex === 2 : undefined
           }
-          data={focusedInput === "pickup" ? pickupList : dropoffList}
+          data={
+            focusedInput === "pickup" && startLocationText.trim().length >= 1
+              ? pickupList
+              : focusedInput === "dropoff" && destinationText.trim().length >= 1
+                ? dropoffList
+                : []
+          }
           keyboardShouldPersistTaps="handled"
           renderItem={({ index, item }) => (
             <TouchableOpacity
@@ -541,8 +692,10 @@ const Home = () => {
             </TouchableOpacity>
           )}
           ListFooterComponent={
-            (((focusedInput === "pickup" && startLocationText !== "") ||
-              (focusedInput === "dropoff" && destinationText !== "")) && (
+            (((focusedInput === "pickup" &&
+              startLocationText.trim().length >= 1) ||
+              (focusedInput === "dropoff" &&
+                destinationText.trim().length >= 1)) && (
               <TouchableOpacity
                 onPress={() =>
                   focusedInput === "pickup"
