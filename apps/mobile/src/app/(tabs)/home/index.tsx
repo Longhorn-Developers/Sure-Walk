@@ -28,7 +28,6 @@ import Animated, {
   FadeInUp,
   FadeOutDown,
   FadeOutUp,
-  useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withSequence,
@@ -54,10 +53,7 @@ import {
 import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
 import { router, useFocusEffect } from "expo-router";
 import { Location as LocationType } from "@/src/utils/types/location";
-import {
-  getMatchingPickupLocations,
-  CAMPUS_LOCATIONS,
-} from "@/src/utils/locations/pickup-locations";
+import { getMatchingPickupLocations } from "@/src/utils/locations/pickup-locations";
 import { getMatchingDropoffLocations } from "@/src/utils/locations/dropoff-locations";
 import { useRideSession } from "@/src/utils/context/ride-context";
 import LargeButton from "@/src/components/large-button";
@@ -100,14 +96,13 @@ const Home = () => {
   const [showPickupBoundary, setPickupBoundary] = useState<boolean>(true);
   const [showDropoffBoundary, setDropoffBoundary] = useState<boolean>(true);
 
-  const [, setLocation] = useState<Location.LocationObject | null>(null);
+  const [location, setLocation] = useState<Location.LocationObject | null>(
+    null,
+  );
   const [markerReady, setMarkerReady] = useState(false);
 
-  useEffect(() => {
-    setMarkerReady(false);
-  }, [pickupLocation]);
   const [userLocationLabel, setUserLocationLabel] =
-    useState<string>("Off-Campus");
+    useState<string>("Loading...");
 
   const [startLocationText, setStartLocationText] = useState<string>(
     pickupLocation?.name ?? "",
@@ -118,7 +113,7 @@ const Home = () => {
   const [focusedInput, setFocusedInput] = useState<"pickup" | "dropoff">(
     "pickup",
   );
-  const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
+  const [, setIsInputFocused] = useState<boolean>(false);
   const shouldNavigateRef = useRef<boolean>(false);
   const [pickupList, setPickupList] = useState<LocationType[]>([]);
   const [dropoffList, setDropoffList] = useState<LocationType[]>([]);
@@ -142,10 +137,10 @@ const Home = () => {
       -1,
       false,
     );
-  }, []);
-  const pulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseScale.value }],
-  }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // const _pulseStyle = useAnimatedStyle(() => ({
+  //   transform: [{ scale: pulseScale.value }],
+  // }));
 
   const centerMapOnLocation = (location: Location.LocationObject) => {
     setTimeout(() => {
@@ -217,47 +212,34 @@ const Home = () => {
               ? loc
               : closest,
           );
+          const { latitude, longitude } = location.coords;
+          const dist = Math.hypot(
+            latitude - nearest.lat,
+            longitude - nearest.lon,
+          );
+          if (dist > 0.001) {
+            setUserLocationLabel("Off-Campus");
+            return;
+          }
           console.log(
             "[Location] Selected nearest:",
             nearest.name,
             `(id=${nearest.id})`,
           );
-          setStartLocationText(nearest.name);
-          setStartAddress(nearest.address);
-          setPickupLocation(nearest);
-          setTimeout(() => {
-            mapRef.current?.animateToRegion(
-              {
-                latitude: nearest.lat - 0.0038,
-                longitude: nearest.lon,
-                latitudeDelta: 0.02,
-                longitudeDelta: 0.02,
-              },
-              1000,
-            );
-          }, 1000);
-          const { latitude, longitude } = location.coords;
-          let nearestCampus = CAMPUS_LOCATIONS[0];
-          let nearestCampusDist = Math.hypot(
-            latitude - nearestCampus.lat,
-            longitude - nearestCampus.lon,
-          );
-          for (const loc of CAMPUS_LOCATIONS) {
-            const dist = Math.hypot(latitude - loc.lat, longitude - loc.lon);
-            if (dist < nearestCampusDist) {
-              nearestCampusDist = dist;
-              nearestCampus = loc;
-            }
+          if (startLocationText === "") {
+            // if the user has started editing ignore this
+            setStartLocationText(nearest.name);
+            setStartAddress(nearest.address);
+            setPickupLocation(nearest);
+            setUserLocationLabel(nearest.name);
+            setFocusedInput("dropoff");
           }
-          setUserLocationLabel(
-            nearestCampusDist <= 0.001 ? nearestCampus.name : "Off-Campus",
-          );
         }
       }
     }
 
     requestLocationPermissions();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setPickupList(getMatchingPickupLocations(startLocationText));
@@ -459,11 +441,11 @@ const Home = () => {
                 }
               />
             ))}
-            {pickupLocation && (
+            {location && (
               <Marker
                 coordinate={{
-                  latitude: pickupLocation.lat,
-                  longitude: pickupLocation.lon,
+                  latitude: location.coords.latitude,
+                  longitude: location.coords.longitude,
                 }}
                 tracksViewChanges={!markerReady}
               >
@@ -674,9 +656,9 @@ const Home = () => {
             Platform.OS === "android" ? snapIndex === 2 : undefined
           }
           data={
-            isInputFocused && focusedInput === "pickup" && !pickupLocation
+            focusedInput === "pickup" && startLocationText.trim().length >= 1
               ? pickupList
-              : isInputFocused && focusedInput === "dropoff" && !dropoffLocation
+              : focusedInput === "dropoff" && destinationText.trim().length >= 1
                 ? dropoffList
                 : []
           }
@@ -710,25 +692,26 @@ const Home = () => {
             </TouchableOpacity>
           )}
           ListFooterComponent={
-            (isInputFocused &&
-              ((focusedInput === "pickup" && startLocationText !== "") ||
-                (focusedInput === "dropoff" && destinationText !== "")) && (
-                <TouchableOpacity
-                  onPress={() =>
-                    focusedInput === "pickup"
-                      ? (setStartLocationText(""),
-                        setStartAddress("Select your pickup location"),
-                        setPickupLocation(null))
-                      : (setDestinationText(""),
-                        setDestinationAddress("Select your destination"),
-                        setDropoffLocation(null))
-                  }
-                >
-                  <FontText className="mt-4">
-                    Clear {focusedInput} selection
-                  </FontText>
-                </TouchableOpacity>
-              )) || <View />
+            (((focusedInput === "pickup" &&
+              startLocationText.trim().length >= 1) ||
+              (focusedInput === "dropoff" &&
+                destinationText.trim().length >= 1)) && (
+              <TouchableOpacity
+                onPress={() =>
+                  focusedInput === "pickup"
+                    ? (setStartLocationText(""),
+                      setStartAddress("Select your pickup location"),
+                      setPickupLocation(null))
+                    : (setDestinationText(""),
+                      setDestinationAddress("Select your destination"),
+                      setDropoffLocation(null))
+                }
+              >
+                <FontText className="mt-4">
+                  Clear {focusedInput} selection
+                </FontText>
+              </TouchableOpacity>
+            )) || <View />
           }
           contentContainerStyle={{
             paddingTop: 8,
