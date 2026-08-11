@@ -80,6 +80,7 @@ const CurrentRideInfo = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   const wsRef = useRef<WebSocket>(undefined);
+  const wsConnectTimeoutRef = useRef<NodeJS.Timeout>(undefined);
   const mapRef = useRef<MapView | null>(null);
   const sheetRef = useRef<BottomSheet | null>(null);
   const scrollRef = useRef<BottomSheetScrollViewMethods | null>(null);
@@ -201,7 +202,7 @@ const CurrentRideInfo = () => {
         try {
           // force refresh
           await api.get("/me");
-          setTimeout(() =>
+          wsConnectTimeoutRef.current = setTimeout(() =>
             connect(() =>
               setTimeout(() => {
                 sheetRef.current?.snapToIndex(1);
@@ -240,7 +241,7 @@ const CurrentRideInfo = () => {
           onDismiss: () => setToast(null),
           isError: true,
         });
-        setTimeout(
+        wsConnectTimeoutRef.current = setTimeout(
           () =>
             connect(() => {
               setToast({
@@ -271,6 +272,10 @@ const CurrentRideInfo = () => {
       if (wsRef.current) {
         wsRef.current.onclose = null;
         wsRef.current.close();
+      }
+      if (wsConnectTimeoutRef.current) {
+        clearTimeout(wsConnectTimeoutRef.current);
+        wsConnectTimeoutRef.current = undefined;
       }
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
