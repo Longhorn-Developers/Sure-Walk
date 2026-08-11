@@ -23,11 +23,12 @@ import Animated, {
   SharedValue,
   useAnimatedStyle,
   useDerivedValue,
+  useSharedValue,
   withDelay,
   withTiming,
 } from "react-native-reanimated";
 import { useRideDetailsSession } from "../utils/context/ride-details-context";
-import { Component, useEffect, useState } from "react";
+import { Component, useEffect } from "react";
 
 const rideStateToStepNum = {
   received: 0,
@@ -75,10 +76,10 @@ const RideStateStep = ({
 }) => {
   const { rideDetails } = useRideDetailsSession();
   const currentRideState = rideDetails?.rideState ?? "received";
-  const [highlighted, setHighlighted] = useState<boolean>(
+  const highlighted = useSharedValue<boolean>(
     rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
   );
-  const [highlightFirst, setHighlightFirst] = useState<boolean>(
+  const highlightFirst = useSharedValue<boolean>(
     currentRideState !== "received",
   );
 
@@ -90,9 +91,8 @@ const RideStateStep = ({
   }
 
   useEffect(() => {
-    setHighlighted(
-      rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
-    );
+    highlighted.value =
+      rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!;
   }, [rideDetails]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const IconToRender = rideStateToIcon[rideState];
@@ -107,17 +107,17 @@ const RideStateStep = ({
   const animatedIconSize: DerivedValue<number>[] = [];
   for (let i = 0; i < 6; i++) {
     animProgress[i] = useDerivedValue(() => {
-      return highlighted
+      return highlighted.value
         ? withDelay(150 * i, withTiming(1, { duration: 300 }))
         : withDelay(150 * i, withTiming(0, { duration: 300 }));
     }, [highlighted]);
     altAnimProgress[i] = useDerivedValue(() => {
-      return highlighted
+      return highlighted.value
         ? withDelay(150 * i, withTiming(1, { duration: 2300 }))
         : withDelay(150 * i, withTiming(0, { duration: 300 }));
     }, [highlighted]);
     iconAnimProgress[i] = useDerivedValue(() => {
-      return highlighted
+      return highlighted.value
         ? withDelay(150 * i, withTiming(1, { duration: 1300 }))
         : withDelay(150 * i, withTiming(0, { duration: 300 }));
     }, [highlighted]);
@@ -152,24 +152,24 @@ const RideStateStep = ({
     });
   }
   animProgress[0] = useDerivedValue(() => {
-    return highlightFirst && highlighted
+    return highlightFirst.value && highlighted.value
       ? withTiming(1, { duration: 300 })
       : withTiming(0, { duration: 300 });
   }, [highlighted, highlightFirst]);
   altAnimProgress[0] = useDerivedValue(() => {
-    return highlightFirst && highlighted
+    return highlightFirst.value && highlighted.value
       ? withTiming(1, { duration: 2300 })
       : withTiming(0, { duration: 300 });
   }, [highlighted, highlightFirst]);
   iconAnimProgress[0] = useDerivedValue(() => {
-    return highlightFirst && highlighted
+    return highlightFirst.value && highlighted.value
       ? withTiming(1, { duration: 1300 })
       : withTiming(0, { duration: 300 });
   }, [highlighted, highlightFirst]);
   /* eslint-enable react-hooks/rules-of-hooks */
 
   useEffect(() => {
-    setTimeout(() => setHighlightFirst(true), 1000);
+    setTimeout(() => (highlightFirst.value = true), 1150);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -226,14 +226,13 @@ export const RideStateStepDivider = ({
 }) => {
   const { rideDetails } = useRideDetailsSession();
   const currentRideState = rideDetails?.rideState ?? "received";
-  const [highlighted, setHighlighted] = useState<boolean>(
+  const highlighted = useSharedValue<boolean>(
     rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
   );
 
   useEffect(() => {
-    setHighlighted(
-      rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!,
-    );
+    highlighted.value =
+      rideStateToStepNum[currentRideState]! >= rideStateToStepNum[rideState]!;
   }, [rideDetails]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* eslint-disable react-hooks/rules-of-hooks */
@@ -244,12 +243,12 @@ export const RideStateStepDivider = ({
   const animatedLineColors: DerivedValue<string>[] = [];
   for (let i = 0; i < 6; i++) {
     progresses[i] = useDerivedValue(() => {
-      return highlighted === true
+      return highlighted.value === true
         ? withDelay(150 * (i - 1), withTiming(1, { duration: 150 }))
         : withDelay(150 * (i - 1), withTiming(0, { duration: 150 }));
     }, [highlighted]);
     altAnimProgress[i] = useDerivedValue(() => {
-      return highlighted
+      return highlighted.value
         ? withDelay(150 * i, withTiming(1, { duration: 2300 }))
         : withDelay(150 * i, withTiming(0, { duration: 300 }));
     }, [highlighted]);

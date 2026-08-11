@@ -96,9 +96,9 @@ const CurrentRideInfo = () => {
 
   const animateToStep = (rideState: InProgressRideState) => {
     if (rideState === "en route") {
-      scrollTarget.value = withTiming(268, {
+      scrollTarget.value = withTiming(262, {
         duration: 1400,
-        easing: Easing.inOut(Easing.sin),
+        easing: Easing.inOut(Easing.cubic),
       });
     }
     if (
@@ -106,9 +106,9 @@ const CurrentRideInfo = () => {
       rideState === "in progress" ||
       rideState === "dropped off"
     ) {
-      scrollTarget.value = withTiming(402, {
+      scrollTarget.value = withTiming(392, {
         duration: 1700,
-        easing: Easing.inOut(Easing.sin),
+        easing: Easing.inOut(Easing.cubic),
       });
     }
   };
@@ -220,6 +220,13 @@ const CurrentRideInfo = () => {
         try {
           // force refresh
           await api.get("/me");
+          setTimeout(() =>
+            connect(() =>
+              setTimeout(() => {
+                sheetRef.current?.snapToIndex(1);
+              }, 200),
+            ),
+          );
         } catch (err) {
           console.error(err);
         }
