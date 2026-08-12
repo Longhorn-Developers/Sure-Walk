@@ -17,6 +17,9 @@ const getActiveRides = async (env: CloudflareEnv) => {
         notInArray(rides.dropoffStopState, ["departed"]),
         isNull(rides.cancelledTime),
         sql`${rides.numPickedUp} IS NOT 0`,
+        // since active rides will be at most a few hours long, only limit the
+        // search on the rides table from the past day and a half
+        // using the submittedAt index
         gt(rides.submittedAt, new Date(Date.now() - 1000 * 60 * 60 * 36)),
       ),
     );
@@ -107,6 +110,21 @@ const getInProgressRideStateFromRide = (ride: Ride): InProgressRideState => {
   if (ride.dropoffStopState === "arrived") {
     return "dropped off";
   } else if (ride.dropoffStopState === "skipped") {
+    // when the dropoff stop state is skipped, this can mean many things:
+    // (1) a cancelled / missed ride had its stop state updated after the tracking window
+    // (2) the ride was already completed but it was never marked as arrived on the
+    //     dropoff location so it is in an indeterminate state
+    // (3) a driver will be picking up another user before going to this ride's
+    //     dropoff location
+
+    // in scenario (1), the return value won't matter since the ride won't even be active
+    // in scenario (2), this would lead to this ride being active but in limbo but I would
+    // imagine that this would be very unlikely
+    // scenario (3) is the situation that matters most here: even though the driver is
+    // concurrently doing another ride, we want this ride to still be viewed through the app
+    // if we treat this ride like it is over like in scenarios 1 and 2, then the user might
+    // think that their ride is over when it is not
+
     return "in progress";
   } else {
     switch (ride.pickupStopState) {

@@ -22,6 +22,8 @@ export async function handleRideStream(request: Request, env: CloudflareEnv) {
   const newHeaders = new Headers(request.headers);
   newHeaders.append(
     "Authorization",
+    // since the client side ws implementation can only pass in one extra header
+    // in Sec-WebSocket-Protocol, use that as the Authorization header
     request.headers.get("Sec-WebSocket-Protocol") ?? "",
   );
   const reqWithHeaders = new Request(request.url, {
@@ -42,6 +44,7 @@ export async function handleRideStream(request: Request, env: CloudflareEnv) {
   const url = new URL(request.url);
   const code = url.searchParams.get("shareCode");
   if (code) {
+    // treat this as viewing a group ride
     if (code.length !== 7) {
       return NextResponse.json(
         {
@@ -53,6 +56,7 @@ export async function handleRideStream(request: Request, env: CloudflareEnv) {
 
     currentRide = await getActiveRideByShareCode(code, env);
   } else {
+    // treat this as the leader's current active ride
     const accountID = authResponse.accountID!;
     const user = (await getDBInWorker(env)
       .select()
@@ -74,6 +78,8 @@ export async function handleRideStream(request: Request, env: CloudflareEnv) {
   const rideState = getInProgressRideStateFromRide(currentRide);
   const rideFullInfo = { ...currentRide, rideState: rideState };
 
+  // forward data so pulling from db is not required for the initial ws connection
+  // within the Durable Object fetch handler
   const forwardedHeaders = new Headers(request.headers);
   forwardedHeaders.append("x-current-ride", JSON.stringify(rideFullInfo));
 

@@ -331,6 +331,22 @@ const CurrentRideInfo = () => {
     });
   };
 
+  const TwoMinuteWarning = () => (
+    <View className="pb-2" onLayout={handleLayout0}>
+      <View className="flex-row items-center gap-4 px-4 py-2.5 border border-ut-burntorange rounded-xl mt-1 mb-2">
+        <WarningCircleIcon color={UTBurntOrange} size={24} />
+        <View className="flex-col">
+          <FontText className="color-ut-burntorange text-lg">
+            2 minute warning
+          </FontText>
+          <FontText className="text-md color-ut-burntorange">
+            Please get to your Sure Walk ride on time!
+          </FontText>
+        </View>
+      </View>
+    </View>
+  );
+
   return (
     <View className="bg-white flex-1 pt-5 flex-col">
       <View className="flex-row gap-4 px-5 items-center mt-safe mb-6">
@@ -504,21 +520,7 @@ const CurrentRideInfo = () => {
                   className="flex-col gap-4 mt-2 pb-4"
                   onLayout={handleLayout1}
                 >
-                  {rideDetails.rideState === "arrived" && (
-                    <View className="pb-2" onLayout={handleLayout0}>
-                      <View className="flex-row items-center gap-4 px-4 py-2.5 border border-ut-burntorange rounded-xl mt-1 mb-2">
-                        <WarningCircleIcon color={UTBurntOrange} size={24} />
-                        <View className="flex-col">
-                          <FontText className="color-ut-burntorange text-lg">
-                            2 minute warning
-                          </FontText>
-                          <FontText className="text-md color-ut-burntorange">
-                            Please get to your Sure Walk ride on time!
-                          </FontText>
-                        </View>
-                      </View>
-                    </View>
-                  )}
+                  {rideDetails.rideState === "arrived" && <TwoMinuteWarning />}
                   <FontText
                     className="text-2xl font-medium"
                     onLayout={
@@ -557,18 +559,16 @@ const CurrentRideInfo = () => {
                 </View>
               )}
               <View onLayout={vehicleInfo ? undefined : handleLayout1}>
-                <FontText
-                  className="text-2xl font-medium mt-2 mb-2"
-                  onLayout={
-                    rideDetails.rideState !== "arrived" &&
-                    rideDetails.rideState !== "in progress" &&
-                    rideDetails.rideState !== "dropped off"
-                      ? handleLayout0
-                      : undefined
-                  }
+                <View
+                  className="flex-col gap-2 mt-2 mb-2"
+                  onLayout={vehicleInfo ? undefined : handleLayout0}
                 >
-                  Booking details
-                </FontText>
+                  {vehicleInfo === null &&
+                    rideDetails.rideState === "arrived" && <TwoMinuteWarning />}
+                  <FontText className="text-2xl font-medium">
+                    Booking details
+                  </FontText>
+                </View>
                 <View className="mt-2">
                   {pickupLocation && dropoffLocation && (
                     <PickupDropoffLocationInfo

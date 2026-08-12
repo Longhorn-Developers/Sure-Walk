@@ -25,6 +25,7 @@ import {
 } from "./samsara-utils";
 
 export class RideInfoStream extends DurableObject<CloudflareEnv> {
+  // { rideID: [all clients] }
   streams: Map<string, WebSocket[]>;
 
   constructor(state: DurableObjectState, env: CloudflareEnv) {
@@ -90,6 +91,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
       }
     }, 1000);
 
+    // kick off the data fetching loop if it hasn't already
     const currentAlarm = await this.ctx.storage.getAlarm();
     if (currentAlarm === null) {
       this.ctx.storage.setAlarm(Date.now() + 5000);
@@ -110,6 +112,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
   }
 
   sendEvent(eventType: string, data: object, rideID: string) {
+    // format of each JSON payload
     const payload = { data: data, eventType: eventType };
     this.streams.get(rideID)?.forEach((ws) => {
       ws.send(JSON.stringify(payload));
@@ -121,6 +124,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
   }
 
   async pollInfo() {
+    // determine if an unassigned route has been assigned a driver
     const assignmentChanges = await this.pollAssignmentChanges();
     let activeRides = await getActiveRides(this.env);
     await this.streamAssignmentChanges(activeRides, assignmentChanges);
@@ -136,6 +140,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     }
 
     if (routeUpdates.data.length > 0) {
+      // forward route updates (en route, arrived, departed, skipped)
       await this.streamRouteUpdates(activeRides, routeUpdates);
       let hasNextPage = routeUpdates.pagination.hasNextPage;
       activeRides = await getActiveRides(this.env);
@@ -147,6 +152,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
       }
     }
 
+    // forward asset / vehicle locations
     const assetLocations = await this.pollAssetLocations();
     const vehicleLocations = await this.pollVehicleLocations();
     await this.streamLocations(activeRides, assetLocations, vehicleLocations);
@@ -183,6 +189,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
     for (const ride of activeRides) {
       if (
         ride.vehicleID &&
+        // only stream location after en route
         ride.pickupStopState !== "scheduled" &&
         (this.streams.get(ride.id) ?? []).length !== 0
       ) {
@@ -214,10 +221,16 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
         const stopState = stop.state!;
         const stopType =
           ride.route.stops?.at(0)?.id === stopID ? "pickup" : "dropoff";
+
+        // if activeRide exists, the route update associated with this ride
+        // is important and should be delivered to the user, either through
+        // the websocket connection or a push notification
+        // otherwise we still want to update the stop status in the database
         const activeRide = activeRides.find(
           ({ samsaraID }) => samsaraID === ride.route.id,
         );
         const rideID = activeRide?.id;
+
         if (stopType === "pickup") {
           await setPickupStopState(stopID, stopState, this.env);
 
@@ -227,14 +240,18 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
               // await this.sendRouteUpdate(rideID, "assigned");
             }
             if (stopState === "en route") {
+              // if the stop becomes en route, that means the driver / vehicle
+              // has been finalized and is now currently driving towards the
+              // user's pickup location directly
               await this.sendRouteUpdate(rideID, "en route");
 
-              // get vehicle info
+              // we can now fetch and deliver the finalized vehicle information
               let vehicleID = ride.route.vehicle?.id;
               const driverID = ride.route.driver?.id;
               if (driverID) {
                 const vehicleAssignment = await getVehicleFromDriver(driverID);
                 if (
+                  // this can be undefined for some reason
                   vehicleAssignment.data &&
                   vehicleAssignment.data.length > 0
                 ) {
@@ -242,10 +259,15 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                 }
               }
               if (vehicleID) {
+                // get agnostic information about the asset, and then handle
+                // equipment or a vehicle later
                 const asset = await getAsset(vehicleID);
                 const assetInfo = asset.data[0];
                 let vehicle: Vehicle;
+
                 if (assetInfo.type === "vehicle") {
+                  // this will likely have year / make / model information
+                  // and a license plate
                   [vehicle] = await getDBInWorker(this.env)
                     .insert(vehicles)
                     .values({
@@ -261,6 +283,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                     .onConflictDoUpdate({
                       target: vehicles.samsaraID,
                       set: {
+                        // data might have changed, so update everything (excl. id)
                         name: assetInfo.name ?? "unnamed",
                         make: assetInfo.make,
                         model: assetInfo.model,
@@ -271,6 +294,10 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                     })
                     .returning();
                 } else {
+                  // equipment, so the asset will at least have a name
+                  // the license plate might be a 4-digit code on the side
+                  // of the cart
+
                   [vehicle] = await getDBInWorker(this.env)
                     .insert(vehicles)
                     .values({
@@ -300,6 +327,8 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
               }
             }
             if (stopState === "arrived") {
+              // the user will now have 2 minutes to board the vehicle
+
               await this.sendRouteUpdate(rideID, "arrived");
               await getDBInWorker(this.env)
                 .update(rides)
@@ -307,6 +336,15 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                 .where(eq(rides.pickupStopID, stopID));
             }
             if (stopState === "departed") {
+              // when the vehicle leaves the pickup location, there are now
+              // two possibilities:
+              // firstly, the user was picked up
+              // second, the user missed their ride
+              // in group rides, as long as one person gets picked up the ride
+              // will continue.
+              // this information is located on a form assigned to the pickup stop
+
+              // this can be undefined
               const formObject = ride.route.stops![0].forms;
               let numPickedUp: number | undefined = 1;
               if (formObject) {
@@ -316,6 +354,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                   numPickedUp = form.data[0].fields[0].numberValue?.value;
                 }
               }
+              // if the form didn't submit in time, give them the benefit of the doubt
               if (numPickedUp === undefined) {
                 numPickedUp = 1;
               }
@@ -329,6 +368,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                   .select()
                   .from(users)
                   .where(eq(users.id, activeRide.userID));
+                // update samsara route, unassign driver / vehicle
                 await missRide(activeRide, user);
                 this.streams
                   .get(rideID)
@@ -350,6 +390,8 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
 
           if (rideID) {
             if (stopState === "arrived") {
+              // the end of the ride, record time for metrics
+
               await this.sendRouteUpdate(rideID, "dropped off");
               await getDBInWorker(this.env)
                 .update(rides)
@@ -358,6 +400,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
             }
             if (stopState === "departed") {
               // send feedback notification?
+
               await getDBInWorker(this.env)
                 .update(rides)
                 .set({ shareCode: null })
@@ -367,13 +410,6 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
                 ?.forEach((ws) => ws.close(1000, `Complete: ${rideID}`));
               this.streams.delete(rideID);
             }
-          }
-
-          if (stopState === "skipped") {
-            await getDBInWorker(this.env)
-              .update(rides)
-              .set({ shareCode: null })
-              .where(eq(rides.dropoffStopID, stopID));
           }
         }
       }
@@ -439,6 +475,7 @@ export class RideInfoStream extends DurableObject<CloudflareEnv> {
   }
 
   async afterCancelRide(rideID: string): Promise<void> {
+    // called from the Next.js worker, make sure to disconnect all connections
     this.streams
       .get(rideID)
       ?.forEach((ws) => ws.close(1000, "Ride cancelled."));

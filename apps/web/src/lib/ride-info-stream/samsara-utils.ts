@@ -14,10 +14,12 @@ const getCurrentWaitTime = async () => {
 };
 
 const getRideName = (user: User, members: GroupRideMember[]) => {
+  // make sure the title of the route contains the # of people (group ride), if ADA is required, or both
   return `${members.length > 0 ? `${members.length + 1}-person ` : ``}${user.requiresAssistance ? "ADA " : ""}Sure Walk for ${user.firstName} ${user.lastName}`;
 };
 
 const retry = async <T>(func: () => Promise<T>) => {
+  // only 2 retries for the sake of speed
   const retries = 2;
   let currentTry = 0;
   let lastErr: SamsaraError | null = null;
@@ -27,16 +29,20 @@ const retry = async <T>(func: () => Promise<T>) => {
       return res;
     } catch (err) {
       if (err instanceof SamsaraError) {
+        // hopefully this is a one-off internal Samsara error: retry
         console.warn(
           `Error occured, retry ${currentTry + 1} / ${retries}: ${err}`,
         );
         lastErr = err;
       } else {
+        // throw the unknown error immediately
         console.error(`Unknown error: ${err}`);
         throw err;
       }
     }
     currentTry++;
+    // sleep 200ms, since we don't have that much time to afford
+    // with functions that are being called in the Durable Object
     await new Promise((r) => setTimeout(r, 200));
   }
   throw lastErr;
@@ -55,6 +61,7 @@ const createRoute = async ({
 }) => {
   const waitTime = await getCurrentWaitTime();
   const routeName = getRideName(user, members);
+  // display all relevant information for the leader and group ride members
   const routeNotes =
     `Picking up ${user.firstName} ${user.lastName} (${user.phoneNumber}) at ${pickupLocation.name} and dropping off at ${dropoffLocation.name}. ` +
     `${members.length > 0 ? `Also picking up ${members.map((m) => `${m.firstName} ${m.lastName}${m.phoneNumber ? ` (${m.phoneNumber})` : ""}`).join(", ")}.\n` : ""}Submitted at ${new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })}.`;
@@ -70,6 +77,7 @@ const createRoute = async ({
           routeStartingCondition: "arriveFirstStop",
           sequencingMethod: "manual",
         },
+        // Sure Walk tag ID
         tagIds: ["6343755"],
         stops: [
           {
@@ -111,7 +119,9 @@ const createRoute = async ({
   const data = res.data!;
   let rideCode: string | null = null;
   if (members.length > 0) {
+    // only present on group rides
     rideCode = "";
+    // don't use I, 1, 0, and O since those can be hard to distinguish
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     const charsLen = chars.length;
     for (let i = 0; i < 7; i++) {
