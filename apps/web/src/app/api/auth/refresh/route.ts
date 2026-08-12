@@ -1,6 +1,7 @@
-import { rotateRefreshToken, verifyRefreshToken } from "@/lib/auth";
 import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
+
+import { rotateRefreshToken, verifyRefreshToken } from "@/lib/auth";
 
 const refreshTokenFormat = z.object({
   refreshToken: z.string(),

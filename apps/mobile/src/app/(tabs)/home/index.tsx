@@ -1,48 +1,54 @@
-import FontText from "@/src/components/font-text";
+import BottomSheet, {
+  BottomSheetFlatList,
+  TouchableOpacity as TO,
+} from "@gorhom/bottom-sheet";
+import { LinearGradient } from "expo-linear-gradient";
+import * as Location from "expo-location";
+import { router, useFocusEffect } from "expo-router";
 import {
   CircleIcon,
   FadersHorizontalIcon,
+  InfoIcon,
   MapPinIcon,
   NavigationArrowIcon,
   StarIcon,
   UserCirclePlusIcon,
 } from "phosphor-react-native";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  LayoutChangeEvent,
   Platform,
   Pressable,
   StyleProp,
   TextInput,
   TextStyle,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
-import BottomSheet, {
-  BottomSheetFlatList,
-  TouchableOpacity as TO,
-} from "@gorhom/bottom-sheet";
+import MapView, { Marker, Polygon } from "react-native-maps";
 import Animated, {
   Easing,
   FadeInDown,
   FadeInUp,
   FadeOutDown,
   FadeOutUp,
+  useDerivedValue,
   useSharedValue,
   withRepeat,
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
+
 import CheckButton from "@/src/components/check-button";
-import MapView, { Marker, Polygon } from "react-native-maps";
-import * as Location from "expo-location";
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
 import {
   dropoffBoundaryPolygons,
   pickupBoundaryPolygons,
 } from "@/src/utils/boundary-info";
 import {
   gray900,
+  slate500,
   slate700,
   slate900,
   UTBluebonnet,
@@ -50,14 +56,14 @@ import {
   UTTangerine,
   UTTurquoise,
 } from "@/src/utils/colors";
+import { useCurrentRideSession } from "@/src/utils/context/current-ride-context";
 import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
-import { router, useFocusEffect } from "expo-router";
-import { Location as LocationType } from "@/src/utils/types/location";
-import { getMatchingPickupLocations } from "@/src/utils/locations/pickup-locations";
-import { getMatchingDropoffLocations } from "@/src/utils/locations/dropoff-locations";
 import { useRideSession } from "@/src/utils/context/ride-context";
-import LargeButton from "@/src/components/large-button";
 import { useTabContext } from "@/src/utils/context/tab-context";
+import { getMatchingDropoffLocations } from "@/src/utils/locations/dropoff-locations";
+import { getMatchingPickupLocations } from "@/src/utils/locations/pickup-locations";
+import { Location as LocationType } from "@/src/utils/types/location";
+
 import MyRide from "../(my-ride)";
 
 const Home = () => {
@@ -66,6 +72,7 @@ const Home = () => {
     _style.lineHeight = 0;
   }
 
+  const { goMyRide, setActiveTab } = useTabContext();
   const { members } = useGroupRideSession();
   const {
     pickupLocation,
@@ -74,36 +81,34 @@ const Home = () => {
     setDropoffLocation,
   } = useRideSession();
   const { setHomeSheetRef } = useTabContext();
+  const { currentRide } = useCurrentRideSession();
 
   const sheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
   const startLocationRef = useRef<TextInput>(null);
   const destinationRef = useRef<TextInput>(null);
-  const { height } = useWindowDimensions();
-  const androidOffset = Platform.OS === "android" ? -16 : 0; // weird offset hack on android
-  // maybe due to bottom bar safe area inset?
-  // snap bar at roughly 11%, 40%, and 90%
-  const snapPoints = useMemo(
+
+  const snap0 = useSharedValue<number>(92);
+  const snap1 = useSharedValue<number>(290);
+  const snapPoints = useDerivedValue(
     () => [
-      `${((100 + androidOffset) / height) * 100}%`,
-      `${((290 + androidOffset * 1.5) / height) * 100}%`,
-      "80.5%",
+      snap0.value,
+      snap1.value + snap0.value,
+      ...(!currentRide ? ["80.5%"] : []),
     ],
-    [height, androidOffset],
+    [snap0, snap1, currentRide],
   );
+
   const [snapIndex, setSnapIndex] = useState<number>(1);
   const [legendOpen, setLegendOpen] = useState<boolean>(false);
   const [showPickupBoundary, setPickupBoundary] = useState<boolean>(true);
   const [showDropoffBoundary, setDropoffBoundary] = useState<boolean>(true);
-
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
   );
   const [markerReady, setMarkerReady] = useState(false);
-
   const [userLocationLabel, setUserLocationLabel] =
     useState<string>("Loading...");
-
   const [startLocationText, setStartLocationText] = useState<string>(
     pickupLocation?.name ?? "",
   );
@@ -114,7 +119,6 @@ const Home = () => {
     "pickup",
   );
   const [, setIsInputFocused] = useState<boolean>(false);
-  const shouldNavigateRef = useRef<boolean>(false);
   const [pickupList, setPickupList] = useState<LocationType[]>([]);
   const [dropoffList, setDropoffList] = useState<LocationType[]>([]);
   const [startLocationAddress, setStartAddress] = useState<string>(
@@ -123,6 +127,19 @@ const Home = () => {
   const [destinationAddress, setDestinationAddress] = useState<string>(
     dropoffLocation?.address ?? "Select your destination",
   );
+  const [showHome, setShowHome] = useState<boolean>(false);
+  const [showMyRide, setShowMyRide] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (currentRide) {
+      setShowMyRide(true);
+      setShowHome(false);
+      setActiveTab("my-ride");
+    } else {
+      setShowHome(true);
+      setShowMyRide(false);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pulseScale = useSharedValue(1);
   useEffect(() => {
@@ -253,13 +270,6 @@ const Home = () => {
     setHomeSheetRef(sheetRef);
   }, [setHomeSheetRef]);
 
-  useEffect(() => {
-    if (shouldNavigateRef.current && pickupLocation && dropoffLocation) {
-      shouldNavigateRef.current = false;
-      router.navigate("/home/confirm-ride");
-    }
-  }, [pickupLocation, dropoffLocation]);
-
   useFocusEffect(
     useCallback(() => {
       if (pickupLocation) {
@@ -272,6 +282,34 @@ const Home = () => {
       }
     }, [pickupLocation, dropoffLocation]),
   );
+
+  useEffect(() => {
+    if (!currentRide) {
+      setStartLocationText("");
+      setDestinationText("");
+      setStartAddress("Select your pickup location");
+      setDestinationAddress("Select your destination");
+    }
+  }, [currentRide]);
+
+  const handleLayout1 = (event: LayoutChangeEvent) => {
+    let height = event.nativeEvent.layout.height;
+    if (height === 0) {
+      height = 92;
+    }
+    snap0.set(height + 8);
+  };
+
+  const handleLayout2 = (event: LayoutChangeEvent) => {
+    let height = event.nativeEvent.layout.height;
+    if (height === 0) {
+      height = 290;
+    }
+    if (!currentRide) {
+      height -= 16; // compensate for list inner shadow negative margin
+    }
+    snap1.set(height);
+  };
 
   // const resetMapView = (location: LocationType) => {
   //   setPickupList([]);
@@ -294,7 +332,7 @@ const Home = () => {
     setFocusedInput("dropoff");
     if (dropoffLocation) {
       startLocationRef.current?.blur();
-      shouldNavigateRef.current = true;
+      router.navigate("/home/confirm-ride");
     } else if (startLocationRef.current?.isFocused()) {
       destinationRef.current?.focus();
     }
@@ -306,7 +344,7 @@ const Home = () => {
     setDropoffLocation(location);
     destinationRef.current?.blur();
     if (pickupLocation) {
-      shouldNavigateRef.current = true;
+      router.navigate("/home/confirm-ride");
     }
   };
 
@@ -340,16 +378,7 @@ const Home = () => {
         </TouchableOpacity>
       </View>
       <View className="relative flex-1 w-full">
-        <LinearGradient
-          colors={["#ffffffff", "#ffffff00"]}
-          style={{
-            position: "fixed",
-            top: -10,
-            height: 24,
-            zIndex: 100,
-          }}
-        />
-        <View className="w-full h-full mt-[-34px] items-center justify-center">
+        <View className="w-full h-full mt-[-10px] items-center justify-center">
           <MapView
             ref={mapRef}
             style={{ width: "100%", flex: 1, zIndex: 0 }}
@@ -478,6 +507,16 @@ const Home = () => {
             )}
           </MapView>
         </View>
+        <LinearGradient
+          colors={["#ffffffff", "#ffffff00"]}
+          style={{
+            position: "absolute",
+            top: -10,
+            left: 0,
+            right: 0,
+            height: 24,
+          }}
+        />
         {legendOpen && (
           <>
             <Animated.View
@@ -511,222 +550,281 @@ const Home = () => {
           </>
         )}
       </View>
-      <BottomSheet
-        ref={sheetRef}
-        snapPoints={snapPoints}
-        enableDynamicSizing={false}
-        index={1}
-        style={{
-          borderRadius: 28,
-          backgroundColor: "transparent",
-          zIndex: 150,
-        }}
-        onChange={(index) => {
-          if (index !== 2) {
-            startLocationRef.current?.blur();
-            destinationRef.current?.blur();
-          }
-          setSnapIndex(index);
-        }}
-        handleComponent={() => (
-          <View className="relative flex-col rounded-t-[28px]">
-            <View className="rounded-t-[28px] flex-col items-center py-4">
-              <View className="bg-slate-300 rounded w-8 h-1" />
-            </View>
-            <View className="flex-col gap-5 px-5 pb-1">
-              <View className="flex-row w-full justify-between items-center">
-                <FontText className="text-2xl font-medium">
-                  Book a ride
-                </FontText>
-                <TO onPress={() => router.navigate("/home/group-ride")}>
-                  <View className="flex-row gap-1 p-3 items-center bg-slate-50 rounded-[32px] border border-slate-200">
-                    <UserCirclePlusIcon color={slate700} size="24" />
-                    <FontText className="font-medium">{`${members.length === 0 ? "Add" : members.length + 1} Riders`}</FontText>
-                  </View>
-                </TO>
-              </View>
-            </View>
-          </View>
-        )}
-        containerStyle={{
-          position: "relative",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        {pickupLocation && dropoffLocation && (
-          <Animated.View
-            className="absolute bottom-0 w-full z-10 px-5 mb-safe pb-[64px]"
-            entering={FadeInDown.duration(300)
-              .delay(300)
-              .easing(Easing.out(Easing.cubic))}
-            exiting={FadeOutDown.duration(300).easing(Easing.in(Easing.cubic))}
-          >
-            <LargeButton
-              title="Continue"
-              onPress={() => router.navigate("/home/confirm-ride")}
-            />
-          </Animated.View>
-        )}
-        <View className="flex-col mb-[-24px]">
-          <View className="flex-col bg-white pt-4 px-5">
-            <View className="flex-col rounded-lg">
-              <Pressable
-                className={`${focusedInput === "pickup" ? "bg-slate-100" : "bg-slate-50"} transition-colors flex-row p-4 gap-4 items-center rounded-t-2xl border border-slate-200`}
-                onPress={() => startLocationRef.current?.focus()}
-              >
-                <View className="bg-[#BF570033] rounded-full items-center justify-center w-[32px] h-[32px]">
-                  <CircleIcon color={UTBurntOrange} weight="fill" size="20" />
-                </View>
-                <View className="flex-1 flex-col gap-1">
-                  <TextInput
-                    ref={startLocationRef}
-                    onFocus={() => {
-                      setFocusedInput("pickup");
-                      setIsInputFocused(true);
-                      snapIndex !== 2 && sheetRef.current?.expand();
-                    }}
-                    onBlur={() => setIsInputFocused(false)}
-                    className="font-medium text-lg"
-                    placeholder="Where from?"
-                    placeholderTextColor={gray900}
-                    onChangeText={(text) => {
-                      setStartLocationText(text);
-                      if (!startLocationAddress.startsWith("Select")) {
-                        setStartAddress("Select your pickup location");
-                        setPickupLocation(null);
-                      }
-                    }}
-                    value={startLocationText}
-                    style={_style}
-                  />
-                  <FontText className="text-lg color-[#333F48]">
-                    {startLocationAddress}
-                  </FontText>
-                </View>
-              </Pressable>
-              <Pressable
-                className={`${focusedInput === "dropoff" ? "bg-slate-100" : "bg-slate-50"} transition-colors flex-row p-4 gap-4 items-center rounded-b-2xl border border-slate-200 mt-[-1px] mb-6`}
-                onPress={() => destinationRef.current?.focus()}
-              >
-                <View className="bg-[#005F8633] rounded-full items-center justify-center w-[32px] h-[32px]">
-                  <MapPinIcon color={UTBluebonnet} size="20" weight="fill" />
-                </View>
-                <View className="flex-1 flex-col gap-1">
-                  <TextInput
-                    ref={destinationRef}
-                    onFocus={() => {
-                      setFocusedInput("dropoff");
-                      setIsInputFocused(true);
-                      snapIndex !== 2 && sheetRef.current?.expand();
-                    }}
-                    onBlur={() => setIsInputFocused(false)}
-                    className="font-medium text-lg"
-                    placeholder="Where to?"
-                    placeholderTextColor={gray900}
-                    onChangeText={(text) => {
-                      setDestinationText(text);
-                      if (!destinationAddress.startsWith("Select")) {
-                        setDestinationAddress("Select your destination");
-                        setDropoffLocation(null);
-                      }
-                    }}
-                    value={destinationText}
-                    style={_style}
-                  />
-                  <FontText className="text-lg color-[#333F48]">
-                    {destinationAddress}
-                  </FontText>
-                </View>
-              </Pressable>
-            </View>
-          </View>
-          <LinearGradient
-            colors={["#ffffffff", "#ffffff00"]}
+      {(showHome || showMyRide) && (
+        <>
+          <BottomSheet
+            ref={sheetRef}
+            snapPoints={snapPoints}
+            enableDynamicSizing={false}
+            index={showHome ? 1 : -1}
             style={{
-              marginTop: -12,
-              height: 24,
-              zIndex: 50,
+              borderRadius: 28,
+              backgroundColor: "transparent",
+              zIndex: 150,
             }}
-          />
-        </View>
-        <BottomSheetFlatList
-          overScrollMode={"always"}
-          scrollEnabled={
-            Platform.OS === "android" ? snapIndex === 2 : undefined
-          }
-          data={
-            focusedInput === "pickup" && startLocationText.trim().length >= 1
-              ? pickupList
-              : focusedInput === "dropoff" && destinationText.trim().length >= 1
-                ? dropoffList
-                : []
-          }
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ index, item }) => (
-            <TouchableOpacity
-              key={index}
-              onPress={
-                focusedInput === "pickup"
-                  ? clickedPickupLocation(item)
-                  : clickedDropoffLocation(item)
+            onChange={(index) => {
+              if (index !== 2) {
+                startLocationRef.current?.blur();
+                destinationRef.current?.blur();
               }
-            >
+              setSnapIndex(index);
+            }}
+            handleComponent={() => (
               <View
-                key={index}
-                className={`flex-col ${index === (focusedInput === "pickup" ? pickupList : dropoffList).length - 1 ? "" : "border-b"} border-gray-200 pb-4 pt-2`}
+                className="relative flex-col rounded-t-[28px]"
+                onLayout={handleLayout1}
               >
-                <View className="flex-row gap-2 items-center">
-                  <MapPinIcon color={slate900} size="24" />
-                  <View className="flex-1 flex-col gap-2 justify-around">
-                    <FontText className="font-medium text-lg/1">
-                      {item.name}
+                <View className="rounded-t-[28px] flex-col items-center py-4">
+                  <View className="bg-slate-300 rounded w-8 h-1" />
+                </View>
+                <View className="flex-col gap-5 px-5 pb-1">
+                  <View className="flex-row w-full justify-between items-center">
+                    <FontText className="text-2xl font-medium">
+                      Book a ride
                     </FontText>
-                    <FontText className="font-regular text-[14px]/1 text-gray-500">
-                      {item.address}
-                    </FontText>
+                    {!currentRide && (
+                      <TO onPress={() => router.navigate("/home/group-ride")}>
+                        <View className="flex-row gap-1 p-3 items-center bg-slate-50 rounded-[32px] border border-slate-200">
+                          <UserCirclePlusIcon color={slate700} size="24" />
+                          <FontText className="font-medium">{`${members.length === 0 ? "Add" : members.length + 1} Riders`}</FontText>
+                        </View>
+                      </TO>
+                    )}
+                    {currentRide && (
+                      <View className="flex-row gap-1 p-3 items-center bg-slate-200 rounded-[32px] border border-slate-400">
+                        <UserCirclePlusIcon color={slate500} size="24" />
+                        <FontText className="font-medium color-slate-500">{`${members.length === 0 ? "Add" : members.length + 1} Riders`}</FontText>
+                      </View>
+                    )}
                   </View>
-                  <StarIcon color={slate900} size="24" />
                 </View>
               </View>
-            </TouchableOpacity>
-          )}
-          ListFooterComponent={
-            (((focusedInput === "pickup" &&
-              startLocationText.trim().length >= 1) ||
-              (focusedInput === "dropoff" &&
-                destinationText.trim().length >= 1)) && (
-              <TouchableOpacity
-                onPress={() =>
-                  focusedInput === "pickup"
-                    ? (setStartLocationText(""),
-                      setStartAddress("Select your pickup location"),
-                      setPickupLocation(null))
-                    : (setDestinationText(""),
-                      setDestinationAddress("Select your destination"),
-                      setDropoffLocation(null))
-                }
+            )}
+            containerStyle={{
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {pickupLocation && dropoffLocation && !currentRide && (
+              <Animated.View
+                className="absolute bottom-0 w-full z-10 px-5 mb-safe pb-[64px]"
+                entering={FadeInDown.duration(300)
+                  .delay(300)
+                  .easing(Easing.out(Easing.cubic))}
+                exiting={FadeOutDown.duration(300).easing(
+                  Easing.in(Easing.cubic),
+                )}
               >
-                <FontText className="mt-4">
-                  Clear {focusedInput} selection
-                </FontText>
-              </TouchableOpacity>
-            )) || <View />
-          }
-          contentContainerStyle={{
-            paddingTop: 8,
-            position: "relative",
-            paddingHorizontal: 20,
-            flexDirection: "column",
-            gap: 4,
-            justifyContent: "flex-start",
-          }}
-          style={{
-            flexGrow: 1,
-          }}
-        />
-      </BottomSheet>
-      <MyRide />
+                <LargeButton
+                  title="Continue"
+                  onPress={() => router.navigate("/home/confirm-ride")}
+                />
+              </Animated.View>
+            )}
+            <View className="flex-col mb-[-24px]">
+              <View
+                className="flex-col bg-white pt-4 px-5"
+                onLayout={handleLayout2}
+              >
+                {!currentRide && (
+                  <View className="flex-col rounded-lg">
+                    <Pressable
+                      className={`${focusedInput === "pickup" ? "bg-slate-100" : "bg-slate-50"} transition-colors flex-row p-4 gap-4 items-center rounded-t-2xl border border-slate-200`}
+                      onPress={() => startLocationRef.current?.focus()}
+                    >
+                      <View className="bg-[#BF570033] rounded-full items-center justify-center w-[32px] h-[32px]">
+                        <CircleIcon
+                          color={UTBurntOrange}
+                          weight="fill"
+                          size="20"
+                        />
+                      </View>
+                      <View className="flex-1 flex-col gap-1">
+                        <TextInput
+                          ref={startLocationRef}
+                          onFocus={() => {
+                            setFocusedInput("pickup");
+                            setIsInputFocused(true);
+                            snapIndex !== 2 && sheetRef.current?.expand();
+                          }}
+                          onBlur={() => setIsInputFocused(false)}
+                          className="font-medium text-lg"
+                          placeholder="Where from?"
+                          placeholderTextColor={gray900}
+                          onChangeText={(text) => {
+                            setStartLocationText(text);
+                            if (!startLocationAddress.startsWith("Select")) {
+                              setStartAddress("Select your pickup location");
+                              setPickupLocation(null);
+                            }
+                          }}
+                          value={startLocationText}
+                          style={_style}
+                        />
+                        <FontText className="text-lg color-[#333F48]">
+                          {startLocationAddress}
+                        </FontText>
+                      </View>
+                    </Pressable>
+                    <Pressable
+                      className={`${focusedInput === "dropoff" ? "bg-slate-100" : "bg-slate-50"} transition-colors flex-row p-4 gap-4 items-center rounded-b-2xl border border-slate-200 mt-[-1px] mb-6`}
+                      onPress={() => destinationRef.current?.focus()}
+                    >
+                      <View className="bg-[#005F8633] rounded-full items-center justify-center w-[32px] h-[32px]">
+                        <MapPinIcon
+                          color={UTBluebonnet}
+                          size="20"
+                          weight="fill"
+                        />
+                      </View>
+                      <View className="flex-1 flex-col gap-1">
+                        <TextInput
+                          ref={destinationRef}
+                          onFocus={() => {
+                            setFocusedInput("dropoff");
+                            setIsInputFocused(true);
+                            snapIndex !== 2 && sheetRef.current?.expand();
+                          }}
+                          onBlur={() => setIsInputFocused(false)}
+                          className="font-medium text-lg"
+                          placeholder="Where to?"
+                          placeholderTextColor={gray900}
+                          onChangeText={(text) => {
+                            setDestinationText(text);
+                            if (!destinationAddress.startsWith("Select")) {
+                              setDestinationAddress("Select your destination");
+                              setDropoffLocation(null);
+                            }
+                          }}
+                          value={destinationText}
+                          style={_style}
+                        />
+                        <FontText className="text-lg color-[#333F48]">
+                          {destinationAddress}
+                        </FontText>
+                      </View>
+                    </Pressable>
+                  </View>
+                )}
+                {currentRide && (
+                  <View className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex-col mb-2 gap-6">
+                    <View className="flex-col gap-3">
+                      <View className="flex-row gap-2 items-center">
+                        <InfoIcon color={UTBurntOrange} size={32} />
+                        <FontText className="text-2xl font-medium">
+                          Ride in Progress
+                        </FontText>
+                      </View>
+                      <FontText className="text-lg">
+                        You currently have a Sure Walk booked.
+                      </FontText>
+                    </View>
+                    <View className="flex-col gap-3">
+                      <LargeButton
+                        title="View Ride"
+                        onPress={() => {
+                          goMyRide();
+                        }}
+                      />
+                    </View>
+                  </View>
+                )}
+              </View>
+              {!currentRide && (
+                <LinearGradient
+                  colors={["#ffffffff", "#ffffff00"]}
+                  style={{
+                    marginTop: -12,
+                    height: 24,
+                    zIndex: 50,
+                  }}
+                />
+              )}
+            </View>
+            {!currentRide && (
+              <BottomSheetFlatList
+                overScrollMode={"always"}
+                scrollEnabled={
+                  Platform.OS === "android" ? snapIndex === 2 : undefined
+                }
+                data={
+                  focusedInput === "pickup" &&
+                  startLocationText.trim().length >= 1
+                    ? pickupList
+                    : focusedInput === "dropoff" &&
+                        destinationText.trim().length >= 1
+                      ? dropoffList
+                      : []
+                }
+                keyboardShouldPersistTaps="handled"
+                renderItem={({ index, item }) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={
+                      focusedInput === "pickup"
+                        ? clickedPickupLocation(item)
+                        : clickedDropoffLocation(item)
+                    }
+                  >
+                    <View
+                      key={index}
+                      className={`flex-col ${index === (focusedInput === "pickup" ? pickupList : dropoffList).length - 1 ? "" : "border-b"} border-gray-200 pb-4 pt-2`}
+                    >
+                      <View className="flex-row gap-2 items-center">
+                        <MapPinIcon color={slate900} size="24" />
+                        <View className="flex-1 flex-col gap-2 justify-around">
+                          <FontText className="font-medium text-lg/1">
+                            {item.name}
+                          </FontText>
+                          <FontText className="font-regular text-[14px]/1 text-gray-500">
+                            {item.address}
+                          </FontText>
+                        </View>
+                        <StarIcon color={slate900} size="24" />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                )}
+                ListFooterComponent={
+                  (((focusedInput === "pickup" &&
+                    startLocationText.trim().length >= 1) ||
+                    (focusedInput === "dropoff" &&
+                      destinationText.trim().length >= 1)) && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        focusedInput === "pickup"
+                          ? (setStartLocationText(""),
+                            setStartAddress("Select your pickup location"),
+                            setPickupLocation(null))
+                          : (setDestinationText(""),
+                            setDestinationAddress("Select your destination"),
+                            setDropoffLocation(null))
+                      }
+                    >
+                      <FontText className="mt-4">
+                        Clear {focusedInput} selection
+                      </FontText>
+                    </TouchableOpacity>
+                  )) || <View />
+                }
+                contentContainerStyle={{
+                  paddingTop: 8,
+                  position: "relative",
+                  paddingHorizontal: 20,
+                  flexDirection: "column",
+                  gap: 4,
+                  justifyContent: "flex-start",
+                }}
+                style={{
+                  flexGrow: 1,
+                }}
+              />
+            )}
+          </BottomSheet>
+          <MyRide initialIndex={showMyRide ? 0 : -1} />
+        </>
+      )}
     </View>
   );
 };

@@ -1,0 +1,196 @@
+diff --git a/lib/commonjs/hooks/useScrollEventsHandlersDefault.js b/lib/commonjs/hooks/useScrollEventsHandlersDefault.js
+index 1cfcb08426de658b1525410e8c770a34048a3bf1..4a1f9a96df6bfdcf112783c16150c1293cd0cdac 100644
+--- a/lib/commonjs/hooks/useScrollEventsHandlersDefault.js
++++ b/lib/commonjs/hooks/useScrollEventsHandlersDefault.js
+@@ -45,8 +45,17 @@ const useScrollEventsHandlersDefault = (scrollableRef, scrollableContentOffsetY)
+     }
+     if (animatedScrollableStatus.value === _constants.SCROLLABLE_STATUS.LOCKED) {
+       const lockPosition = context.shouldLockInitialPosition ? context.initialContentOffsetY ?? 0 : 0;
+-      // @ts-ignore
+-      (0, _reactNativeReanimated.scrollTo)(scrollableRef, 0, lockPosition, false);
++      // PATCH: Prevent infinite scrollTo→onScroll loop on Fabric iOS.
++      // https://github.com/gorhom/react-native-bottom-sheet/issues/2334
++      if (Math.abs(y - lockPosition) >= 0.5 && !context._isScrollingToLock) {
++        context._isScrollingToLock = true;
++        try {
++          // @ts-ignore
++          (0, _reactNativeReanimated.scrollTo)(scrollableRef, 0, lockPosition, false);
++        } finally {
++          context._isScrollingToLock = false;
++        }
++      }
+       scrollableContentOffsetY.value = lockPosition;
+       return;
+     }
+@@ -84,8 +93,16 @@ const useScrollEventsHandlersDefault = (scrollableRef, scrollableContentOffsetY)
+
+     if (animatedScrollableStatus.value === _constants.SCROLLABLE_STATUS.LOCKED) {
+       const lockPosition = context.shouldLockInitialPosition ? context.initialContentOffsetY ?? 0 : 0;
+-      // @ts-ignore
+-      (0, _reactNativeReanimated.scrollTo)(scrollableRef, 0, lockPosition, false);
++      // PATCH: Same re-entrancy guard as handleOnScroll.
++      if (Math.abs(y - lockPosition) >= 0.5 && !context._isScrollingToLock) {
++        context._isScrollingToLock = true;
++        try {
++          // @ts-ignore
++          (0, _reactNativeReanimated.scrollTo)(scrollableRef, 0, lockPosition, false);
++        } finally {
++          context._isScrollingToLock = false;
++        }
++      }
+       scrollableContentOffsetY.value = lockPosition;
+       return;
+     }
+@@ -106,8 +123,16 @@ const useScrollEventsHandlersDefault = (scrollableRef, scrollableContentOffsetY)
+
+     if (animatedScrollableStatus.value === _constants.SCROLLABLE_STATUS.LOCKED) {
+       const lockPosition = context.shouldLockInitialPosition ? context.initialContentOffsetY ?? 0 : 0;
+-      // @ts-ignore
+-      (0, _reactNativeReanimated.scrollTo)(scrollableRef, 0, lockPosition, false);
++      // PATCH: Same re-entrancy guard as handleOnScroll.
++      if (Math.abs(y - lockPosition) >= 0.5 && !context._isScrollingToLock) {
++        context._isScrollingToLock = true;
++        try {
++          // @ts-ignore
++          (0, _reactNativeReanimated.scrollTo)(scrollableRef, 0, lockPosition, false);
++        } finally {
++          context._isScrollingToLock = false;
++        }
++      }
+       scrollableContentOffsetY.value = 0;
+       return;
+     }
+diff --git a/lib/module/hooks/useScrollEventsHandlersDefault.js b/lib/module/hooks/useScrollEventsHandlersDefault.js
+index 1ae41afe8334a2fbf38c43c1ff22b241e94be20a..e927207a8c8a76841b1cade9af683f56c788c926 100644
+--- a/lib/module/hooks/useScrollEventsHandlersDefault.js
++++ b/lib/module/hooks/useScrollEventsHandlersDefault.js
+@@ -41,8 +41,17 @@ export const useScrollEventsHandlersDefault = (scrollableRef, scrollableContentO
+     }
+     if (animatedScrollableStatus.value === SCROLLABLE_STATUS.LOCKED) {
+       const lockPosition = context.shouldLockInitialPosition ? context.initialContentOffsetY ?? 0 : 0;
+-      // @ts-ignore
+-      scrollTo(scrollableRef, 0, lockPosition, false);
++      // PATCH: Prevent infinite scrollTo→onScroll loop on Fabric iOS.
++      // https://github.com/gorhom/react-native-bottom-sheet/issues/2334
++      if (Math.abs(y - lockPosition) >= 0.5 && !context._isScrollingToLock) {
++        context._isScrollingToLock = true;
++        try {
++          // @ts-ignore
++          scrollTo(scrollableRef, 0, lockPosition, false);
++        } finally {
++          context._isScrollingToLock = false;
++        }
++      }
+       scrollableContentOffsetY.value = lockPosition;
+       return;
+     }
+@@ -80,8 +89,16 @@ export const useScrollEventsHandlersDefault = (scrollableRef, scrollableContentO
+
+     if (animatedScrollableStatus.value === SCROLLABLE_STATUS.LOCKED) {
+       const lockPosition = context.shouldLockInitialPosition ? context.initialContentOffsetY ?? 0 : 0;
+-      // @ts-ignore
+-      scrollTo(scrollableRef, 0, lockPosition, false);
++      // PATCH: Same re-entrancy guard as handleOnScroll.
++      if (Math.abs(y - lockPosition) >= 0.5 && !context._isScrollingToLock) {
++        context._isScrollingToLock = true;
++        try {
++          // @ts-ignore
++          scrollTo(scrollableRef, 0, lockPosition, false);
++        } finally {
++          context._isScrollingToLock = false;
++        }
++      }
+       scrollableContentOffsetY.value = lockPosition;
+       return;
+     }
+@@ -102,8 +119,16 @@ export const useScrollEventsHandlersDefault = (scrollableRef, scrollableContentO
+
+     if (animatedScrollableStatus.value === SCROLLABLE_STATUS.LOCKED) {
+       const lockPosition = context.shouldLockInitialPosition ? context.initialContentOffsetY ?? 0 : 0;
+-      // @ts-ignore
+-      scrollTo(scrollableRef, 0, lockPosition, false);
++      // PATCH: Same re-entrancy guard as handleOnScroll.
++      if (Math.abs(y - lockPosition) >= 0.5 && !context._isScrollingToLock) {
++        context._isScrollingToLock = true;
++        try {
++          // @ts-ignore
++          scrollTo(scrollableRef, 0, lockPosition, false);
++        } finally {
++          context._isScrollingToLock = false;
++        }
++      }
+       scrollableContentOffsetY.value = 0;
+       return;
+     }
+diff --git a/src/hooks/useScrollEventsHandlersDefault.ts b/src/hooks/useScrollEventsHandlersDefault.ts
+index c0594494415a0f996aafce7a67e7175ee26117d8..07499c72f7c5da9ef2ada4fd8507688529c8f44a 100644
+--- a/src/hooks/useScrollEventsHandlersDefault.ts
++++ b/src/hooks/useScrollEventsHandlersDefault.ts
+@@ -55,8 +55,27 @@ export const useScrollEventsHandlersDefault: ScrollEventsHandlersHookType = (
+           const lockPosition = context.shouldLockInitialPosition
+             ? (context.initialContentOffsetY ?? 0)
+             : 0;
+-          // @ts-ignore
+-          scrollTo(scrollableRef, 0, lockPosition, false);
++          // PATCH: Prevent infinite scrollTo → onScroll loop on Fabric iOS.
++          // On Fabric, scrollTo synchronously re-enters handleOnScroll via
++          // UIScrollView's setContentOffset → scrollViewDidScroll delegate,
++          // causing "Maximum call stack size exceeded" (native stack depth).
++          // The 0.5px threshold alone is insufficient: y may still differ
++          // from lockPosition in the re-entrant call because the scroll
++          // hasn't physically completed yet. A re-entrancy guard on the
++          // worklet context object breaks the synchronous recursion.
++          // Related issues:
++          //   https://github.com/gorhom/react-native-bottom-sheet/issues/2334
++          //   https://github.com/software-mansion/react-native-reanimated/issues/3434
++          //   https://github.com/software-mansion/react-native-reanimated/issues/9000
++          if (Math.abs(y - lockPosition) >= 0.5 && !context._isScrollingToLock) {
++            context._isScrollingToLock = true;
++            try {
++              // @ts-ignore
++              scrollTo(scrollableRef, 0, lockPosition, false);
++            } finally {
++              context._isScrollingToLock = false;
++            }
++          }
+           scrollableContentOffsetY.value = lockPosition;
+           return;
+         }
+@@ -104,8 +123,16 @@ export const useScrollEventsHandlersDefault: ScrollEventsHandlersHookType = (
+           const lockPosition = context.shouldLockInitialPosition
+             ? (context.initialContentOffsetY ?? 0)
+             : 0;
+-          // @ts-ignore
+-          scrollTo(scrollableRef, 0, lockPosition, false);
++          // PATCH: Same re-entrancy guard as handleOnScroll (see above).
++          if (Math.abs(y - lockPosition) >= 0.5 && !context._isScrollingToLock) {
++            context._isScrollingToLock = true;
++            try {
++              // @ts-ignore
++              scrollTo(scrollableRef, 0, lockPosition, false);
++            } finally {
++              context._isScrollingToLock = false;
++            }
++          }
+           scrollableContentOffsetY.value = lockPosition;
+           return;
+         }
+@@ -134,8 +161,16 @@ export const useScrollEventsHandlersDefault: ScrollEventsHandlersHookType = (
+           const lockPosition = context.shouldLockInitialPosition
+             ? (context.initialContentOffsetY ?? 0)
+             : 0;
+-          // @ts-ignore
+-          scrollTo(scrollableRef, 0, lockPosition, false);
++          // PATCH: Same re-entrancy guard as handleOnScroll (see above).
++          if (Math.abs(y - lockPosition) >= 0.5 && !context._isScrollingToLock) {
++            context._isScrollingToLock = true;
++            try {
++              // @ts-ignore
++              scrollTo(scrollableRef, 0, lockPosition, false);
++            } finally {
++              context._isScrollingToLock = false;
++            }
++          }
+           scrollableContentOffsetY.value = 0;
+           return;
+         }

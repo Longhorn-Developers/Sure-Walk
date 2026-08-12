@@ -1,5 +1,5 @@
-import { createContext, useContext, useState } from "react";
 import UserType from "@sure-walk/utils/types/user-type";
+import { createContext, useContext, useState } from "react";
 
 interface LoginContextType {
   userType: UserType | null;

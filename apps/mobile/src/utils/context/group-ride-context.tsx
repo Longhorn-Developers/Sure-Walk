@@ -1,11 +1,12 @@
-import { createContext, useContext, useState } from "react";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
+import { createContext, useContext, useState } from "react";
 
 interface GroupRideContextType {
   // the group ride leader is the currently signed in user, use user-context to get that value
   members: GroupRideMember[];
   removeMember: (memberIndex: number) => void;
   addMember: (member: GroupRideMember) => void;
+  clearMembers: () => void;
 }
 
 const GroupRideContext = createContext<GroupRideContextType | undefined>(
@@ -37,12 +38,17 @@ export const GroupRideProvider = ({
     setMembers([...members, member]);
   };
 
+  const clearMembers = () => {
+    setMembers([]);
+  };
+
   return (
     <GroupRideContext.Provider
       value={{
         members,
         removeMember,
         addMember,
+        clearMembers,
       }}
     >
       {children}

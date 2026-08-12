@@ -1,14 +1,16 @@
-import LargeButton from "@/src/components/large-button";
-import TextInputField from "@/src/components/text-input-field";
-import { useLoginSession } from "@/src/utils/context/login-context";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
+
 import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
+import TextInputField from "@/src/components/text-input-field";
+import { useLoginSession } from "@/src/utils/context/login-context";
 
 const Name = () => {
   const { firstName, lastName, setFirstName, setLastName, userType } =
     useLoginSession();
+
   const [isValid, setIsValid] = useState(false);
 
   useEffect(() => {

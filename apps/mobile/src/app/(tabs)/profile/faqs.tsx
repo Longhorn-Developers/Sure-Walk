@@ -1,10 +1,11 @@
-import { FlatList, TouchableOpacity, View } from "react-native";
-import FontText from "@/src/components/font-text";
 import { LinearGradient } from "expo-linear-gradient";
-import { slate700 } from "@/src/utils/colors";
 import { router } from "expo-router";
 import { CaretLeftIcon } from "phosphor-react-native";
+import { FlatList, TouchableOpacity, View } from "react-native";
+
 import Accordion from "@/src/components/accordion";
+import FontText from "@/src/components/font-text";
+import { slate700 } from "@/src/utils/colors";
 
 const FAQs = () => {
   const faqs: { title: string; body: string }[] = [

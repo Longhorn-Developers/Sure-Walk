@@ -1,5 +1,5 @@
-import { CAMPUS_LOCATIONS } from "./pickup-locations";
 import { Location } from "../types/location";
+import { CAMPUS_LOCATIONS } from "./pickup-locations";
 
 export const WEST_CAMPUS_LOCATIONS: Location[] = [
   ...CAMPUS_LOCATIONS,

@@ -1,10 +1,14 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "main": ".open-next/worker.js",
+  "main": "custom-worker.ts",
   "name": "lifts-web",
   // Set this to today's date
-  "compatibility_date": "2026-02-28",
+  "compatibility_date": "2026-07-16",
   "compatibility_flags": ["nodejs_compat"],
+  "dev": {
+    "port": 3000,
+    "ip": "0.0.0.0",
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
@@ -15,6 +19,20 @@
       "database_name": "lifts-db",
       "database_id": "2f70c6df-2f4a-4b8b-880e-cd92245a2b73",
       "migrations_dir": "./drizzle",
+    },
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RIDE_INFO_STREAM",
+        "class_name": "RideInfoStream",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["RideInfoStream"],
     },
   ],
 }

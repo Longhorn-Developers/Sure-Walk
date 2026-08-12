@@ -1,7 +1,8 @@
+import { CaretDownIcon } from "phosphor-react-native";
 import { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
+
 import FontText from "./font-text";
-import { CaretDownIcon } from "phosphor-react-native";
 
 const DropdownSelect = ({
   label,

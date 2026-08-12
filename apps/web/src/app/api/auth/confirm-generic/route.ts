@@ -1,11 +1,12 @@
+import { eq } from "drizzle-orm";
+import { NextRequest, NextResponse } from "next/server";
+import z from "zod";
+
 import { generateAccessToken, generateRefreshToken } from "@/lib/auth";
 import { getDB } from "@/lib/db";
 import { accounts } from "@/lib/db/schema/accounts";
 import { codes } from "@/lib/db/schema/codes";
 import { User, users } from "@/lib/db/schema/users";
-import { eq } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
-import z from "zod";
 
 const codeFormat = z.object({
   code: z.string().length(6, "Code must be 6 characters long."),

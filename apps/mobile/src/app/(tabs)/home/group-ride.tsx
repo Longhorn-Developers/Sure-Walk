@@ -1,11 +1,3 @@
-import FontText from "@/src/components/font-text";
-import LargeButton from "@/src/components/large-button";
-import OutlineButton from "@/src/components/outline-button";
-import RiderCard from "@/src/components/rider-card";
-import TextInputField from "@/src/components/text-input-field";
-import { red500, slate500, slate700, UTBluebonnet } from "@/src/utils/colors";
-import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
-import { useSession } from "@/src/utils/context/user-context";
 import GroupRideMember from "@sure-walk/utils/types/group-ride-member";
 import UserType from "@sure-walk/utils/types/user-type";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,14 +8,18 @@ import {
   MinusCircleIcon,
   UserPlusIcon,
 } from "phosphor-react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, ScrollView, TouchableOpacity, View } from "react-native";
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import { useEffect, useMemo, useState } from "react";
+import { Platform, TouchableOpacity, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
+import OutlineButton from "@/src/components/outline-button";
+import RiderCard from "@/src/components/rider-card";
+import TextInputField from "@/src/components/text-input-field";
+import { red500, slate500, slate700, UTBluebonnet } from "@/src/utils/colors";
+import { useGroupRideSession } from "@/src/utils/context/group-ride-context";
+import { useSession } from "@/src/utils/context/user-context";
 
 const GroupRide = () => {
   const { user } = useSession();
@@ -35,35 +31,9 @@ const GroupRide = () => {
   const [utEID, setUTEID] = useState<string>("");
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [isValid, setIsValid] = useState<boolean>(false);
   const [isFull, setIsFull] = useState<boolean>(false);
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  const keyboardPaddingHeight = useSharedValue(20);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    height: withTiming(keyboardPaddingHeight.value, {
-      easing: Easing.out(Easing.quad),
-    }),
-  }));
-
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
-      keyboardPaddingHeight.set(190);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd();
-      }, 250);
-    });
-
-    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
-      keyboardPaddingHeight.set(20);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const leaderGroupRideMember: GroupRideMember = useMemo(
     () => ({
@@ -71,6 +41,7 @@ const GroupRide = () => {
       lastName: user?.lastName!.trim()!,
       eid: user?.eid?.trim(),
       userType: user?.userType!,
+      phoneNumber: user?.phoneNumber,
     }),
     [user],
   );
@@ -80,8 +51,12 @@ const GroupRide = () => {
       setIsValid(false);
       return;
     }
+    if (phoneNumber.length > 0 && phoneNumber.trim().length < 10) {
+      setIsValid(false);
+      return;
+    }
     setIsValid(firstName.trim().length > 0 && lastName.trim().length > 0);
-  }, [addingUserType, utEID, firstName, lastName]);
+  }, [addingUserType, utEID, firstName, lastName, phoneNumber]);
 
   useEffect(() => {
     setIsFull(members.length >= 4);
@@ -91,15 +66,18 @@ const GroupRide = () => {
     setFirstName("");
     setLastName("");
     setUTEID("");
+    setPhoneNumber("");
   };
 
   const addRider = () => {
     if (!isValid) return;
+    const trimmedPhone = phoneNumber.trim();
     addMember({
-      firstName,
-      lastName,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       userType: addingUserType,
       eid: addingUserType === "ut-affiliated" ? utEID : undefined,
+      phoneNumber: trimmedPhone === "" ? undefined : trimmedPhone,
     });
     setAdding(false);
     clearFields();
@@ -145,10 +123,11 @@ const GroupRide = () => {
             zIndex: 10,
           }}
         />
-        <ScrollView
+        <KeyboardAwareScrollView
           className="flex-col px-5"
-          ref={scrollViewRef}
           keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 20 }}
+          bottomOffset={120}
         >
           <FontText className="text-xl font-semibold mt-5 transition-all mb-4">
             Group Leader
@@ -217,8 +196,23 @@ const GroupRide = () => {
                 maxLength={40}
                 autoCapitalize="words"
                 placeholder="Longhorn"
-                styleProps={{ marginBottom: 8 }}
               />
+              <View className="flex-col gap-2 mb-2">
+                <TextInputField
+                  fieldName="Phone Number"
+                  optionalPressableText="*Optional"
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  maxLength={14}
+                  keyboardType="phone-pad"
+                  autoComplete="tel"
+                  placeholder="(123)-456-7890"
+                  returnKeyType={Platform.OS === "ios" ? "done" : undefined}
+                />
+                <FontText className="text-md color-slate-500">
+                  For day-of-ride updates only
+                </FontText>
+              </View>
               <View className="flex-row gap-2">
                 <View className="flex-1">
                   <OutlineButton
@@ -252,8 +246,7 @@ const GroupRide = () => {
               icon={<UserPlusIcon size={32} color={UTBluebonnet} />}
             />
           )}
-          <Animated.View style={[animatedStyle]} />
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
       <LargeButton
         onPress={() => {

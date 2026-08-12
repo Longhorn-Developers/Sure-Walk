@@ -1,14 +1,16 @@
-import { SplashScreen, Stack } from "expo-router";
 import "../app/globals.css";
-import { Platform, View } from "react-native";
-import { SessionProvider } from "@/src/utils/context/user-context";
-import { useEffect } from "react";
+
 import * as NavigationBar from "expo-navigation-bar";
+import { SplashScreen, Stack } from "expo-router";
+import { useEffect } from "react";
+import { Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { configureReanimatedLogger } from "react-native-reanimated";
-import { GroupRideProvider } from "../utils/context/group-ride-context";
-import { RideProvider } from "../utils/context/ride-context";
-import { TabProvider } from "../utils/context/tab-context";
+
+import { SessionProvider } from "@/src/utils/context/user-context";
+
+import { ToastProvider } from "../utils/context/toast-context";
 
 configureReanimatedLogger({ strict: false });
 
@@ -29,26 +31,36 @@ export default function RootLayout() {
 
   return (
     <View className="bg-white h-full w-full">
-      <View className="flex-1 bg-white">
+      <KeyboardProvider>
         <GestureHandlerRootView>
-          <TabProvider>
+          <ToastProvider>
             <SessionProvider>
-              <RideProvider>
-                <GroupRideProvider>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen
-                      name="(tabs)"
-                      options={{
-                        headerShown: false,
-                      }}
-                    />
-                  </Stack>
-                </GroupRideProvider>
-              </RideProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="login"
+                  options={{
+                    headerShown: false,
+                  }}
+                />
+                <Stack.Screen
+                  name="cancellation-reason"
+                  options={{ presentation: "containedModal" }}
+                />
+                <Stack.Screen
+                  name="feedback"
+                  options={{ presentation: "containedModal" }}
+                />
+              </Stack>
             </SessionProvider>
-          </TabProvider>
+          </ToastProvider>
         </GestureHandlerRootView>
-      </View>
+      </KeyboardProvider>
     </View>
   );
 }

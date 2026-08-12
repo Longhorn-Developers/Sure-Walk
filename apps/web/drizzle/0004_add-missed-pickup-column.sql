@@ -1,0 +1,1 @@
+ALTER TABLE `rides` ADD `missed_pickup` integer DEFAULT false NOT NULL;

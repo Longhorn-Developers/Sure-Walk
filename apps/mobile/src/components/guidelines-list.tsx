@@ -1,17 +1,18 @@
-import { View } from "react-native";
 import {
   ClockIcon,
-  UsersIcon,
-  MapPinIcon,
-  WarningIcon,
-  TimerIcon,
-  MoonIcon,
   HamburgerIcon,
-  XCircleIcon,
   IconContext,
+  MapPinIcon,
+  PhoneCallIcon,
+  TimerIcon,
+  UsersIcon,
+  WarningIcon,
+  XCircleIcon,
 } from "phosphor-react-native";
-import FontText from "./font-text";
+import { View } from "react-native";
+
 import { UTBurntOrange } from "../utils/colors";
+import FontText from "./font-text";
 
 const GuidelinesList = ({ includeBottomBorder = false }) => {
   const guidelines = [
@@ -19,49 +20,47 @@ const GuidelinesList = ({ includeBottomBorder = false }) => {
       icon: <ClockIcon />,
       title: "Hours of Operation",
       description:
-        "We operate from 7 PM to 2 AM, we won’t accept any requests that are not within this time frame.",
+        "8pm - 2am, 7 days/week\n*Excludes holidays and when the campus is closed\n**7pm - 2am during standard (winter) time",
     },
     {
-      icon: <UsersIcon />,
-      title: "Rideshare Service",
+      icon: <PhoneCallIcon />,
+      title: "Enable Phone Calls",
       description:
-        "This is a free service available to everyone, you may be in a vehicle with others.",
+        "Turn off “Do Not Disturb” so dispatch can reach you about your ride",
     },
     {
       icon: <MapPinIcon />,
-      title: "Pick Up / Drop Off Boundaries",
+      title: "Pick Up & Drop-off",
       description:
-        "• Pickups: Must begin from an on-campus location \n• Drop-offs: Allowed to West Campus, off-campus neighborhoods within the service area, or to another on-campus location \n• Sure Walk does not provide rides to any food establishment",
+        "Pickups: Must begin on-campus\nDrop-offs are available:\n    • On campus\n    • West Campus\n    • Eligible off-campus neighborhoods",
+    },
+    {
+      icon: <XCircleIcon />,
+      title: "Cancellations",
+      description: "Cancel your ride in the app before your driver arrives",
     },
     {
       icon: <WarningIcon />,
       title: "No Booking in Advance",
-      description:
-        "Book when you are ready to be picked up. We do not offer advance reservations.",
+      description: "Request a ride only when you're ready for pickup",
     },
     {
       icon: <TimerIcon />,
       title: "2-Minute Wait Period",
       description:
-        "If you are not at your pickup location within 2 minutes of your scheduled pickup time, your request will be canceled.",
+        "Drivers wait 2 minutes after arriving at the pickup location before leaving",
     },
     {
-      icon: <MoonIcon />,
-      title: "Disable 'Do Not Disturb'",
+      icon: <UsersIcon />,
+      title: "Shared Rides",
       description:
-        "Please disable 'Do Not Disturb' mode on your phone to ensure you receive notifications from Sure Walk.",
+        "Sure Walk is a free ride-share service, you may be in a vehicle with others",
     },
     {
       icon: <HamburgerIcon />,
       title: "No Food or Drink in the Vehicles",
       description:
-        "To keep our vehicles clean, please avoid bringing any food or drinks.",
-    },
-    {
-      icon: <XCircleIcon />,
-      title: "Cancellations",
-      description:
-        "If you need to cancel your ride, do so through the app prior to your vehicle’s arrival.",
+        "To keep our vehicles clean, please avoid bringing any food or drinks",
     },
   ];
 
@@ -70,9 +69,9 @@ const GuidelinesList = ({ includeBottomBorder = false }) => {
       value={{ color: UTBurntOrange, size: 20, weight: "bold" }}
     >
       <View className={"flex-1 gap-5 p-5 pt-4"}>
-        <View className="flex-1 gap-3.5 justify-start">
+        <View className="flex-1 gap-3.5 justify-start w-full">
           {guidelines.map((guideline, index) => (
-            <View key={index} className="gap-2">
+            <View key={index} className="gap-2 flex-col">
               <View className="flex-row gap-2 items-center">
                 {guideline.icon}
                 <FontText className="text-gray-900 text-xl font-semibold leading-[26px]">
@@ -82,7 +81,7 @@ const GuidelinesList = ({ includeBottomBorder = false }) => {
               <View
                 className={`ms-8 me-8 pb-3.5 ${includeBottomBorder || index < guidelines.length - 1 ? "border-b border-gray-300" : ""}`}
               >
-                <FontText className="text-gray-900 text-base leading-normal">
+                <FontText className="text-gray-900 text-lg">
                   {guideline.description}
                 </FontText>
               </View>
@@ -91,6 +90,37 @@ const GuidelinesList = ({ includeBottomBorder = false }) => {
         </View>
       </View>
     </IconContext.Provider>
+  );
+};
+
+export const GuidelinesListShort = () => {
+  const guidelines = [
+    {
+      icon: <TimerIcon size={24} />,
+      text: "Board within 2 minutes of arrival",
+    },
+    {
+      icon: <PhoneCallIcon size={24} />,
+      text: 'Turn off "Do Not Disturb"',
+    },
+    {
+      icon: <HamburgerIcon size={24} />,
+      text: "No food or drinks in the vehicle",
+    },
+  ];
+
+  return (
+    <View className="flex-col gap-3">
+      {guidelines.map(({ icon, text }, index) => (
+        <View
+          className="flex-row gap-2 px-4 bg-gray-50 border border-gray-200 rounded-lg align-center"
+          key={index}
+        >
+          <View className="flex-col justify-center">{icon}</View>
+          <FontText className="py-4 font-medium text-lg">{text}</FontText>
+        </View>
+      ))}
+    </View>
   );
 };
 

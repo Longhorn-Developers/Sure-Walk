@@ -1,9 +1,10 @@
+import { router } from "expo-router";
+import { View } from "react-native";
+
+import FontText from "@/src/components/font-text";
 import LargeButton from "@/src/components/large-button";
 import RadioButton from "@/src/components/radio-button";
 import { useLoginSession } from "@/src/utils/context/login-context";
-import { router } from "expo-router";
-import { View } from "react-native";
-import FontText from "@/src/components/font-text";
 
 const Assistance = () => {
   const { requiresAssistance, setRequiresAssistance } = useLoginSession();

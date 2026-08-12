@@ -1,9 +1,10 @@
-import { gray900 } from "@/src/utils/colors";
-import { LoginSessionProvider } from "@/src/utils/context/login-context";
 import { router, Stack, usePathname } from "expo-router";
 import { CaretLeftIcon } from "phosphor-react-native";
 import { TouchableOpacity, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+
+import { gray900 } from "@/src/utils/colors";
+import { LoginSessionProvider } from "@/src/utils/context/login-context";
 
 const _layout = () => {
   const pathname = usePathname();

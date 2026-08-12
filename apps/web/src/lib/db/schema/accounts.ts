@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { sqliteTable, text } from "drizzle-orm/sqlite-core";
+
 import { users } from "./users";
 
 export const accounts = sqliteTable("accounts", {

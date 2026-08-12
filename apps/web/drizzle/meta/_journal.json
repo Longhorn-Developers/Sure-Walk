@@ -22,6 +22,62 @@
       "when": 1775170419828,
       "tag": "0002_ask-eid-in-onboarding",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1783893099122,
+      "tag": "0003_rides-base-schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1784006835905,
+      "tag": "0004_add-missed-pickup-column",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1784095580951,
+      "tag": "0005_add-extra-vehicle-info",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1784585506139,
+      "tag": "0006_add-ride-share-code",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1786059711767,
+      "tag": "0007_add-feedback-table",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1786127725680,
+      "tag": "0008_add-submittedAt-to-feedback",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1786251016931,
+      "tag": "0009_add-num-picked-up-and-submitted-at-indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1786336671993,
+      "tag": "0010_add-unique-indexes-on-pickup-dropoff-stop-ids",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,7 @@
 import UserType from "@sure-walk/utils/types/user-type";
+import axios from "axios";
 import Constants from "expo-constants";
+import * as SecureStore from "expo-secure-store";
 
 const useProdAPI = false;
 let API_URL: string;
@@ -24,42 +26,40 @@ export const registerGeneric = async ({
   requiresAssistance: boolean;
   userType: UserType;
 }) => {
-  const response = await fetch(`${API_URL}/auth/register-generic`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  const response = await axios.post(
+    `${API_URL}/auth/register-generic`,
+    {
       firstName,
       lastName,
       eid,
       phoneNumber,
       requiresAssistance,
       userType,
-    }),
-  });
+    },
+    { validateStatus: () => true },
+  );
   return response;
 };
 
 export const confirmGeneric = async (code: string) => {
-  const response = await fetch(`${API_URL}/auth/confirm-generic`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const response = await axios.post(
+    `${API_URL}/auth/confirm-generic`,
+    {
+      code,
     },
-    body: JSON.stringify({ code }),
-  });
+    { validateStatus: () => true },
+  );
   return response;
 };
 
-export const logout = async (refreshToken: string) => {
-  const response = await fetch(`${API_URL}/auth/logout`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ refreshToken }),
-  });
+export const logout = async () => {
+  const refreshToken = await SecureStore.getItemAsync("refreshToken");
+
+  const response = await axios.post(
+    `${API_URL}/auth/logout`,
+    { refreshToken },
+    { validateStatus: () => true },
+  );
   return response;
 };
 

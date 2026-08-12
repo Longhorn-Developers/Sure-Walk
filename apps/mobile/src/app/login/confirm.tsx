@@ -1,39 +1,62 @@
-import LargeButton from "@/src/components/large-button";
-import { useLoginSession } from "@/src/utils/context/login-context";
 import { router } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { CircleIcon } from "phosphor-react-native";
 import { useRef, useState } from "react";
 import {
-  View,
+  Platform,
   TextInput,
   TouchableWithoutFeedback,
-  Platform,
+  View,
 } from "react-native";
-import FontText from "@/src/components/font-text";
-import { gray500 } from "@/src/utils/colors";
+
+import { getErrorMessage, handleNetworkFailure } from "@/src/client";
 import { confirmGeneric } from "@/src/client/auth";
+import { ok } from "@/src/client/session";
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
+import { gray500 } from "@/src/utils/colors";
+import { useLoginSession } from "@/src/utils/context/login-context";
+import { useToastContext } from "@/src/utils/context/toast-context";
 import { useSession } from "@/src/utils/context/user-context";
-import { getErrorMessage } from "@/src/client";
 
 const Confirm = () => {
   const { phoneNumber } = useLoginSession();
   const { setUser } = useSession();
+  const { setToast } = useToastContext();
+
   const [code, setCode] = useState("");
   const [focused, setFocus] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+
   const textInputRef = useRef<TextInput | null>(null);
 
   const confirmCode = async () => {
-    const response = await confirmGeneric(code);
+    setSubmitting(true);
+    try {
+      const response = await confirmGeneric(code);
 
-    if (!response.ok) {
-      console.error(await getErrorMessage(response, "Failed to confirm code."));
-      return;
+      if (!ok(response)) {
+        const error = getErrorMessage(response, "Failed to confirm code.");
+        setToast({
+          title: "Error",
+          description: error,
+          onDismiss: () => setToast(null),
+          isError: true,
+        });
+        return;
+      }
+
+      const { accessToken, refreshToken, user } = response.data;
+      setUser(user);
+      await SecureStore.setItemAsync("accessToken", accessToken);
+      await SecureStore.setItemAsync("refreshToken", refreshToken);
+      router.dismissAll();
+      router.replace("/login/guidelines");
+    } catch (error) {
+      handleNetworkFailure(error, setToast);
+    } finally {
+      setSubmitting(false);
     }
-
-    const { accessToken, refreshToken, user } = await response.json();
-    setUser(user, { accessToken, refreshToken });
-    router.dismissAll();
-    router.replace("/login/guidelines");
   };
 
   return (
@@ -88,11 +111,11 @@ const Confirm = () => {
         />
       </View>
       <LargeButton
-        title="Continue"
+        title={submitting ? "Submitting..." : "Confirm"}
         onPress={() => {
           confirmCode();
         }}
-        disabled={code.length !== 6}
+        disabled={code.length !== 6 || submitting}
       />
     </View>
   );

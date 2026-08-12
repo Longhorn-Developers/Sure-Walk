@@ -1,18 +1,17 @@
-import LargeButton from "@/src/components/large-button";
-import TextInputField from "@/src/components/text-input-field";
-import { useLoginSession } from "@/src/utils/context/login-context";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Platform, View } from "react-native";
-import FontText from "@/src/components/font-text";
+
+import { getErrorMessage, handleNetworkFailure } from "@/src/client";
 import { registerGeneric } from "@/src/client/auth";
-import { getErrorMessage } from "@/src/client";
+import { ok } from "@/src/client/session";
+import FontText from "@/src/components/font-text";
+import LargeButton from "@/src/components/large-button";
+import TextInputField from "@/src/components/text-input-field";
+import { useLoginSession } from "@/src/utils/context/login-context";
+import { useToastContext } from "@/src/utils/context/toast-context";
 
 const Phone = () => {
-  const checkValidity = (value: string) => {
-    return value.replace(/\D/g, "").length >= 10;
-  };
-
   const {
     firstName,
     lastName,
@@ -22,6 +21,13 @@ const Phone = () => {
     phoneNumber,
     setPhoneNumber,
   } = useLoginSession();
+  const { setToast } = useToastContext();
+
+  const checkValidity = (value: string) => {
+    return value.replace(/\D/g, "").length >= 10;
+  };
+
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const [isValid, setIsValid] = useState(checkValidity(phoneNumber));
 
   const handlePhoneNumberChange = (value: string) => {
@@ -30,23 +36,34 @@ const Phone = () => {
   };
 
   const registerAccount = async () => {
-    const response = await registerGeneric({
-      firstName,
-      lastName,
-      eid,
-      phoneNumber,
-      requiresAssistance: requiresAssistance!,
-      userType: userType!,
-    });
+    setSubmitting(true);
+    try {
+      const response = await registerGeneric({
+        firstName,
+        lastName,
+        eid,
+        phoneNumber,
+        requiresAssistance: requiresAssistance!,
+        userType: userType!,
+      });
 
-    if (!response.ok) {
-      console.error(
-        await getErrorMessage(response, "Failed to register account"),
-      );
-      return;
+      if (!ok(response)) {
+        const error = getErrorMessage(response, "Failed to register account");
+        setToast({
+          title: "Failed to register account.",
+          description: error,
+          onDismiss: () => setToast(null),
+          isError: true,
+        });
+        return;
+      }
+
+      router.navigate("/login/confirm");
+    } catch (error) {
+      handleNetworkFailure(error, setToast);
+    } finally {
+      setSubmitting(false);
     }
-
-    router.navigate("/login/confirm");
   };
 
   return (
@@ -70,11 +87,9 @@ const Phone = () => {
         />
       </View>
       <LargeButton
-        title="Continue"
-        disabled={!isValid}
-        onPress={() => {
-          registerAccount();
-        }}
+        title={submitting ? "Submitting..." : "Continue"}
+        disabled={!isValid || submitting}
+        onPress={registerAccount}
       />
     </View>
   );
